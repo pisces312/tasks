@@ -127,6 +127,46 @@ D:\nili\dev\gradle\bin\gradle.bat assembleFdroidDebug --no-daemon
 3. **KMP + Compose 的模块结构：** Android 应用入口在 `composeApp` 模块而非 `app` 模块
 4. **Debug APK 体积大：** 包含 debug 符号和未压缩资源，约为 release 版的 1.8 倍
 
+## Release 构建
+
+Release 构建需要本地 keystore 和更大内存。
+
+### 1. 创建 keystore
+
+```powershell
+keytool -genkeypair -v -keystore tasks-release.jks `
+  -keyalg RSA -keysize 2048 -validity 10000 `
+  -alias tasks -storepass tasks123 -keypass tasks123 `
+  -dname "CN=Tasks, OU=Dev, O=pisces312, L=Shanghai, ST=Shanghai, C=CN"
+```
+
+### 2. gradle.properties 配置
+
+```properties
+org.gradle.jvmargs=-Xmx8G -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+tasksStoreFile=tasks-release.jks
+tasksKeyAlias=tasks
+tasksStorePassword=tasks123
+tasksKeyPassword=tasks123
+```
+
+注意：properties 中每行末尾不要加反斜杠续行符，PowerShell 会错误解析。
+
+### 3. 构建
+
+```powershell
+.\build.ps1 release  # 构建 release 版
+.\build.ps1 debug    # 构建 debug 版
+```
+
+## 构建产物
+
+| 构建类型 | 路径 | 大小 |
+|---------|------|------|
+| fdroid debug | `composeApp/build/outputs/apk/fdroid/debug/composeApp-fdroid-debug.apk` | 43.64 MB |
+| fdroid release | `composeApp/build/outputs/apk/fdroid/release/composeApp-fdroid-release.apk` | **35.25 MB** |
+
 ## 构建日期
 
 2026-04-20
+2026-04-20（release）
