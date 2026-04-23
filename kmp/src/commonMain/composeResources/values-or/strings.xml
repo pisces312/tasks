@@ -26,4 +26,9 @@
     <string name="url">URL</string>
     <string name="user">ଉପଭୋକ୍ତା</string>
     <string name="password">ପାସ୍‍ୱର୍ଡ଼</string>
+    <string name="preferences_look_and_feel">ରୂପ ଏଵଂ ଅନୁଭଵ</string>
+    <string name="date_and_time">ତାରିଖ ଓ ସମୟ</string>
+    <string name="preferences_advanced">ଵିକଶିତ</string>
+    <string name="about">ସମ୍ବନ୍ଧରେ</string>
+    <string name="name_cannot_be_empty">ନାମ ଖାଲି ଛଡ଼ା ଯାଇପାରିବ ନାହିଁ</string>
 </resources>

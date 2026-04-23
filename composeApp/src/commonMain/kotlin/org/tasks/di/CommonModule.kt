@@ -4,7 +4,11 @@ import com.todoroo.astrid.alarms.AlarmCalculator
 import com.todoroo.astrid.alarms.AlarmService
 import com.todoroo.astrid.repeats.RepeatTaskHelper
 import com.todoroo.astrid.timers.TimerPlugin
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
@@ -24,6 +28,8 @@ import org.tasks.data.MergedGeofence
 import org.tasks.data.TaskSaver
 import org.tasks.data.db.Database
 import org.tasks.data.entity.Alarm
+import org.tasks.data.entity.CaldavAccount.Companion.TYPE_CALDAV
+import org.tasks.data.entity.CaldavAccount.Companion.TYPE_TASKS
 import org.tasks.data.entity.Place
 import org.tasks.data.entity.Task
 import org.tasks.filters.FilterProvider
@@ -40,17 +46,24 @@ import org.tasks.reminders.Random
 import org.tasks.service.TaskCleanup
 import org.tasks.service.TaskCompleter
 import org.tasks.service.TaskDeleter
+import org.tasks.service.TaskMigrator
 import org.tasks.sync.SyncAdapters
 import org.tasks.sync.SyncSource
 import org.tasks.tasklist.HeaderFormatter
-import org.tasks.viewmodel.AddAccountViewModel
+import org.tasks.compose.accounts.AddAccountViewModel
 import org.tasks.viewmodel.AppViewModel
 import org.tasks.viewmodel.DrawerViewModel
 import org.tasks.viewmodel.SortSettingsViewModel
 import org.tasks.viewmodel.TaskEditViewModel
+import org.tasks.viewmodel.LocalAccountViewModel
+import org.tasks.viewmodel.MainSettingsViewModel
+import org.tasks.viewmodel.ProCardViewModel
+import org.tasks.viewmodel.TasksAccountViewModel
 import org.tasks.viewmodel.TaskListViewModel
 
 val commonModule = module {
+    single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+
     // DAOs - singletons (from Database singleton)
     single { get<Database>().caldavDao() }
     single { get<Database>().taskDao() }
@@ -127,20 +140,35 @@ val commonModule = module {
     factory<org.tasks.compose.drawer.DrawerConfiguration> {
         object : org.tasks.compose.drawer.DrawerConfiguration {}
     }
-    factory<org.tasks.billing.PurchaseState> {
+    single<org.tasks.billing.PurchaseState> {
+        val caldavDao = get<org.tasks.data.dao.CaldavDao>()
+        val _hasTasksAccount = MutableStateFlow(false)
+        get<CoroutineScope>().launch {
+            caldavDao.watchAccounts()
+                .collect { accounts ->
+                    _hasTasksAccount.value = accounts.any { it.isTasksOrg }
+                }
+        }
         object : org.tasks.billing.PurchaseState {
-            override val hasPro = true // Tasks.org cloud users have pro
+            override val hasTasksAccount: Boolean get() = _hasTasksAccount.value
+            override val hasPro: Boolean get() = hasTasksAccount
         }
     }
 
     // Stateful singletons
     single<BackgroundWork> {
+        val scope = get<CoroutineScope>()
         val mutex = kotlinx.coroutines.sync.Mutex()
         val pending = java.util.concurrent.atomic.AtomicBoolean(false)
         object : BackgroundWork {
             override fun updateCalendar(task: Task) {}
             override suspend fun scheduleRefresh(timestamp: Long) {}
             override suspend fun scheduleBlogFeedCheck() {}
+            override fun migrateLocalTasks(account: org.tasks.data.entity.CaldavAccount) {
+                scope.launch {
+                    get<org.tasks.service.TaskMigrator>().migrateLocalTasks(account)
+                }
+            }
             override suspend fun sync(source: SyncSource) {
                 if (!mutex.tryLock()) {
                     pending.set(true)
@@ -151,7 +179,7 @@ val commonModule = module {
                         pending.set(false)
                         val synchronizer = get<CaldavSynchronizer>()
                         val caldavDao = get<org.tasks.data.dao.CaldavDao>()
-                        caldavDao.getAccounts().forEach { account ->
+                        caldavDao.getAccounts(TYPE_CALDAV, TYPE_TASKS).forEach { account ->
                             synchronizer.sync(account, hasPro = account.isTasksOrg)
                         }
                     } while (pending.getAndSet(false))
@@ -180,6 +208,7 @@ val commonModule = module {
     factory { TaskCompleter(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     factoryOf(::TimerPlugin)
     factoryOf(::TaskDeleter)
+    factoryOf(::TaskMigrator)
     factoryOf(::TaskSaver)
     factoryOf(::iCalendar)
     factoryOf(::CaldavSynchronizer)
@@ -225,6 +254,42 @@ val commonModule = module {
             preferences = get(),
             reporting = get(),
             refreshBroadcaster = get(),
+        )
+    }
+    viewModel {
+        MainSettingsViewModel(
+            platformConfiguration = get(),
+        )
+    }
+    viewModel {
+        LocalAccountViewModel(
+            caldavDao = get(),
+            taskDeleter = get(),
+        )
+    }
+    viewModel {
+        TasksAccountViewModel(
+            provider = get(),
+            reporting = get(),
+            accountDataRepository = get(),
+            caldavDao = get(),
+            principalDao = get(),
+            backgroundWork = get(),
+            pushTokenManager = get(),
+            taskDeleter = get(),
+            tasksPreferences = get(),
+            subscriptionProvider = get(),
+            caldavUrl = get<org.tasks.auth.TasksServerEnvironment>().caldavUrl,
+        )
+    }
+    viewModel {
+        ProCardViewModel(
+            caldavDao = get(),
+            subscriptionProvider = get(),
+            tasksPreferences = get(),
+            accountDataRepository = get(),
+            serverEnvironment = get(),
+            platformConfiguration = get(),
         )
     }
 }

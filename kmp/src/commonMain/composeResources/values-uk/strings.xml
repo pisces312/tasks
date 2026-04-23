@@ -125,4 +125,31 @@
     <string name="password">Пароль</string>
     <string name="migrating_tasks">Перенесення завдань</string>
     <string name="migrate_count">Перемістити %1$s на Tasks.org</string>
+    <string name="preferences_look_and_feel">Зовнішній вигляд</string>
+    <string name="notifications">Сповіщення</string>
+    <string name="task_defaults">Типові налаштування завдань</string>
+    <string name="task_list_options">Налаштування списку завдань</string>
+    <string name="EPr_edit_screen_options">Налаштування екрана редагування</string>
+    <string name="date_and_time">Дата й час</string>
+    <string name="navigation_drawer">Панель навігації</string>
+    <string name="backup_BPr_header">Резервні копії</string>
+    <string name="preferences_advanced">Розширені</string>
+    <string name="about">Про Tasks</string>
+    <string name="widget_settings">Налаштування віджету</string>
+    <plurals name="task_count">
+        <item quantity="one">%d завдання</item>
+        <item quantity="few">%d завдання</item>
+        <item quantity="many">%d завдань</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s буде видалено. Дію неможливо скасувати!</string>
+    <string name="name_cannot_be_empty">Ім'я не може бути порожнє</string>
+    <string name="discard_changes">Скасувати зміни?</string>
+    <string name="discard">Скасувати</string>
+    <string name="delete">Видалити</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d список</item>
+        <item quantity="few">%1$d списка</item>
+        <item quantity="many">%1$d списків</item>
+        <item quantity="other">%1$d списків</item>
+    </plurals>
 </resources>

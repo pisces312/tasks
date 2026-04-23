@@ -160,4 +160,28 @@
     <string name="regenerate_email_address_confirmation">Geçerli e-posta adresiniz çalışmayı durduracak</string>
     <string name="migrating_tasks">Görevler göç ediliyor</string>
     <string name="migrate_count">%1$s taneyi Tasks.org'a taşı</string>
+    <string name="preferences_look_and_feel">Görünüm ve his</string>
+    <string name="notifications">Bildirimler</string>
+    <string name="task_defaults">Görev öntanımlıları</string>
+    <string name="task_list_options">Görev listesi seçenekleri</string>
+    <string name="EPr_edit_screen_options">Düzenleme ekranı ayarları</string>
+    <string name="date_and_time">Tarih ve zaman</string>
+    <string name="navigation_drawer">Gezinim çekmecesi</string>
+    <string name="backup_BPr_header">Yedekler</string>
+    <string name="preferences_advanced">Gelişmiş</string>
+    <string name="about">Hakkında</string>
+    <string name="widget_settings">Widget ayarları</string>
+    <plurals name="task_count">
+        <item quantity="one">%d görev</item>
+        <item quantity="other">%d görev</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s silinecek. Bu geri alınamaz!</string>
+    <string name="name_cannot_be_empty">Ad boş olamaz</string>
+    <string name="discard_changes">Değişiklikleri gözden çıkar?</string>
+    <string name="discard">Gözden çıkar</string>
+    <string name="delete">Sil</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d liste</item>
+        <item quantity="other">%1$d liste</item>
+    </plurals>
 </resources>

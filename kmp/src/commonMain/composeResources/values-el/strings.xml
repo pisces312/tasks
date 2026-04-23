@@ -125,4 +125,28 @@
     <string name="password">Κωδικός</string>
     <string name="migrating_tasks">Εργασίες μετακίνησης</string>
     <string name="migrate_count">Μετακίνηση %1$s στο Tasks.org</string>
+    <string name="preferences_look_and_feel">Όψη και αίσθηση</string>
+    <string name="notifications">Ειδοποιήσεις</string>
+    <string name="task_defaults">Προεπιλογές Εργασιών</string>
+    <string name="task_list_options">Επιλογές λίστας Εργασιών</string>
+    <string name="EPr_edit_screen_options">Επεξεργασία επιλογών εμφάνισης</string>
+    <string name="date_and_time">Ημερομηνία και ώρα</string>
+    <string name="navigation_drawer">Συρτάρι πλοήγησης</string>
+    <string name="backup_BPr_header">Αντίγραφα ασφαλείας</string>
+    <string name="preferences_advanced">Συνθέτες</string>
+    <string name="about">Σχετικά</string>
+    <string name="widget_settings">Ρυθμίσεις γραφικού στοιχείου</string>
+    <plurals name="task_count">
+        <item quantity="one">%d εργασία</item>
+        <item quantity="other">%d εργασίες</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s θα διαγραφεί. Αυτό δεν γίνεται να αναιρεθεί!</string>
+    <string name="name_cannot_be_empty">Το όνομα δεν μπορεί να είναι κενό</string>
+    <string name="discard_changes">Απόρριψη αλλαγών;</string>
+    <string name="discard">Απόρριψη</string>
+    <string name="delete">Διαγραφή</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d λίστα</item>
+        <item quantity="other">%1$d λίστες</item>
+    </plurals>
 </resources>

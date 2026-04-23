@@ -130,4 +130,37 @@
     <string name="password">Пароль</string>
     <string name="migrating_tasks">Перенос задач</string>
     <string name="migrate_count">Переместить %1$s на Tasks.org</string>
+    <string name="preferences_look_and_feel">Внешний вид</string>
+    <string name="notifications">Уведомления</string>
+    <string name="task_defaults">Параметры по умолчанию</string>
+    <string name="task_list_options">Настройки списка задач</string>
+    <string name="EPr_edit_screen_options">Настройки экрана редактирования</string>
+    <string name="date_and_time">Дата и время</string>
+    <string name="navigation_drawer">Панель навигации</string>
+    <string name="backup_BPr_header">Резервные копии</string>
+    <string name="preferences_advanced">Расширенные</string>
+    <string name="about">О программе</string>
+    <string name="widget_settings">Настройки виджета</string>
+    <plurals name="task_count">
+        <item quantity="one">%d задача</item>
+        <item quantity="few">%d задачи</item>
+        <item quantity="many">%d задач</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s будет удалена. Это нельзя отменить!</string>
+    <string name="name_cannot_be_empty">Необходимо задать имя</string>
+    <string name="discard_changes">Отменить изменения?</string>
+    <string name="discard">Отменить</string>
+    <string name="delete">Удалить</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d список</item>
+        <item quantity="few">%1$d списка</item>
+        <item quantity="many">%1$d списков</item>
+        <item quantity="other">%1$d списков</item>
+    </plurals>
+    <string name="sort_alphabetical">По алфавиту</string>
+    <string name="sort_created">По созданию</string>
+    <string name="sort_modified">По изменению</string>
+    <string name="all_done">Всё готово!</string>
+    <string name="returning_user_import_backup">Импорт резервной копии Tasks.org</string>
+    <string name="legal_disclosure">%1$s, вы соглашаетесь с %2$s и %3$s. Tasks — это программное обеспечение с открытым исходным кодом, предоставляемое на условиях %4$s.</string>
 </resources>

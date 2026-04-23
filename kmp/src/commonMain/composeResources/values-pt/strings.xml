@@ -125,4 +125,28 @@
     <string name="password">Palavra-passe</string>
     <string name="migrating_tasks">A migrar as tarefas</string>
     <string name="migrate_count">Mover %1$s para Tasks.org</string>
+    <string name="preferences_look_and_feel">Aparência</string>
+    <string name="notifications">Notificações</string>
+    <string name="task_defaults">Predefinições das tarefas</string>
+    <string name="task_list_options">Opções da lista de tarefas</string>
+    <string name="EPr_edit_screen_options">Opções do ecrã de edição</string>
+    <string name="date_and_time">Data e hora</string>
+    <string name="navigation_drawer">Gaveta de navegação</string>
+    <string name="backup_BPr_header">Cópias de segurança</string>
+    <string name="preferences_advanced">Avançado</string>
+    <string name="about">Sobre</string>
+    <string name="widget_settings">Definições do widget</string>
+    <plurals name="task_count">
+        <item quantity="one">%d tarefa</item>
+        <item quantity="other">%d tarefas</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s será apagado. Isso não poderá ser desfeito!</string>
+    <string name="name_cannot_be_empty">O nome não pode estar vazio</string>
+    <string name="discard_changes">Descartar alterações?</string>
+    <string name="discard">Descartar</string>
+    <string name="delete">Eliminar</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d lista</item>
+        <item quantity="other">%1$d listas</item>
+    </plurals>
 </resources>

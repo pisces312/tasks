@@ -152,4 +152,28 @@
     <string name="regenerate_email_address_confirmation">Via aktuala retpoŝtadreso ne plu funkcios</string>
     <string name="migrating_tasks">Transmetas taskojn</string>
     <string name="migrate_count">Movi %1$s al Tasks.org</string>
+    <string name="preferences_look_and_feel">Fasado</string>
+    <string name="notifications">Sciigoj</string>
+    <string name="task_defaults">Taskaj defaŭltoj</string>
+    <string name="task_list_options">Taskolistaj agordoj</string>
+    <string name="EPr_edit_screen_options">Redakti ekranajn agordojn</string>
+    <string name="date_and_time">Dato kaj tempo</string>
+    <string name="navigation_drawer">Naviga tirkesto</string>
+    <string name="backup_BPr_header">Savkopioj</string>
+    <string name="preferences_advanced">Altnivela</string>
+    <string name="about">Pri</string>
+    <string name="widget_settings">Agordoj de fenestraĵo</string>
+    <plurals name="task_count">
+        <item quantity="one">%d tasko</item>
+        <item quantity="other">%d taskoj</item>
+    </plurals>
+    <string name="delete_tasks_warning">Forigas %s. Ne eblas malfari tion!</string>
+    <string name="name_cannot_be_empty">Nomo ne povas malpleni</string>
+    <string name="discard_changes">Ĉu forĵeti ŝanĝojn?</string>
+    <string name="discard">Forĵeti</string>
+    <string name="delete">Forigi</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d listo</item>
+        <item quantity="other">%1$d listoj</item>
+    </plurals>
 </resources>

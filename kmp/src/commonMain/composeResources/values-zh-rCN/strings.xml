@@ -118,7 +118,7 @@
     <string name="display_name">显示名称</string>
     <string name="upgrade_to_pro_card_description">解锁 Tasks.org 云同步、好友和家庭共享、邮件转任务</string>
     <string name="supporter">支持者</string>
-    <string name="price_per_month_with_currency">每月%1$s</string>
+    <string name="price_per_month_with_currency">每月 %1$s</string>
     <string name="price_per_year_with_currency">每年%1$s</string>
     <string name="supporter_summary">%1$s • 谢谢！</string>
     <string name="sign_in_to_connect">登录以连接您的 Tasks.org 账号</string>
@@ -162,4 +162,28 @@
     <string name="regenerate_email_address_confirmation">您当前的电子邮件地址将停止使用</string>
     <string name="migrating_tasks">正在迁移任务</string>
     <string name="migrate_count">移动 %1$s 到 Tasks.org</string>
+    <string name="supporter_summary_no_price">感谢！</string>
+    <string name="preferences_look_and_feel">外观</string>
+    <string name="notifications">通知</string>
+    <string name="task_defaults">任务默认值</string>
+    <string name="task_list_options">任务清单选项</string>
+    <string name="EPr_edit_screen_options">编辑屏幕选项</string>
+    <string name="date_and_time">日期和时间</string>
+    <string name="navigation_drawer">导航抽屉</string>
+    <string name="backup_BPr_header">备份</string>
+    <string name="preferences_advanced">高级</string>
+    <string name="about">关于</string>
+    <string name="widget_settings">插件设置</string>
+    <plurals name="task_count">
+        <item quantity="other">%1$d 个任务</item>
+    </plurals>
+    <string name="delete_tasks_warning">%1$s 将被删除。此操作无法撤销！</string>
+    <string name="name_cannot_be_empty">名字不能为空</string>
+    <string name="discard_changes">是否放弃修改？</string>
+    <string name="discard">放弃</string>
+    <string name="delete">删除</string>
+    <plurals name="list_count">
+        <item quantity="other">%1$d 个清单</item>
+    </plurals>
+    <string name="debug">调试</string>
 </resources>

@@ -28,6 +28,7 @@ kotlin {
         androidMain {
             dependsOn(jvmCommonMain)
             dependencies {
+                implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.ui.tooling.preview.android)
                 implementation(libs.bitfire.cert4android)
                 implementation(libs.bitfire.ical4android.get().toString()) {
@@ -38,6 +39,7 @@ kotlin {
                 }
                 implementation(libs.persistent.cookiejar)
                 implementation(libs.pebblekit)
+                api(libs.etebase)
             }
         }
         jvmMain {
@@ -49,6 +51,10 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(libs.junit)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.mockito.kotlin)
+                implementation(libs.androidx.room)
+                implementation(libs.androidx.sqlite)
             }
         }
         jvmCommonMain.dependencies {

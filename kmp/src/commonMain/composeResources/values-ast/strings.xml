@@ -63,4 +63,25 @@
     <string name="url">URL</string>
     <string name="user">Usuariu</string>
     <string name="password">Conseña</string>
+    <string name="notifications">Avisos</string>
+    <string name="task_defaults">Valores predeterminaos de la xera</string>
+    <string name="task_list_options">Opciones de la llista de xeres</string>
+    <string name="EPr_edit_screen_options">Editar opciones de pantalla</string>
+    <string name="date_and_time">Data y hora</string>
+    <string name="backup_BPr_header">Copies de seguranza</string>
+    <string name="about">Tocantes a</string>
+    <string name="widget_settings">Axustes de widget</string>
+    <plurals name="task_count">
+        <item quantity="one">%d xera</item>
+        <item quantity="other">%d xeres</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s desaniciarase. ¡Esto nun se puee desfacer!</string>
+    <string name="name_cannot_be_empty">El nome nun puee tar baleru</string>
+    <string name="discard_changes">¿Escartar cambeos?</string>
+    <string name="discard">Escartar</string>
+    <string name="delete">Esborriar</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d llista</item>
+        <item quantity="other">%1$d llistes</item>
+    </plurals>
 </resources>

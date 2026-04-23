@@ -125,8 +125,8 @@
     <string name="guest">Gast</string>
     <string name="donate">Spenden</string>
     <string name="donate_nag">Erwäge deine Unterstützung mit einer Spende zu zeigen!</string>
-    <string name="manage_subscription">Abonnement ändern</string>
-    <string name="button_unsubscribe">Abonnement kündigen</string>
+    <string name="manage_subscription">Abo ändern</string>
+    <string name="button_unsubscribe">Abo kündigen</string>
     <string name="migrate">Migrieren</string>
     <string name="local_lists">Lokale Listen</string>
     <string name="email_to_task">E-Mail Aufgabenerstellung</string>
@@ -152,8 +152,8 @@
     <string name="view_tos">Nutzungsbedingungen ansehen</string>
     <string name="insufficient_sponsorship">Kein qualifiziertes GitHub-Sponsoring gefunden</string>
     <string name="button_subscribe">Abonnieren</string>
-    <string name="your_subscription_expired">Dein Abonnement ist abgelaufen. Abonniere jetzt, um den Dienst fortzusetzen.</string>
-    <string name="insufficient_subscription">Unzureichende Abonnementstufe. Bitte aktualisiere dein Abonnement, um den Dienst fortzusetzen.</string>
+    <string name="your_subscription_expired">Dein Abo ist abgelaufen. Abonniere jetzt, um den Dienst fortzusetzen.</string>
+    <string name="insufficient_subscription">Unzureichende Abonnementstufe. Bitte aktualisiere dein Abo, um den Dienst fortzusetzen.</string>
     <string name="authentication_required">Authentifizierung erforderlich</string>
     <string name="app_password_save">Nutze diese Anmeldedaten, um eine Drittanbieter-App zu konfigurieren. Diese erlauben vollen Zugriff auf deinen Task.org-Konto. Schreib sie nicht auf und teile sie mit niemandem!</string>
     <string name="url">URL</string>
@@ -162,4 +162,28 @@
     <string name="regenerate_email_address_confirmation">Deine derzeitige E-Mail-Adresse wird nicht mehr funktionieren</string>
     <string name="migrating_tasks">Aufgaben werden migriert</string>
     <string name="migrate_count">Verschiebe %1$s zu Tasks.org</string>
+    <string name="preferences_look_and_feel">Erscheinungsbild</string>
+    <string name="notifications">Benachrichtigungen</string>
+    <string name="task_defaults">Vorgaben für Aufgaben</string>
+    <string name="task_list_options">Aufgabenlisten-Optionen</string>
+    <string name="EPr_edit_screen_options">Bildschirmeinstellungen bearbeiten</string>
+    <string name="date_and_time">Datum und Uhrzeit</string>
+    <string name="navigation_drawer">Navigationsmenü</string>
+    <string name="backup_BPr_header">Sicherungen</string>
+    <string name="preferences_advanced">Erweitert</string>
+    <string name="about">Über</string>
+    <string name="widget_settings">Widget-Einstellungen</string>
+    <plurals name="task_count">
+        <item quantity="one">%d Aufgabe</item>
+        <item quantity="other">%d Aufgaben</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s wird/werden gelöscht. Dies kann nicht rückgängig gemacht werden!</string>
+    <string name="name_cannot_be_empty">Name darf nicht leer sein</string>
+    <string name="discard_changes">Änderungen verwerfen?</string>
+    <string name="discard">Verwerfen</string>
+    <string name="delete">Löschen</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d Liste</item>
+        <item quantity="other">%1$d Listen</item>
+    </plurals>
 </resources>

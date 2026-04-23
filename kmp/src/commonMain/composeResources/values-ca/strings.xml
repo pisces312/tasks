@@ -125,4 +125,30 @@
     <string name="password">Contrasenya</string>
     <string name="migrating_tasks">Migració de tasques</string>
     <string name="migrate_count">Mou %1$s a Tasks.org</string>
+    <string name="preferences_look_and_feel">Aspecte i comportament</string>
+    <string name="notifications">Notificacions</string>
+    <string name="task_defaults">Valors predeterminats de la tasca</string>
+    <string name="task_list_options">Opcions de la llista de tasques</string>
+    <string name="EPr_edit_screen_options">Edita les opcions de la pantalla</string>
+    <string name="date_and_time">Data i temps</string>
+    <string name="navigation_drawer">Calaix de navegació</string>
+    <string name="backup_BPr_header">Còpies de seguretat</string>
+    <string name="preferences_advanced">Avançat</string>
+    <string name="about">Sobre</string>
+    <string name="widget_settings">Preferències del giny</string>
+    <plurals name="task_count">
+        <item quantity="one">%d tasca</item>
+        <item quantity="many">%d tasques</item>
+        <item quantity="other">%d tasques</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s serà eliminat. Això no es pot desfer!</string>
+    <string name="name_cannot_be_empty">El nom no pot ser buit</string>
+    <string name="discard_changes">Descarta els canvis?</string>
+    <string name="discard">Descarta</string>
+    <string name="delete">Esborra</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d llista</item>
+        <item quantity="many">%1$d llistes</item>
+        <item quantity="other">%1$d llistes</item>
+    </plurals>
 </resources>

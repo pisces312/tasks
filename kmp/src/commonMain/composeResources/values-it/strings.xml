@@ -160,4 +160,30 @@
     <string name="regenerate_email_address_confirmation">L'indirizzo email attuale smetterà di funzionare</string>
     <string name="migrating_tasks">Migrazione delle attività in corso</string>
     <string name="migrate_count">Sposta %1$s su Tasks.org</string>
+    <string name="preferences_look_and_feel">Aspetto</string>
+    <string name="notifications">Notifiche</string>
+    <string name="task_defaults">Opzioni predefinite attività</string>
+    <string name="task_list_options">Opzioni elenco attività</string>
+    <string name="EPr_edit_screen_options">Opzioni schermata di modifica</string>
+    <string name="date_and_time">Data e ora</string>
+    <string name="navigation_drawer">Menù laterale</string>
+    <string name="backup_BPr_header">Backup</string>
+    <string name="preferences_advanced">Avanzate</string>
+    <string name="about">Informazioni</string>
+    <string name="widget_settings">Impostazioni widget</string>
+    <plurals name="task_count">
+        <item quantity="one">%d attività</item>
+        <item quantity="many">%d attività</item>
+        <item quantity="other">%d attività</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s verrà cancellato. L'operazione non può essere annullata!</string>
+    <string name="name_cannot_be_empty">Il nome non può essere vuoto</string>
+    <string name="discard_changes">Annullare le modifiche?</string>
+    <string name="discard">Sì, annulla</string>
+    <string name="delete">Elimina</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d lista</item>
+        <item quantity="many">%1$d liste</item>
+        <item quantity="other">%1$d liste</item>
+    </plurals>
 </resources>

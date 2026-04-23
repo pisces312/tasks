@@ -107,4 +107,27 @@
     <string name="password">Pasahitza</string>
     <string name="migrating_tasks">Zereginak migratzen</string>
     <string name="migrate_count">Eraman %1$s Tasks.org gunera</string>
+    <string name="preferences_look_and_feel">Itxura</string>
+    <string name="notifications">Jakinarazpenak</string>
+    <string name="task_defaults">Zereginen lehenespenak</string>
+    <string name="task_list_options">Zeregin-zerrendaren aukerak</string>
+    <string name="EPr_edit_screen_options">Edizio pantailaren aukerak</string>
+    <string name="date_and_time">Data eta ordua</string>
+    <string name="navigation_drawer">Nabigazio tiradera</string>
+    <string name="backup_BPr_header">Babes-kopiak</string>
+    <string name="preferences_advanced">Aurreratua</string>
+    <string name="about">Honi buruz</string>
+    <string name="widget_settings">Trepetaren ezarpenak</string>
+    <plurals name="task_count">
+        <item quantity="one">Zeregin %d</item>
+        <item quantity="other">%d zeregin</item>
+    </plurals>
+    <string name="name_cannot_be_empty">Izena ezin da hutsik egon</string>
+    <string name="discard_changes">Baztertu aldaketak?</string>
+    <string name="discard">Baztertu</string>
+    <string name="delete">Ezabatu</string>
+    <plurals name="list_count">
+        <item quantity="one">Zerrenda %1$d</item>
+        <item quantity="other">%1$d zerrenda</item>
+    </plurals>
 </resources>

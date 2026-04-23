@@ -6,7 +6,6 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.launch
@@ -35,7 +33,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -63,6 +60,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,7 +90,6 @@ import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.tasks.auth.OAuthProvider
@@ -102,6 +99,13 @@ import org.tasks.compose.drawer.TaskListDrawer
 import org.tasks.auth.TasksServerEnvironment
 import org.tasks.compose.NavigationBarScrim
 import org.tasks.compose.PlatformBackHandler
+import org.tasks.compose.settings.LocalAccountSettingsDetail
+import org.tasks.compose.settings.LocalAccountSettingsPane
+import org.tasks.compose.settings.MainSettingsScreen
+import org.tasks.compose.settings.ProCardState
+import org.tasks.compose.settings.SettingsPane
+import org.tasks.compose.settings.TasksAccountSettingsDetail
+import org.tasks.compose.settings.TasksAccountSettingsPane
 import org.tasks.compose.StatusBarScrim
 import org.tasks.compose.platformSidebarInsets
 import org.tasks.compose.platformStatusBarInsets
@@ -110,6 +114,7 @@ import org.tasks.compose.SignInProvider
 import org.tasks.compose.SignInProviderDialog
 import org.tasks.compose.WelcomeScreenLayout
 import org.tasks.compose.accounts.AddAccountScreen
+import org.tasks.compose.accounts.AddAccountViewModel
 import org.tasks.compose.accounts.Platform
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownColor
@@ -148,16 +153,18 @@ import org.tasks.tasklist.HeaderFormatter
 import org.tasks.time.DateTimeUtils2.currentTimeMillis
 import org.tasks.tasklist.SectionedDataSource
 import org.tasks.tasklist.TasksResults
-import org.tasks.viewmodel.AddAccountViewModel
 import org.tasks.viewmodel.AppViewModel
 import org.tasks.viewmodel.DrawerViewModel
 import org.tasks.viewmodel.TaskEditViewModel
+import org.tasks.viewmodel.MainSettingsViewModel
+import org.tasks.viewmodel.ProCardViewModel
 import org.tasks.viewmodel.TaskListViewModel
 import tasks.kmp.generated.resources.Res
 import tasks.kmp.generated.resources.back
 import tasks.kmp.generated.resources.settings
 import tasks.kmp.generated.resources.show_less
 import tasks.kmp.generated.resources.show_more
+import tasks.kmp.generated.resources.url_donate
 
 @Serializable
 data object WelcomeDestination : NavKey
@@ -261,12 +268,17 @@ fun App(
                             reporting.logEvent(AnalyticsEvents.SCREEN_ADD_ACCOUNT)
                         }
                         val addAccountViewModel = koinViewModel<AddAccountViewModel>()
+                        LaunchedEffect(Unit) {
+                            addAccountViewModel.accountAdded.collect {
+                                backStack.removeLastOrNull()
+                            }
+                        }
                         val signInState by addAccountViewModel.signInState.collectAsState()
                         var showProviderPicker by remember { mutableStateOf(false) }
                         AddAccountScreen(
                             configuration = configuration,
-                            hasTasksAccount = false,
-                            hasPro = false,
+                            hasTasksAccount = addAccountViewModel.hasTasksAccount,
+                            hasPro = addAccountViewModel.hasPro,
                             needsConsent = false,
                             onBack = { backStack.removeLastOrNull() },
                             signIn = { platform ->
@@ -363,6 +375,7 @@ fun App(
                     entry<SettingsDestination> {
                         SettingsScreen(
                             onBack = { backStack.removeLastOrNull() },
+                            onAddAccountClick = { backStack.add(AddAccountDestination) },
                         )
                     }
                 },
@@ -623,7 +636,9 @@ private fun TaskListContent(
                     viewModel = taskEditViewModel,
                     taskId = taskId.takeIf { it > 0 },
                     onClose = {
-                        scope.launch { navigator.navigateBack() }
+                        scope.launch {
+                            navigator.navigateBack(BackNavigationBehavior.PopLatest)
+                        }
                     },
                 )
             }
@@ -1279,31 +1294,163 @@ private fun FloatingToolbar(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 private fun SettingsScreen(
     onBack: () -> Unit,
+    onAddAccountClick: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.settings)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.back),
+    val viewModel = koinViewModel<MainSettingsViewModel>()
+    val proCardViewModel = koinViewModel<ProCardViewModel>()
+    val accounts by proCardViewModel.filteredAccounts.collectAsState()
+    val proCardState by proCardViewModel.proCardState.collectAsState()
+    val environmentLabel by proCardViewModel.environmentLabel.collectAsState()
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+    val donateUrl = stringResource(Res.string.url_donate)
+    val navigator = rememberListDetailPaneScaffoldNavigator<SettingsPane>()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val selectedContent = navigator.currentDestination
+        ?.takeIf { it.pane == ListDetailPaneScaffoldRole.Detail }
+        ?.contentKey
+
+    PlatformBackHandler(enabled = selectedContent != null) {
+        scope.launch {
+            if (!navigator.navigateBack()) {
+                onBack()
+            }
+        }
+    }
+
+    ListDetailPaneScaffold(
+        modifier = Modifier.fillMaxSize(),
+        directive = navigator.scaffoldDirective,
+        value = navigator.scaffoldValue,
+        listPane = {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(stringResource(Res.string.settings)) },
+                        navigationIcon = {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(Res.string.back),
+                                )
+                            }
+                        },
+                    )
+                },
+            ) { padding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                ) {
+                    MainSettingsScreen(
+                        accounts = accounts,
+                        proCardState = proCardState,
+                        environmentLabel = environmentLabel,
+                        showBackupWarning = false,
+                        showWidgets = viewModel.supportsWidgets,
+                        isDebug = viewModel.isDebug,
+                        onAccountClick = { account ->
+                            if (account.isLocalList) {
+                                scope.launch {
+                                    navigator.navigateTo(
+                                        ListDetailPaneScaffoldRole.Detail,
+                                        LocalAccountSettingsPane(account),
+                                    )
+                                }
+                            }
+                        },
+                        onAddAccountClick = onAddAccountClick,
+                        onSettingsClick = { destination ->
+                            scope.launch {
+                                navigator.navigateTo(
+                                    ListDetailPaneScaffoldRole.Detail,
+                                    destination,
+                                )
+                            }
+                        },
+                        onProCardClick = {
+                            when (val state = proCardState) {
+                                is ProCardState.TasksOrgAccount -> {
+                                    scope.launch {
+                                        navigator.navigateTo(
+                                            ListDetailPaneScaffoldRole.Detail,
+                                            TasksAccountSettingsPane(state.account),
+                                        )
+                                    }
+                                }
+                                is ProCardState.Upgrade -> {
+                                    uriHandler.openUri(donateUrl)
+                                }
+                                is ProCardState.Subscribed -> {}
+                                is ProCardState.SignIn -> {}
+                                is ProCardState.Donate -> {}
+                            }
+                        },
+                    )
+                }
+            }
+        },
+        detailPane = {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.surface,
+            ) {
+                when (selectedContent) {
+                    is org.tasks.compose.settings.SettingsDestination -> {
+                        Scaffold(
+                            topBar = {
+                                TopAppBar(
+                                    title = {
+                                        Text(stringResource(selectedContent.titleRes))
+                                    },
+                                    navigationIcon = {
+                                        IconButton(
+                                            onClick = {
+                                                scope.launch { navigator.navigateBack() }
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                contentDescription = stringResource(Res.string.back),
+                                            )
+                                        }
+                                    },
+                                )
+                            },
+                        ) { padding ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(padding),
+                            )
+                        }
+                    }
+                    is LocalAccountSettingsPane -> {
+                        LocalAccountSettingsDetail(
+                            pane = selectedContent,
+                            onNavigateBack = {
+                                scope.launch { navigator.navigateBack() }
+                            },
                         )
                     }
-                },
-            )
+                    is TasksAccountSettingsPane -> {
+                        TasksAccountSettingsDetail(
+                            pane = selectedContent,
+                            onNavigateBack = {
+                                scope.launch { navigator.navigateBack() }
+                            },
+                            onAddAccountClick = onAddAccountClick,
+                        )
+                    }
+
+                    null -> {}
+                }
+            }
         },
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        )
-    }
+    )
 }
 

@@ -160,4 +160,26 @@
     <string name="regenerate_email_address_confirmation">您目前的電子郵件地址將停止運作</string>
     <string name="migrating_tasks">移入任務</string>
     <string name="migrate_count">移動 %1$s 至 Task.org</string>
+    <string name="preferences_look_and_feel">外觀</string>
+    <string name="notifications">通知</string>
+    <string name="task_defaults">工作預設值</string>
+    <string name="task_list_options">工作表選項</string>
+    <string name="EPr_edit_screen_options">編輯畫面選項</string>
+    <string name="date_and_time">日期與時間</string>
+    <string name="navigation_drawer">導覽側邊欄</string>
+    <string name="backup_BPr_header">備份</string>
+    <string name="preferences_advanced">進階</string>
+    <string name="about">關於</string>
+    <string name="widget_settings">小工具設定</string>
+    <plurals name="task_count">
+        <item quantity="other">%d 個工作</item>
+    </plurals>
+    <string name="delete_tasks_warning">%s 將被刪除。此操作無法撤銷！</string>
+    <string name="name_cannot_be_empty">名稱不能為空白</string>
+    <string name="discard_changes">要捨棄更改嗎 ?</string>
+    <string name="discard">捨棄</string>
+    <string name="delete">刪除</string>
+    <plurals name="list_count">
+        <item quantity="other">%1$d 個清單</item>
+    </plurals>
 </resources>

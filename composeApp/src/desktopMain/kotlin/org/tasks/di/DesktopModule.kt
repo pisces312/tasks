@@ -2,21 +2,23 @@ package org.tasks.di
 
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.tasks.PlatformConfiguration
+import org.tasks.billing.BillingProvider
+import org.tasks.billing.SubscriptionProvider
 import org.tasks.analytics.PostHogReporting
 import org.tasks.analytics.Reporting
 import org.tasks.caldav.FileStorage
 import org.tasks.caldav.VtodoCache
 import org.tasks.auth.DesktopOAuthFlow
 import org.tasks.fcm.FcmTokenProvider
+import org.tasks.fcm.PushTokenManager
 import org.tasks.http.DefaultOkHttpClientFactory
 import org.tasks.http.OkHttpClientFactory
 import org.tasks.auth.DesktopSignInHandler
@@ -44,7 +46,10 @@ private fun dataDir(): File {
 actual fun platformModule(): Module = module {
     singleOf(::TasksServerEnvironment)
     single {
-        PlatformConfiguration(versionCode = JvmBuildConfig.VERSION_CODE)
+        PlatformConfiguration(
+            versionCode = JvmBuildConfig.VERSION_CODE,
+            billingProvider = BillingProvider.PADDLE,
+        )
     }
     single<Reporting> {
         PostHogReporting(
@@ -78,10 +83,24 @@ actual fun platformModule(): Module = module {
         FileStorage(dataDir().absolutePath)
     }
     factoryOf(::VtodoCache)
+    single<SubscriptionProvider> {
+        object : SubscriptionProvider {
+            override val subscription: Flow<SubscriptionProvider.SubscriptionInfo?> = flowOf(null)
+            override suspend fun getFormattedPrice(sku: String): String? = null
+        }
+    }
     single { SseTokenProvider() } bind FcmTokenProvider::class
     single {
+        PushTokenManager(
+            tokenProvider = get(),
+            caldavDao = get(),
+            caldavClientProvider = get(),
+            scope = get(),
+        )
+    }
+    single {
         SseClient(
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+            scope = get(),
             backgroundWork = get(),
             caldavDao = get(),
             encryption = get(),

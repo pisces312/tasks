@@ -116,4 +116,30 @@
     <string name="password">Hasło</string>
     <string name="migrating_tasks">Migrowanie zadań</string>
     <string name="migrate_count">Przenieś %1$s do Tasks.org</string>
+    <string name="preferences_look_and_feel">Wygląd</string>
+    <string name="notifications">Powiadomienia</string>
+    <string name="task_defaults">Domyślne ustawienia zadań</string>
+    <string name="task_list_options">Opcje listy zadań</string>
+    <string name="EPr_edit_screen_options">Edytuj ustawienia ekranu</string>
+    <string name="date_and_time">Data i czas</string>
+    <string name="navigation_drawer">Panel nawigacji</string>
+    <string name="backup_BPr_header">Kopie zapasowe</string>
+    <string name="preferences_advanced">Zaawansowane</string>
+    <string name="about">O aplikacji</string>
+    <string name="widget_settings">Ustawienie widgetu</string>
+    <plurals name="task_count">
+        <item quantity="one">%d zadań</item>
+        <item quantity="few">%d zadania</item>
+        <item quantity="many">%d zadań</item>
+    </plurals>
+    <string name="name_cannot_be_empty">Nazwa nie może być pusta</string>
+    <string name="discard_changes">Odrzuć zmiany?</string>
+    <string name="discard">Odrzuć</string>
+    <string name="delete">Usuń</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d lista</item>
+        <item quantity="few">%1$d listy</item>
+        <item quantity="many">%1$d list</item>
+        <item quantity="other">%1$d list</item>
+    </plurals>
 </resources>

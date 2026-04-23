@@ -162,4 +162,28 @@
     <string name="regenerate_email_address_confirmation">A jelenlegi e-mail címed megszűnik működni</string>
     <string name="migrating_tasks">Feladatok migrálása</string>
     <string name="migrate_count">%1$s mozgatása a Tasks.org-ra</string>
+    <string name="preferences_look_and_feel">Kinézet</string>
+    <string name="notifications">Értesítések</string>
+    <string name="task_defaults">Feladat alapértelmezései</string>
+    <string name="task_list_options">Feladat lista opciók</string>
+    <string name="EPr_edit_screen_options">Szerkesztési képernyő beállításai</string>
+    <string name="date_and_time">Dátum és időpont</string>
+    <string name="navigation_drawer">Hamburger menü</string>
+    <string name="backup_BPr_header">Mentések</string>
+    <string name="preferences_advanced">További lehetőségek</string>
+    <string name="about">Névjegy</string>
+    <string name="widget_settings">Widget beállításai</string>
+    <plurals name="task_count">
+        <item quantity="one">%d feladat</item>
+        <item quantity="other">%d feladat</item>
+    </plurals>
+    <string name="delete_tasks_warning">A(z) %s törlésre kerül. Ez a művelet nem visszavonható!</string>
+    <string name="name_cannot_be_empty">A cím nem lehet üres</string>
+    <string name="discard_changes">Változások elvetése?</string>
+    <string name="discard">Elvetés</string>
+    <string name="delete">Törlés</string>
+    <plurals name="list_count">
+        <item quantity="one">%1$d lista</item>
+        <item quantity="other">%1$d listák</item>
+    </plurals>
 </resources>

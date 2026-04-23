@@ -39,6 +39,7 @@
     <string name="wear_connecting_to_phone">Connecting to phone…</string>
     <string name="new_task">New task</string>
     <string name="save">Save</string>
+    <string name="failed_to_save_task">Failed to save task</string>
     <string name="enter_title">Enter title</string>
     <string name="sort_mode">Sort</string>
     <string name="group_mode">Group</string>
@@ -163,4 +164,29 @@
     <string name="regenerate_email_address_confirmation">Your current email address will stop working</string>
     <string name="migrating_tasks">Migrating tasks</string>
     <string name="migrate_count">Move %1$s to Tasks.org</string>
+    <string name="preferences_look_and_feel">Look and feel</string>
+    <string name="notifications">Notifications</string>
+    <string name="task_defaults">Task defaults</string>
+    <string name="task_list_options">Task list options</string>
+    <string name="EPr_edit_screen_options">Edit screen options</string>
+    <string name="date_and_time">Date and time</string>
+    <string name="navigation_drawer">Navigation drawer</string>
+    <string name="backup_BPr_header">Backups</string>
+    <string name="preferences_advanced">Advanced</string>
+    <string name="debug">Debug</string>
+    <string name="about">About</string>
+    <string name="widget_settings">Widget settings</string>
+    <string name="name_cannot_be_empty">Name cannot be empty</string>
+    <string name="discard_changes">Discard changes?</string>
+    <string name="discard">Discard</string>
+    <string name="delete">Delete</string>
+    <string name="delete_tasks_warning">%1$s will be deleted. This cannot be undone!</string>
+    <plurals name="task_count">
+        <item quantity="one">%1$d task</item>
+        <item quantity="other">%1$d tasks</item>
+    </plurals>
+    <plurals name="list_count">
+        <item quantity="one">%1$d list</item>
+        <item quantity="other">%1$d lists</item>
+    </plurals>
 </resources>

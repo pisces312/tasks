@@ -51,11 +51,9 @@
     <string name="TEA_control_timer">Timer-Einstellungen</string>
     <string name="TEA_control_hidden_section">----Immer Ausblenden----</string>
     <string name="none">Keine</string>
-    <string name="EPr_edit_screen_options">Bildschirmeinstellungen bearbeiten</string>
     <string name="EPr_beastMode_reset">Auf Standardeinstellungen zurücksetzen</string>
     <string name="EPr_fullTask_title">Aufgabentitel ganz anzeigen</string>
     <string name="EPr_show_task_edit_comments">Kommentare bei Aufgabeneingabe anzeigen</string>
-    <string name="task_list_options">Aufgabenlisten-Optionen</string>
     <string name="EPr_cal_end_or_start_at_due_time">Zeitpunkt für Kalendereintrag</string>
     <string name="EPr_cal_end_at_due_time">Kalendereintrag endet bei Fälligkeit</string>
     <string name="EPr_cal_start_at_due_time">Kalendereintrag startet mit Fälligkeit</string>
@@ -68,7 +66,6 @@
     <string name="EPr_manage_delete_gcal_status">%d Kalendereinträge gelöscht!</string>
     <string name="EPr_manage_delete_all_gcal">Alle Kalendereinträge für Aufgaben löschen</string>
     <string name="EPr_manage_delete_all_gcal_message">Möchtest du wirklich alle Kalendereinträge für Aufgaben löschen?</string>
-    <string name="task_defaults">Vorgaben für Aufgaben</string>
     <string name="EPr_default_importance_title">Standardpriorität</string>
     <string name="EPr_default_reminders_title">Standard-Erinnerungen</string>
     <string name="EPr_default_location_reminder_title">Standard-Standort-Erinnerungen</string>
@@ -291,7 +288,6 @@
     <string name="delete_multiple_tasks_confirmation">%s gelöscht</string>
     <string name="delete_selected_tasks">Ausgewählte Aufgaben löschen?</string>
     <string name="copy_selected_tasks">Ausgewählte Aufgaben kopieren?</string>
-    <string name="date_and_time">Datum und Uhrzeit</string>
     <string name="user">Benutzer</string>
     <string name="password">Passwort</string>
     <string name="notification_disable_battery_optimizations_description">Akkuoptimierungen können Benachrichtigungen verzögern</string>
@@ -334,7 +330,6 @@
     <string name="upgrade_to_pro">Pro-Funktionen freischalten</string>
     <string name="refresh_purchases">Einkäufe aktualisieren</string>
     <string name="button_subscribe">Abonnieren</string>
-    <string name="about">Über</string>
     <string name="license_summary">Tasks ist freie, quelloffene Software, die unter der GNU General Public License v3.0 lizenziert ist</string>
     <string name="pro_dashclock_extension">Dashclock-Erweiterung</string>
     <string name="requires_pro_subscription">Benötigt ein Pro-Abo</string>
@@ -363,7 +358,6 @@
     <string name="third_party_licenses">Drittsoftware-Lizenzen</string>
     <string name="invalid_backup_file">Ungültige Sicherungsdatei</string>
     <string name="google_tasks_add_to_top">Neue Aufgaben oben</string>
-    <string name="backup_BPr_header">Sicherungen</string>
     <string name="gtasks_GPr_header">Google Tasks</string>
     <string name="TEA_timer_controls">Stoppuhr</string>
     <string name="geofence_radius">Geofence-Radius</string>
@@ -398,7 +392,6 @@
     <string name="show_advanced_settings">Erweiterte Einstellungen anzeigen</string>
     <string name="caldav_account_description">Erfordert ein Konto bei einem CalDAV-Dienstanbieter oder einem selbst gehosteten Server. Du kannst einen Dienstanbieter finden, indem du tasks.org/caldav besuchst</string>
     <string name="etesync_account_description">Erfordert ein Konto bei EteSync.com oder einen selbst gehosteten Server</string>
-    <string name="preferences_look_and_feel">Erscheinungsbild</string>
     <string name="preferences_advanced">Erweitert</string>
     <string name="documentation">Dokumentation</string>
     <string name="more_settings">Weitere Einstellungen</string>
@@ -417,7 +410,6 @@
     <string name="chip_appearance">Aussehen der Marken</string>
     <string name="places">Orte</string>
     <string name="place_settings">Ortseinstellungen</string>
-    <string name="navigation_drawer">Navigationsmenü</string>
     <string name="hide_unused_tags">Ungenutzte Schlagwörter ausblenden</string>
     <string name="hide_unused_places">Ungenutzte Orte ausblenden</string>
     <string name="menu_discard_changes">Änderungen verwerfen</string>
@@ -512,16 +504,12 @@
     <string name="android_auto_backup_device_summary">Du musst den Sicherungsdienst auch in den Geräteeinstellungen aktivieren. Nicht alle Geräte bieten einen Sicherungsdienst.</string>
     <string name="follow_reddit">r/tasks beitreten</string>
     <string name="current_subscription">Aktuelles Abonnement: %s</string>
-    <string name="your_subscription_expired">Dein Abonnement ist abgelaufen. Abonniere jetzt, um den Dienst fortzusetzen.</string>
+    <string name="your_subscription_expired">Dein Abo ist abgelaufen. Abonniere jetzt, um den Dienst fortzusetzen.</string>
     <string name="background_location_permission_required">Tasks sammelt Standortdaten, um standortbezogene Erinnerungen zu ermöglichen, auch wenn die App geschlossen ist oder nicht verwendet wird.</string>
     <string name="repeat_monthly_fifth_week">fünften</string>
     <string name="save_percent">%d %% sparen</string>
     <string name="no_google_play_subscription">Kein qualifiziertes Google Play-Abo gefunden</string>
     <string name="decsync_selection_description">Dateibasierte Synchronisierung</string>
-    <plurals name="list_count">
-        <item quantity="one">%d Liste</item>
-        <item quantity="other">%d Listen</item>
-    </plurals>
     <string name="above_average">Überdurchschnittlich</string>
     <string name="migrate_count">Verschiebe %s zu Tasks.org</string>
     <string name="migrating_tasks">Aufgaben werden migriert</string>
