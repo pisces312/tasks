@@ -39,9 +39,11 @@ import org.tasks.data.dao.TagDataDao
 import org.tasks.data.dao.TaskAttachmentDao
 import org.tasks.data.dao.TaskListMetadataDao
 import org.tasks.data.dao.UserActivityDao
+import org.tasks.data.getLocalAccount
 import org.tasks.data.entity.Attachment
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_GOOGLE_TASKS
+import org.tasks.data.entity.CaldavAccount.Companion.TYPE_MICROSOFT
 import org.tasks.data.entity.CaldavCalendar
 import org.tasks.data.entity.CaldavTask
 import org.tasks.data.entity.Filter
@@ -133,6 +135,11 @@ class TasksJsonImporter @Inject constructor(
         context: Context,
         backupFile: Uri?,
     ): Int {
+        // Collect Microsoft account UUIDs to skip during import
+        val microsoftAccountUuids = mutableSetOf<String>()
+        // Get local account for redirecting Microsoft calendars
+        var localAccountUuid: String? = null
+
         val `is`: InputStream? = try {
             context.contentResolver.openInputStream(backupFile!!)
         } catch (e: FileNotFoundException) {
@@ -190,14 +197,28 @@ class TasksJsonImporter @Inject constructor(
                                     }
                             }
                             "caldavAccounts" -> reader.forEach<CaldavAccount> { account ->
+                                if (account.accountType == TYPE_MICROSOFT) {
+                                    // Skip Microsoft accounts during import
+                                    // User must manually sign in if they want to use it
+                                    account.uuid?.let { microsoftAccountUuids.add(it) }
+                                    Timber.i("Skipping Microsoft account during import: ${account.name}")
+                                    return@forEach
+                                }
                                 if (caldavDao.getAccountByUuid(account.uuid!!) == null) {
                                     caldavDao.insert(account)
                                 }
                             }
                             "caldavCalendars" -> reader.forEach<CaldavCalendar> { calendar ->
                                 if (caldavDao.getCalendarByUuid(calendar.uuid!!) == null) {
+                                    val isFromMicrosoft = calendar.account != null && microsoftAccountUuids.contains(calendar.account)
+                                    // Lazily get local account uuid when first needed
+                                    if (localAccountUuid == null && isFromMicrosoft) {
+                                        localAccountUuid = caldavDao.getLocalAccount().uuid
+                                    }
                                     caldavDao.insert(
                                         calendar.copy(
+                                            // Redirect Microsoft calendars to local account
+                                            account = if (isFromMicrosoft) localAccountUuid else calendar.account,
                                             color = themeToColor(context, version, calendar.color),
                                             icon = calendar.icon.migrateLegacyIcon(),
                                         )
@@ -461,7 +482,17 @@ class TasksJsonImporter @Inject constructor(
             }
             ?.let { taskAttachmentDao.insert(it) }
         backup.caldavTasks?.forEach { caldavTask ->
-            caldavDao.insert(caldavTask.copy(task = taskId))
+            val calendar = caldavTask.calendar?.let { caldavDao.getCalendarByUuid(it) }
+            val isFromMicrosoft = calendar?.account != null && microsoftAccountUuids.contains(calendar.account)
+            caldavDao.insert(
+                caldavTask.copy(
+                    task = taskId,
+                    // Clear remote sync data for Microsoft tasks so they become local tasks
+                    remoteId = if (isFromMicrosoft) null else caldavTask.remoteId,
+                    remoteParent = if (isFromMicrosoft) null else caldavTask.remoteParent,
+                    lastSync = if (isFromMicrosoft) 0 else caldavTask.lastSync,
+                )
+            )
         }
         backup.vtodo?.let {
             val caldavTask =

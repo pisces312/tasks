@@ -170,3 +170,57 @@ tasksKeyPassword=tasks123
 
 2026-04-20
 2026-04-20（release）
+
+## 安全审计（2026-04-20）
+
+### 审计范围
+- AndroidManifest 权限声明
+- Analytics / 遥测数据发送
+- 网络请求 / 服务器地址
+- 敏感信息泄露
+- 依赖库安全性
+
+### 审计结论：✅ 安全通过
+
+| 检查项 | 结果 |
+|--------|------|
+| 隐私权限（位置/通讯录/通话等） | ✅ 未声明任何隐私权限 |
+| Analytics / 遥测 | ✅ fdroid 版为空实现，不发送任何数据 |
+| 第三方追踪 SDK | ✅ 无（PostHog 仅桌面版启用，Android 版不初始化） |
+| 后台偷偷传输 | ✅ 无，所有同步均为用户主动配置 |
+| 硬编码密钥 / API Key | ✅ 无 |
+| 网络安全 | ✅ 使用 HTTPS |
+| allowBackup | ⚠️ ndroid:allowBackup="true"（可通过 db backup 备份数据，风险低） |
+
+### 详细分析
+
+**Analytics 实现（composeApp/src/androidMain/kotlin/org/tasks/di/AndroidModule.kt）：**
+
+`kotlin
+factory<Reporting> {
+    object : Reporting {
+        override fun logEvent(event: String, vararg params: Pair<String, Any>) {}
+        override fun addTask(source: String) {}
+        override fun completeTask(source: String) {}
+        override fun identify(distinctId: String) {}
+        override fun reportException(t: Throwable, fatal: Boolean) {}
+    }
+}
+`
+
+Android fdroid 版本的 Reporting 接口是**空实现**——所有方法体都是空的，不记录、不发送任何数据。
+
+**PostHog 仅在以下条件同时满足时启用：**
+1. 配置了 	asks_posthog_key（fdroid release 为空字符串）
+2. 运行在 desktop 平台
+
+**数据同步说明：**
+- CalDAV / Google Tasks / WebDAV / Taskwarrior 同步均为用户主动配置的服务
+- 不存在未经用户同意的后台上传行为
+
+### 审计工具
+- 人工代码审查
+- grep / Select-String 关键词扫描
+- AndroidManifest.xml 权限分析
+- DI 模块注入链追踪
+
