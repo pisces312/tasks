@@ -87,6 +87,7 @@ class TasksJsonImporter @Inject constructor(
     private val firebase: Firebase,
 ) {
     private val result = ImportResult()
+    private val microsoftAccountUuids = mutableSetOf<String>()
 
     suspend fun importTasks(
         context: Context,
@@ -136,8 +137,7 @@ class TasksJsonImporter @Inject constructor(
         backupFile: Uri?,
     ): Int {
         // Collect Microsoft account UUIDs to skip during import
-        val microsoftAccountUuids = mutableSetOf<String>()
-        // Get local account for redirecting Microsoft calendars
+                // Get local account for redirecting Microsoft calendars
         var localAccountUuid: String? = null
 
         val `is`: InputStream? = try {
