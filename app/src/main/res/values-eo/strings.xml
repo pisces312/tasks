@@ -705,4 +705,18 @@
     <string name="upgrade_email_to_task_description">Krei taskojn el retpoŝtoj per antaŭsendi ilin al via privata enirkesto</string>
     <string name="guest_create_list_message">Vi nun havas aliron kiel gasto al komunaj listoj. Por krei kaj sinkronigi proprajn privatajn listojn al la nubo, vi bezonas abonon de Tasks.org. Vi povas ankaŭ krei senpagan lokan liston kiu restas en ĉi tiu aparato.</string>
     <string name="p_per_list_sort">ordigi_laŭ_listo</string>
+    <string name="location_update_interval_title">Fona aktualigo de loko</string>
+    <string name="location_update_interval_summary">Perioda aktualigo de loko plibonigas fidindecon de geografia barilo</string>
+    <string name="location_update_interval_disabled">malŝaltita</string>
+    <string name="location_update_interval_15_minutes">Ĉiu 15 minutoj</string>
+    <string name="location_update_interval_30_minutes">Ĉiu 30 minutoj</string>
+    <string name="location_update_interval_1_hour">Ĉiu 1 horo</string>
+    <string name="location_update_interval_2_hours">Ĉiu 2 horoj</string>
+    <string name="blog_feed_none">Neniu</string>
+    <string name="blog_feed_announcements">Nur anoncoj</string>
+    <string name="blog_feed_all">Ĉiuj afiŝoj</string>
+    <string name="upgrade_desktop_app">Tasks.org por labortablo</string>
+    <string name="upgrade_desktop_app_description">Frua atingo de la nova labortabla aplikaĵo</string>
+    <string name="read_more">Legi pli</string>
+    <string name="blog_notifications">Sciigoj de blogo</string>
 </resources>
