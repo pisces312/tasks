@@ -9,7 +9,8 @@ plugins {
     id("com.google.firebase.crashlytics")
     kotlin("android")
     id("dagger.hilt.android.plugin")
-    id("com.google.android.gms.oss-licenses-plugin")
+    // OSS licenses plugin disabled - incompatible with Gradle 9.4 strict task validation
+    // id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
@@ -60,15 +61,14 @@ android {
 
     signingConfigs {
         create("release") {
-            val tasksKeyAlias: String? by project
-            val tasksStoreFile: String? by project
-            val tasksStorePassword: String? by project
-            val tasksKeyPassword: String? by project
-
-            keyAlias = tasksKeyAlias
-            storeFile = file(tasksStoreFile ?: "none")
-            storePassword = tasksStorePassword
-            keyPassword = tasksKeyPassword
+            // Use env vars: KEY_STORE_LOCATION, KEY_ALIAS, KEY_STORE_PASSWORD, KEY_PASSWORD
+            val storeLocation = System.getenv("KEY_STORE_LOCATION")
+            if (storeLocation != null) {
+                storeFile = file(storeLocation)
+            }
+            keyAlias = System.getenv("KEY_ALIAS") ?: "tasks"
+            storePassword = System.getenv("KEY_STORE_PASSWORD") ?: "tasks123"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: System.getenv("KEY_STORE_PASSWORD") ?: "tasks123"
         }
     }
 
@@ -122,6 +122,20 @@ android {
         }
     }
 
+    // ABI split: -PbuildAbi=arm64-v8a to build single ABI, otherwise all
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            if (project.hasProperty("buildAbi")) {
+                include(project.property("buildAbi") as String)
+            } else {
+                include("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+            }
+            isUniversalApk = false
+        }
+    }
+
     testOptions {
         managedDevices {
             localDevices {
@@ -145,6 +159,13 @@ configurations.all {
     exclude(group = "com.google.j2objc")
     exclude(group = "com.google.http-client", module = "google-http-client-apache-v2")
     exclude(group = "com.google.http-client", module = "google-http-client-jackson2")
+    // Replace original jsch with security-patched fork (used by JGit SSH)
+    resolutionStrategy.eachDependency {
+        if (requested.group == "com.jcraft" && requested.name == "jsch") {
+            useTarget("com.github.mwiede:jsch:0.2.16")
+            because("Use security-patched jsch fork")
+        }
+    }
 }
 
 val genericImplementation by configurations
@@ -248,6 +269,11 @@ dependencies {
     implementation(libs.ktor.client.logging)
     implementation(libs.ktor.content.negotiation)
     implementation(libs.ktor.serialization)
+
+    // JGit for Git sync
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r")
+    implementation("org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:6.10.1.202505221210-r")
+    implementation("com.github.mwiede:jsch:0.2.16")
 
     implementation(libs.accompanist.permissions)
 

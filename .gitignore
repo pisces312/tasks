@@ -15,3 +15,4 @@ Thumbs.db
 /compose-metrics/
 .DS_Store
 tasks-release.jks
+*.log
