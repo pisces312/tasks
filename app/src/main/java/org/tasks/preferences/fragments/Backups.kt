@@ -23,6 +23,7 @@ import org.tasks.extensions.Context.takePersistableUriPermission
 import org.tasks.extensions.Context.toast
 import org.tasks.files.FileHelper
 import org.tasks.preferences.BasePreferences
+import org.tasks.preferences.MainPreferences
 import org.tasks.preferences.PreferencesViewModel
 import org.tasks.themes.TasksSettingsTheme
 import org.tasks.themes.Theme
@@ -155,6 +156,13 @@ class Backups : Fragment() {
                 },
                 onIgnoreWarnings = { enabled ->
                     viewModel.updateIgnoreWarnings(enabled, preferencesViewModel)
+                },
+                onGitSync = {
+                    val activity = activity as? MainPreferences ?: return@BackupsScreen
+                    activity.startPreference(
+                        GitSync(),
+                        getString(R.string.git_sync_title)
+                    )
                 },
             )
         }

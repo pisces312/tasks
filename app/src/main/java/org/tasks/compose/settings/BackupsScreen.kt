@@ -48,6 +48,7 @@ fun BackupsScreen(
     onAndroidBackup: (Boolean) -> Unit,
     onDeviceSettings: () -> Unit,
     onIgnoreWarnings: (Boolean) -> Unit,
+    onGitSync: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -179,6 +180,19 @@ fun BackupsScreen(
                 summary = stringResource(R.string.backups_ignore_warnings_summary),
                 checked = ignoreWarnings,
                 onCheckedChange = onIgnoreWarnings,
+            )
+        }
+
+        // Git Sync section
+        Spacer(modifier = Modifier.height(SettingsContentPadding))
+        SectionHeader(
+            R.string.git_sync_title,
+            modifier = Modifier.padding(horizontal = SettingsContentPadding),
+        )
+        SettingsItemCard(modifier = Modifier.padding(horizontal = SettingsContentPadding)) {
+            PreferenceRow(
+                title = stringResource(R.string.git_sync_title),
+                onClick = onGitSync,
             )
         }
 

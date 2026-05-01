@@ -724,4 +724,35 @@ File %1$s contained %2$s.\n\n
   <string name="blog_feed_none">None</string>
   <string name="blog_feed_announcements">Announcements only</string>
   <string name="blog_feed_all">All posts</string>
+
+  <!-- Git sync -->
+  <string name="git_sync_title">Git Sync</string>
+  <string name="git_sync_enabled">Enable Git sync</string>
+  <string name="git_sync_repo_url">Repository URL</string>
+  <string name="git_sync_repo_url_hint">git@github.com:user/repo.git</string>
+  <string name="git_sync_branch">Branch</string>
+  <string name="git_sync_author_name">Author name</string>
+  <string name="git_sync_author_email">Author email</string>
+  <string name="git_sync_ssh_key">SSH Key</string>
+  <string name="git_sync_ssh_key_select">Select SSH Key</string>
+  <string name="git_sync_ssh_key_imported">Key imported: %s (%s)</string>
+  <string name="git_sync_ssh_key_delete">Delete key</string>
+  <string name="git_sync_ssh_key_invalid">Invalid SSH key file</string>
+  <string name="git_sync_ssh_key_not_set">No key imported</string>
+  <string name="git_sync_now">Sync now</string>
+  <string name="git_syncing">Syncing…</string>
+  <string name="git_sync_success">Sync complete: %d tasks</string>
+  <string name="git_sync_no_changes">No changes to sync</string>
+  <string name="git_sync_error">Sync failed: %s</string>
+  <string name="git_sync_last_never">Never synced</string>
+  <string name="git_sync_last">Last sync: %s</string>
+  <string name="git_sync_view_json">View JSON</string>
+  <string name="git_sync_no_json">No JSON file yet. Sync first.</string>
+  <string name="git_sync_reset">Reset local repo</string>
+  <string name="git_sync_reset_confirm">This will delete the local Git repository. Next sync will re-clone from remote. Continue?</string>
+  <string name="git_sync_step_cloning">Cloning repository…</string>
+  <string name="git_sync_step_pulling">Pulling remote changes…</string>
+  <string name="git_sync_step_exporting">Exporting tasks…</string>
+  <string name="git_sync_step_committing">Committing changes…</string>
+  <string name="git_sync_step_pushing">Pushing to remote…</string>
 </resources>

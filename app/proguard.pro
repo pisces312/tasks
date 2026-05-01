@@ -62,3 +62,10 @@
 -dontwarn net.jcip.annotations.**
 
 -keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite { <fields>; }
+
+# JGit + JSch (mwiede fork) — heavy reflection for SSH transport, config, and credential loading
+-dontwarn org.eclipse.jgit.**
+-keep class org.eclipse.jgit.** { *; }
+-keepclassmembers class org.eclipse.jgit.** { *; }
+-dontwarn com.jcraft.jsch.**
+-keep class com.jcraft.jsch.** { *; }
