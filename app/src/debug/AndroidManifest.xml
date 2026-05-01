@@ -4,8 +4,18 @@
   xmlns:tools="http://schemas.android.com/tools">
 
   <application
+      android:icon="@mipmap/ic_launcher_red"
+      android:roundIcon="@mipmap/ic_launcher_red"
       android:networkSecurityConfig="@xml/network_security_config"
+      tools:replace="android:icon,android:roundIcon"
       tools:ignore="GoogleAppIndexingWarning">
+
+    <!-- Override launcher alias icon to red for debug builds -->
+    <activity-alias
+        android:icon="@mipmap/ic_launcher_red"
+        android:roundIcon="@mipmap/ic_launcher_red"
+        android:name="com.todoroo.astrid.activity.TaskListActivity"
+        tools:replace="android:icon,android:roundIcon"/>
 
   </application>
 

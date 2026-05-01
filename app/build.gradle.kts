@@ -62,15 +62,14 @@ android {
     signingConfigs {
         create("release") {
             // Requires env vars: KEY_STORE_LOCATION, KEY_ALIAS, KEY_STORE_PASSWORD, KEY_PASSWORD
+            // Only enforce for release builds; debug uses the default debug keystore
             val storeLocation = System.getenv("KEY_STORE_LOCATION")
-                ?: error("KEY_STORE_LOCATION env var is required for release signing")
-            storeFile = file(storeLocation)
-            keyAlias = System.getenv("KEY_ALIAS")
-                ?: error("KEY_ALIAS env var is required for release signing")
-            storePassword = System.getenv("KEY_STORE_PASSWORD")
-                ?: error("KEY_STORE_PASSWORD env var is required for release signing")
-            keyPassword = System.getenv("KEY_PASSWORD")
-                ?: error("KEY_PASSWORD env var is required for release signing")
+            if (storeLocation != null) {
+                storeFile = file(storeLocation)
+                keyAlias = System.getenv("KEY_ALIAS")
+                storePassword = System.getenv("KEY_STORE_PASSWORD")
+                keyPassword = System.getenv("KEY_PASSWORD") ?: System.getenv("KEY_STORE_PASSWORD")
+            }
         }
     }
 
@@ -85,6 +84,7 @@ android {
     @Suppress("LocalVariableName")
     buildTypes {
         debug {
+            applicationIdSuffix = ".debug"
             configure<CrashlyticsExtension> {
                 mappingFileUploadEnabled = false
             }
