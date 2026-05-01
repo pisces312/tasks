@@ -3,6 +3,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools">
 
+  <!-- Remove hardcoded org.tasks permissions from dmfs library,
+       they conflict with our ${applicationId}-based permissions in debug builds -->
+  <uses-permission android:name="org.tasks.permission.READ_TASKS" tools:node="remove"/>
+  <uses-permission android:name="org.tasks.permission.WRITE_TASKS" tools:node="remove"/>
+
   <application
       android:icon="@mipmap/ic_launcher_red"
       android:roundIcon="@mipmap/ic_launcher_red"
