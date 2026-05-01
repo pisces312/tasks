@@ -1,28 +1,47 @@
 package org.tasks.compose.settings
 
 import android.app.AlertDialog
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.tasks.R
+import org.tasks.backup.GitSyncLogCollector
 import org.tasks.backup.GitSyncResult
 import org.tasks.backup.GitSyncStep
 
@@ -38,6 +57,8 @@ fun GitSyncScreen(
     lastSyncSummary: String,
     syncStep: GitSyncStep,
     syncResult: GitSyncResult?,
+    logEntries: List<GitSyncLogCollector.LogEntry>,
+    isLogExpanded: Boolean,
     onEnabledChanged: (Boolean) -> Unit,
     onRepoUrlChanged: (String) -> Unit,
     onBranchChanged: (String) -> Unit,
@@ -49,6 +70,8 @@ fun GitSyncScreen(
     onViewJson: () -> Unit,
     onResetRepo: () -> Unit,
     onClearResult: () -> Unit,
+    onToggleLogExpanded: () -> Unit,
+    onClearLogs: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -196,10 +219,126 @@ fun GitSyncScreen(
                     modifier = Modifier.padding(horizontal = SettingsContentPadding),
                 )
             }
+
+            // Expandable Log Panel
+            Spacer(modifier = Modifier.height(SettingsContentPadding))
+            LogPanel(
+                logEntries = logEntries,
+                isExpanded = isLogExpanded,
+                onToggleExpanded = onToggleLogExpanded,
+                onClearLogs = onClearLogs,
+            )
         }
 
         Spacer(modifier = Modifier.height(SettingsContentPadding))
         Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+    }
+}
+
+@Composable
+private fun LogPanel(
+    logEntries: List<GitSyncLogCollector.LogEntry>,
+    isExpanded: Boolean,
+    onToggleExpanded: () -> Unit,
+    onClearLogs: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = SettingsContentPadding),
+    ) {
+        // Header row (always visible)
+        SettingsItemCard {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = SettingsRowPadding, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = onToggleExpanded) {
+                    val arrow = if (isExpanded) "▼" else "▶"
+                    Text(
+                        text = "$arrow ${stringResource(R.string.git_sync_logs)} (${logEntries.size})",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                if (logEntries.isNotEmpty()) {
+                    IconButton(onClick = onClearLogs, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = stringResource(R.string.git_sync_logs_clear),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            }
+        }
+
+        // Expandable log content
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = expandVertically(),
+            exit = shrinkVertically(),
+        ) {
+            val listState = rememberLazyListState()
+
+            // Auto-scroll to bottom when new logs arrive
+            LaunchedEffect(logEntries.size) {
+                if (logEntries.isNotEmpty()) {
+                    listState.animateScrollToItem(logEntries.size - 1)
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = MaterialTheme.shapes.small,
+                    )
+                    .height(240.dp)
+            ) {
+                if (logEntries.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.git_sync_logs_empty),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    ) {
+                        items(logEntries) { entry ->
+                            val textColor = when {
+                                entry.isError -> MaterialTheme.colorScheme.error
+                                entry.isWarning -> MaterialTheme.colorScheme.tertiary
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                            Text(
+                                text = entry.format(),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 10.sp,
+                                ),
+                                color = textColor,
+                                modifier = Modifier.padding(vertical = 1.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -6,6 +6,7 @@ import android.util.Log
 import co.touchlab.kermit.Logger
 import org.tasks.logging.FileLogger
 import org.tasks.logging.TimberLogWriter
+import org.tasks.backup.GitSyncLogCollector
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -16,6 +17,7 @@ class BuildSetup @Inject constructor(
     fun setup() {
         Timber.plant(ErrorReportingTree())
         Timber.plant(fileLogger)
+        Timber.plant(GitSyncLogCollector.timberTree)
         Logger.mutableConfig.logWriterList = listOf(TimberLogWriter())
     }
 

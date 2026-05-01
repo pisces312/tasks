@@ -10,8 +10,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.tasks.R
+import org.tasks.backup.GitSyncLogCollector
 import org.tasks.backup.GitSyncManager
 import org.tasks.backup.GitSyncResult
 import org.tasks.backup.GitSyncStep
@@ -50,6 +52,12 @@ class GitSyncViewModel @Inject constructor(
     var jsonContent by mutableStateOf<String?>(null)
         private set
     var isLoadingJson by mutableStateOf(false)
+        private set
+
+    // Log panel state
+    var logEntries by mutableStateOf(GitSyncLogCollector.getLogs())
+        private set
+    var isLogExpanded by mutableStateOf(false)
         private set
 
     fun updateEnabled(enabled: Boolean) {
@@ -110,6 +118,13 @@ class GitSyncViewModel @Inject constructor(
         viewModelScope.launch {
             syncStep = GitSyncStep.PULLING
             syncResult = null
+            // Start log polling during sync
+            val logPollJob = viewModelScope.launch {
+                while (true) {
+                    logEntries = GitSyncLogCollector.getLogs()
+                    delay(300)
+                }
+            }
             try {
                 val result = gitSyncManager.syncToGit { step ->
                     syncStep = step
@@ -120,8 +135,27 @@ class GitSyncViewModel @Inject constructor(
                 syncResult = GitSyncResult.Error(e.localizedMessage ?: "Unknown error", e)
             } finally {
                 syncStep = GitSyncStep.IDLE
+                logPollJob.cancel()
+                // Final log update
+                logEntries = GitSyncLogCollector.getLogs()
             }
         }
+    }
+
+    fun refreshLogs() {
+        logEntries = GitSyncLogCollector.getLogs()
+    }
+
+    fun toggleLogExpanded() {
+        isLogExpanded = !isLogExpanded
+        if (isLogExpanded) {
+            logEntries = GitSyncLogCollector.getLogs()
+        }
+    }
+
+    fun clearLogs() {
+        GitSyncLogCollector.clear()
+        logEntries = emptyList()
     }
 
     fun loadJsonContent() {

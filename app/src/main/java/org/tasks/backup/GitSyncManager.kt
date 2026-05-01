@@ -31,6 +31,8 @@ class GitSyncManager @Inject constructor(
 ) {
     private val repoDir = File(context.filesDir, GIT_SYNC_DIR)
 
+    private fun tag() = Timber.tag("GitSyncManager")
+
     val jsonFilePath: File
         get() = File(repoDir, GitJsonExporter.TASKS_JSON_FILENAME)
 
@@ -60,12 +62,12 @@ class GitSyncManager @Inject constructor(
                         .setRemoteName("origin")
                         .setRemoteUri(org.eclipse.jgit.transport.URIish(repoUrl))
                         .call()
-                    Timber.d("Updated remote URL from $storedUrl to $repoUrl")
+                    tag().i("Updated remote URL from $storedUrl to $repoUrl")
                 }
                 git.close()
                 return@withContext GitSyncResult.Success(0)
             } catch (e: Exception) {
-                Timber.w(e, "Failed to open existing repo, will re-clone")
+                tag().w(e, "Failed to open existing repo, will re-clone")
                 repoDir.deleteRecursively()
             }
         }
@@ -80,15 +82,15 @@ class GitSyncManager @Inject constructor(
                 .setTransportConfigCallback(GitTransportCallback(sshKeyManager.keyPath))
                 .call()
             git.close()
-            Timber.d("Cloned repository from $repoUrl")
+            tag().i("Cloned repository from $repoUrl")
             GitSyncResult.Success(0)
         } catch (e: TransportException) {
-            Timber.e(e, "Transport error during clone")
+            tag().e(e, "Transport error during clone")
             // Clean up failed clone
             repoDir.deleteRecursively()
             GitSyncResult.Error("Clone failed: ${e.localizedMessage}", e)
         } catch (e: Exception) {
-            Timber.e(e, "Failed to clone repository")
+            tag().e(e, "Failed to clone repository")
             repoDir.deleteRecursively()
             GitSyncResult.Error("Clone failed: ${e.localizedMessage}", e)
         }
@@ -109,6 +111,7 @@ class GitSyncManager @Inject constructor(
 
         // Ensure repo is initialized
         if (!isRepoInitialized) {
+            tag().i("Repo not initialized, will clone")
             val initResult = initOrCloneRepo(onStep)
             if (initResult is GitSyncResult.Error) return@withContext initResult
         }
@@ -117,17 +120,23 @@ class GitSyncManager @Inject constructor(
             val git = Git.open(repoDir)
 
             // Checkout the target branch
+            val branchName = getBranchName()
+            tag().i("Checking out branch $branchName")
             checkoutBranch(git)
 
             // Pull remote changes first to avoid conflicts
             onStep(GitSyncStep.PULLING)
+            tag().i("Starting pull from remote ($branchName)")
             pullRemote(git)
+            tag().i("Pull complete")
 
             // Export JSON to repo working directory
             onStep(GitSyncStep.EXPORTING)
             val taskCount = gitJsonExporter.exportTo(repoDir)
+            tag().i("Exported ${taskCount} tasks to ${repoDir.absolutePath}")
 
             // git add .
+            tag().i("Running git add")
             git.add()
                 .addFilepattern(".")
                 .setRenormalize(false)
@@ -138,70 +147,99 @@ class GitSyncManager @Inject constructor(
                 .addFilepattern(".")
                 .setRenormalize(false)
                 .call()
+            tag().i("git add complete")
 
             // Check if there are changes to commit
             val status = git.status().call()
-            if (!status.hasUncommittedChanges()) {
-                git.close()
-                return@withContext GitSyncResult.NoChanges(taskCount)
+            val hasChanges = status.hasUncommittedChanges()
+            tag().i("Status: hasUncommittedChanges=$hasChanges")
+
+            if (hasChanges) {
+                // git commit
+                onStep(GitSyncStep.COMMITTING)
+                val authorName = getAuthorName()
+                val authorEmail = getAuthorEmail()
+                if (authorName.isBlank() || authorEmail.isBlank()) {
+                    git.close()
+                    return@withContext GitSyncResult.Error("Git author name and email must be configured")
+                }
+
+                val commitMessage = buildCommitMessage(taskCount)
+                git.commit()
+                    .setCommitter(authorName, authorEmail)
+                    .setAuthor(authorName, authorEmail)
+                    .setMessage(commitMessage)
+                    .call()
+                tag().i("Committed: $commitMessage")
+            } else {
+                tag().i("No changes to commit (working tree clean)")
             }
 
-            // git commit
-            onStep(GitSyncStep.COMMITTING)
-            val authorName = getAuthorName()
-            val authorEmail = getAuthorEmail()
-            if (authorName.isBlank() || authorEmail.isBlank()) {
-                git.close()
-                return@withContext GitSyncResult.Error("Git author name and email must be configured")
-            }
-
-            val commitMessage = buildCommitMessage(taskCount)
-            git.commit()
-                .setCommitter(authorName, authorEmail)
-                .setAuthor(authorName, authorEmail)
-                .setMessage(commitMessage)
-                .call()
-
-            // git push
+            // git push - ALWAYS attempt push
             onStep(GitSyncStep.PUSHING)
-            val branchName = getBranchName()
-            git.push()
-                .setRemote("origin")
-                .setRefSpecs(RefSpec(branchName))
-                .setTransportConfigCallback(GitTransportCallback(sshKeyManager.keyPath))
-                .call()
+            tag().i("Starting push to origin/$branchName")
+            val pushRefSpec = RefSpec("refs/heads/$branchName:refs/heads/$branchName")
+            try {
+                git.push()
+                    .setRemote("origin")
+                    .setRefSpecs(pushRefSpec)
+                    .setTransportConfigCallback(GitTransportCallback(sshKeyManager.keyPath))
+                    .call()
+                tag().i("Push successful")
+            } catch (e: Exception) {
+                tag().e(e, "Push failed")
+                throw e
+            }
 
             git.close()
 
             // Update last sync time
             preferences.setLong(R.string.p_git_sync_last, System.currentTimeMillis())
 
-            Timber.d("Sync complete: $taskCount tasks pushed")
-            GitSyncResult.Success(taskCount)
+            val result = if (hasChanges) GitSyncResult.Success(taskCount) else GitSyncResult.NoChanges(taskCount)
+            tag().i("Sync complete: ${if (hasChanges) "$taskCount tasks pushed" else "no changes, push done"}")
+            result
         } catch (e: TransportException) {
-            Timber.e(e, "Transport error during sync")
+            tag().e(e, "Transport error during sync")
             GitSyncResult.Error("Sync failed: ${e.localizedMessage}. Check your SSH key.", e)
         } catch (e: Exception) {
-            Timber.e(e, "Sync failed")
+            tag().e(e, "Sync failed")
             GitSyncResult.Error("Sync failed: ${e.localizedMessage}", e)
         }
     }
 
     /**
      * Pull remote changes (rebase strategy to keep linear history).
+     * If the remote branch doesn't exist yet (first push scenario), pull is skipped.
      */
     private fun pullRemote(git: Git) {
+        val branchName = getBranchName()
         try {
+            tag().i("Checking if remote branch %s exists...", branchName)
+            // Check if remote branch exists before pulling
+            val remoteBranchRef = git.lsRemote()
+                .setRemote("origin")
+                .setHeads(true)
+                .setTransportConfigCallback(GitTransportCallback(sshKeyManager.keyPath))
+                .call()
+                .any { it.name == "refs/heads/$branchName" }
+
+            if (!remoteBranchRef) {
+                tag().i("Remote branch %s does not exist yet, skipping pull", branchName)
+                return
+            }
+
+            tag().i("Remote branch exists, running git pull (rebase)")
             git.pull()
                 .setRemote("origin")
-                .setRemoteBranchName(getBranchName())
+                .setRemoteBranchName(branchName)
                 .setStrategy(MergeStrategy.THEIRS)
                 .setTransportConfigCallback(GitTransportCallback(sshKeyManager.keyPath))
                 .setRebase(true)
                 .call()
-            Timber.d("Pull succeeded")
+            tag().i("Pull succeeded")
         } catch (e: Exception) {
-            Timber.w(e, "Pull failed, will attempt to push anyway")
+            tag().w(e, "Pull failed, will attempt to push anyway")
         }
     }
 
@@ -211,12 +249,15 @@ class GitSyncManager @Inject constructor(
     private fun checkoutBranch(git: Git) {
         val branchName = getBranchName()
         try {
+            tag().i("Checking local branch %s", branchName)
             val existing: Ref? = git.repository.exactRef("refs/heads/$branchName")
             if (existing == null) {
+                tag().i("Local branch %s not found, checking remote...", branchName)
                 // Branch doesn't exist locally, try to track from remote
                 val remoteBranch = "origin/$branchName"
                 val remoteRef = git.repository.resolve(remoteBranch)
                 if (remoteRef != null) {
+                    tag().i("Creating local branch %s tracking %s", branchName, remoteBranch)
                     git.checkout()
                         .setCreateBranch(true)
                         .setName(branchName)
@@ -224,18 +265,21 @@ class GitSyncManager @Inject constructor(
                         .call()
                 } else {
                     // Neither local nor remote branch exists, create a new orphan branch
+                    tag().i("Neither local nor remote branch exists, creating new branch %s", branchName)
                     git.checkout()
                         .setCreateBranch(true)
                         .setName(branchName)
                         .call()
                 }
             } else {
+                tag().i("Checking out existing local branch %s", branchName)
                 git.checkout()
                     .setName(branchName)
                     .call()
             }
+            tag().i("Branch checkout complete: %s", branchName)
         } catch (e: Exception) {
-            Timber.w(e, "Branch checkout failed for $branchName")
+            tag().e(e, "Branch checkout failed for %s", branchName)
         }
     }
 
@@ -244,7 +288,7 @@ class GitSyncManager @Inject constructor(
      */
     fun resetLocalRepo() {
         repoDir.deleteRecursively()
-        Timber.d("Local git repo deleted")
+        tag().i("Local git repo deleted")
     }
 
     // --- Preference accessors ---

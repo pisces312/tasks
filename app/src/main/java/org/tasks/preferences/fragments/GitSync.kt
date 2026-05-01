@@ -59,6 +59,8 @@ class GitSync : Fragment() {
                 lastSyncSummary = viewModel.lastSyncSummary,
                 syncStep = viewModel.syncStep,
                 syncResult = viewModel.syncResult,
+                logEntries = viewModel.logEntries,
+                isLogExpanded = viewModel.isLogExpanded,
                 onEnabledChanged = { viewModel.updateEnabled(it) },
                 onRepoUrlChanged = { viewModel.updateRepoUrl(it) },
                 onBranchChanged = { viewModel.updateBranch(it) },
@@ -70,6 +72,8 @@ class GitSync : Fragment() {
                 onViewJson = { showJsonViewer() },
                 onResetRepo = { confirmResetRepo() },
                 onClearResult = { viewModel.clearSyncResult() },
+                onToggleLogExpanded = { viewModel.toggleLogExpanded() },
+                onClearLogs = { viewModel.clearLogs() },
             )
         }
     }

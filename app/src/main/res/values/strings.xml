@@ -755,4 +755,7 @@ File %1$s contained %2$s.\n\n
   <string name="git_sync_step_exporting">Exporting tasks…</string>
   <string name="git_sync_step_committing">Committing changes…</string>
   <string name="git_sync_step_pushing">Pushing to remote…</string>
+  <string name="git_sync_logs">Sync Logs</string>
+  <string name="git_sync_logs_clear">Clear logs</string>
+  <string name="git_sync_logs_empty">No logs yet</string>
 </resources>

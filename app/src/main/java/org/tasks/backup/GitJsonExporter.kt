@@ -72,6 +72,8 @@ class GitJsonExporter @Inject constructor(
         ignoreUnknownKeys = true
     }
 
+    private fun tag() = Timber.tag("GitJsonExporter")
+
     /**
      * Export all tasks data to the git repo working directory.
      * Output file: repoDir/tasks.json
@@ -81,7 +83,7 @@ class GitJsonExporter @Inject constructor(
     suspend fun exportTo(repoDir: File): Int = withContext(Dispatchers.IO) {
         val taskIds = taskDao.getAllTaskIds()
         if (taskIds.isEmpty()) {
-            Timber.w("No tasks to export")
+            tag().w("No tasks to export")
             return@withContext 0
         }
 
@@ -90,7 +92,7 @@ class GitJsonExporter @Inject constructor(
             try {
                 taskDao.fetch(id)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to fetch task $id")
+                tag().e(e, "Failed to fetch task $id")
                 null
             }
         }.sortedBy { it.uuid }
@@ -101,7 +103,7 @@ class GitJsonExporter @Inject constructor(
                 try {
                     buildTaskBackup(task)
                 } catch (e: Exception) {
-                    Timber.e(e, "Failed to export task ${task.id}")
+                    tag().e(e, "Failed to export task ${task.id}")
                     null
                 }
             }
@@ -134,7 +136,7 @@ class GitJsonExporter @Inject constructor(
         val outputFile = File(repoDir, TASKS_JSON_FILENAME)
         outputFile.writeText(jsonContent)
 
-        Timber.d("Exported ${allTasks.size} tasks to ${outputFile.absolutePath}")
+        tag().i("Exported ${allTasks.size} tasks to ${outputFile.absolutePath}")
         allTasks.size
     }
 
