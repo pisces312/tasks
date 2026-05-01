@@ -61,14 +61,16 @@ android {
 
     signingConfigs {
         create("release") {
-            // Use env vars: KEY_STORE_LOCATION, KEY_ALIAS, KEY_STORE_PASSWORD, KEY_PASSWORD
+            // Requires env vars: KEY_STORE_LOCATION, KEY_ALIAS, KEY_STORE_PASSWORD, KEY_PASSWORD
             val storeLocation = System.getenv("KEY_STORE_LOCATION")
-            if (storeLocation != null) {
-                storeFile = file(storeLocation)
-            }
-            keyAlias = System.getenv("KEY_ALIAS") ?: "tasks"
-            storePassword = System.getenv("KEY_STORE_PASSWORD") ?: "tasks123"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: System.getenv("KEY_STORE_PASSWORD") ?: "tasks123"
+                ?: error("KEY_STORE_LOCATION env var is required for release signing")
+            storeFile = file(storeLocation)
+            keyAlias = System.getenv("KEY_ALIAS")
+                ?: error("KEY_ALIAS env var is required for release signing")
+            storePassword = System.getenv("KEY_STORE_PASSWORD")
+                ?: error("KEY_STORE_PASSWORD env var is required for release signing")
+            keyPassword = System.getenv("KEY_PASSWORD")
+                ?: error("KEY_PASSWORD env var is required for release signing")
         }
     }
 
