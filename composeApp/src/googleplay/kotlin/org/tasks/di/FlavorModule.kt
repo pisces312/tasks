@@ -16,6 +16,9 @@ import org.tasks.fcm.PushTokenManager
 val flavorModule = module {
     single {
         PlatformConfiguration(
+            supportsCaldav = true,
+            supportsEteSync = true,
+            supportsOpenTasks = true,
             supportsDesktopLinking = true,
         )
     }

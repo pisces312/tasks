@@ -4,7 +4,7 @@
     <string name="subscribe">Абониране</string>
     <string name="search_no_results">Липсват резултати</string>
     <string name="subscription_required_description">Отключете всички възможности за по-малко от 1 долар/година</string>
-    <string name="requires_pro_subscription">Изисква версия Про</string>
+    <string name="requires_pro_subscription">Изисква абонамент Про</string>
     <string name="filter_my_tasks">Мои задачи</string>
     <string name="filter_notifications">Известия</string>
     <string name="filter_snoozed">Отложени</string>
@@ -179,4 +179,16 @@
         <item quantity="one">%1$d списък</item>
         <item quantity="other">%1$d списъка</item>
     </plurals>
+    <string name="caldav_server_other">Друг</string>
+    <string name="caldav_server_type">Вид на сървъра</string>
+    <string name="caldav_server_unknown">Неизвестен</string>
+    <string name="error_adding_account">Грешка: %s</string>
+    <string name="invalid_username_or_password">Невалидно потребителско име или парола</string>
+    <string name="network_error">Не може да бъде осъществена връзка</string>
+    <string name="sign_in">Вход</string>
+    <string name="url_host_name_required">Името на хоста е задължително</string>
+    <string name="url_invalid_scheme">Трябва да започва с http(s)://</string>
+    <string name="url_required">Адресът е задължителен</string>
+    <string name="username_required">Потребителското име е задължително</string>
+    <string name="etesync_account_description">Необходим е профил при доставчик на услуга за EteSync.com или собствен сървър</string>
 </resources>

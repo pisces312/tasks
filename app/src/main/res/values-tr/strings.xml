@@ -262,10 +262,6 @@
     <string name="send_anonymous_statistics_summary">Tasks\'ı iyileştirmeye yardımcı olmak için anonim kullanım istatistiklerini ve çökme raporlarını gönderin. Hiçbir kişisel veri toplanmayacak.</string>
     <string name="tag_already_exists">Etiket zaten var</string>
     <string name="name_cannot_be_empty">Ad boş olamaz</string>
-    <string name="username_required">Kullanıcı adı gerekli</string>
-    <string name="url_required">URL gerekli</string>
-    <string name="url_host_name_required">Ana makine adı gerekli</string>
-    <string name="url_invalid_scheme">http(s):// ile başlamalı</string>
     <string name="no_title">(Başlıksız)</string>
     <string name="back_button_saves_task">Geri düğmesi görevi kaydeder</string>
     <string name="default_list">Öntanımlı liste</string>
@@ -330,7 +326,6 @@
     <string name="tasker_create_task">Görev oluştur</string>
     <string name="tasker_list_notification">Bildirimi listele</string>
     <string name="help">Yardım</string>
-    <string name="network_error">Bağlanamadı</string>
     <string name="upgrade_to_pro">Pro\'ya yükselt</string>
     <string name="refresh_purchases">Satın alımları yenile</string>
     <string name="button_subscribe">Abone ol</string>
@@ -338,7 +333,6 @@
     <string name="pro_dashclock_extension">Dashclock eklentisi</string>
     <string name="requires_pro_subscription">Pro aboneliği gerektirir</string>
     <string name="logout">Oturumu kapat</string>
-    <string name="logout_warning">Bu hesapla ilgili tüm veri aygıtınızdan kaldırılacak</string>
     <string name="cannot_access_account">Hesaba erişilemedi</string>
     <string name="reinitialize_account">Yeniden başlat</string>
     <string name="action_create_new_task">Yeni görev oluştur</string>
@@ -365,7 +359,6 @@
     <string name="google_tasks_add_to_top">Yeni görevler üstte</string>
     <string name="location_radius_meters">%s m</string>
     <string name="url">URL</string>
-    <string name="error_adding_account">Hata: %s</string>
     <string name="list_separator_with_space">", "</string>
     <string name="icon">Simge</string>
     <string name="name_your_price">Fiyat belirle</string>
@@ -386,8 +379,6 @@
     <string name="caldav_selection_description">Açık internet standartlarında eşzamanlama</string>
     <string name="etesync_selection_description">Uçtan uca şifreli eşzamanlama</string>
     <string name="show_advanced_settings">Gelişmiş ayarları göster</string>
-    <string name="caldav_account_description">CalDAV servis sağlayıcılı hesap veya kendi kendine barındırılan sunucu gerekir. tasks.org/caldav adresinden servis sağlayıcı bulun</string>
-    <string name="etesync_account_description">EteSync.com hesabı veya kendi kendine barındırılan sunucu gerektirir</string>
     <string name="help_and_feedback">Yardım ve geri bildirim</string>
     <string name="documentation">Belgelendirme</string>
     <string name="preferences_advanced">Gelişmiş</string>
@@ -398,7 +389,6 @@
     <string name="disable_battery_optimizations">Pil iyileştirmelerini devre dışı bırak</string>
     <string name="more_settings">Daha çok ayar</string>
     <string name="more_notification_settings_summary">Zil sesi, titreşimler ve daha çoğu</string>
-    <string name="invalid_username_or_password">Geçersiz kullanıcı adı veya parola</string>
     <string name="theme_system_default">Sistem öntanımlısı</string>
     <string name="color_wheel">Renk tekeri</string>
     <string name="upgrade_blurb_1">Hey! Ben Alex. Tasks\'ın arkasındaki bağımsız geliştiriciyim</string>
@@ -594,9 +584,6 @@
     <string name="alarm_after_due">Bitişten sonra %s</string>
     <string name="alarm_before_start">Başlamadan önce %s</string>
     <string name="randomly_every">Rastgele her %s</string>
-    <string name="caldav_server_unknown">Bilinmeyen</string>
-    <string name="caldav_server_other">Diğer</string>
-    <string name="caldav_server_type">Sunucu türü</string>
     <string name="customize_edit_screen_summary">Alanları yeniden düzenle veya kaldır</string>
     <string name="dismiss">Kapat</string>
     <string name="hint_customize_edit_title">Çok bilgi mi var\?</string>
@@ -605,7 +592,6 @@
     <string name="enable_reminders_description">Anımsatıcılar Android ayarlarında devre dışı bırakıldı</string>
     <string name="sort_completion_group">Tamamlanma %s</string>
     <string name="TEA_creation_date">Oluşturulma zamanı</string>
-    <string name="sign_in">Oturum aç</string>
     <string name="sort_list">Listeye göre</string>
     <string name="repeats_ends">Biter</string>
     <plurals name="repeat_occurrence">

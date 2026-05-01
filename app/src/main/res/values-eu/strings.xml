@@ -268,10 +268,6 @@
     <string name="send_anonymous_statistics_summary">Bidali erabilera estatistika anonimoak eta kraskatze txostenak Tasks hobetzen laguntzeko. Ez da datu pertsonalik jasoko.</string>
     <string name="tag_already_exists">Etiketa hau badago aurretik</string>
     <string name="name_cannot_be_empty">Izena ezin da hutsik egon</string>
-    <string name="username_required">Erabiltzaile-izena ezinbestekoa da</string>
-    <string name="url_required">URL-a ezinbestekoa da</string>
-    <string name="url_host_name_required">Ostalari-izena ezinbestekoa da</string>
-    <string name="url_invalid_scheme">https:// batekin hasi behar da</string>
     <string name="no_title">(Izenbururik ez)</string>
     <string name="back_button_saves_task">Atzera botoiak zeregina gordetzen du</string>
     <string name="default_list">Zerrenda nagusia</string>
@@ -338,7 +334,6 @@
     <string name="tasker_create_task">Sortu zeregina</string>
     <string name="tasker_list_notification">Zerrenda-jakinarazpena</string>
     <string name="help">Laguntza</string>
-    <string name="network_error">Ezin izan da konektatu</string>
     <string name="upgrade_to_pro">Aldatu pro bertsiora</string>
     <string name="refresh_purchases">Freskatu erosketak</string>
     <string name="button_subscribe">Harpidetu</string>
@@ -346,7 +341,6 @@
     <string name="pro_dashclock_extension">Dashclock luzapena</string>
     <string name="requires_pro_subscription">Pro harpidetza eskatzen du</string>
     <string name="logout">Amaitu saioa</string>
-    <string name="logout_warning">Kontu honetako datu guztiak zure gailutik kenduko dira</string>
     <string name="cannot_access_account">Ezin izan da kontua atzitu</string>
     <string name="reinitialize_account">Berrhasi</string>
     <string name="action_create_new_task">Sortu zeregin berria</string>
@@ -373,7 +367,6 @@
     <string name="google_tasks_add_to_top">Zeregin berriak goialdean</string>
     <string name="icon">Ikonoa</string>
     <string name="name_your_price">Jarri zuk prezioa</string>
-    <string name="error_adding_account">Errorea: %s</string>
     <string name="SSD_sort_my_order">Nire eskaria</string>
     <plurals name="subtask_count">
         <item quantity="one">Azpi-zeregin %d</item>
@@ -391,8 +384,6 @@
     <string name="caldav_selection_description">Internet estandar irekietan oinarritutako sinkronizazioa</string>
     <string name="etesync_selection_description">Muturretik-muturrera zifratutako sinkronizazioa</string>
     <string name="show_advanced_settings">Erakutsi ezarpen aurreratuak</string>
-    <string name="caldav_account_description">CalDAV zerbitzu hornitzaile bateko edo zuk zeuk ostatatutako zerbitzu bateko kontua behar du. Aurkitu zerbitzu hornitzaile bat tasks.org/caldav helbidean</string>
-    <string name="etesync_account_description">EteSync.com zerbitzuko edo zuk zeuk ostatatutako zerbitzari bateko kontua behar du</string>
     <string name="help_and_feedback">Feedback eta laguntza</string>
     <string name="documentation">Dokumentazioa</string>
     <string name="preferences_advanced">Aurreratua</string>
@@ -403,7 +394,6 @@
     <string name="disable_battery_optimizations">Desgaitu bateriaren optimizazioak</string>
     <string name="more_settings">Ezarpen gehiago</string>
     <string name="more_notification_settings_summary">Dei-doinua, bibrazioak, eta gehiago</string>
-    <string name="invalid_username_or_password">Erabiltzaile-izen edo pasahitz okerra</string>
     <string name="theme_system_default">Sisteman lehenetsia</string>
     <string name="color_wheel">Kolore-gurpila</string>
     <string name="upgrade_blurb_1">Kaixo! Nire izana Alex da. Ni naiz Tasks aplikazioaren garatzaile independentea</string>
@@ -577,9 +567,6 @@
     <string name="alarm_after_start">%s hasi ondoren</string>
     <string name="alarm_before_due">%s epemuga baino lehen</string>
     <string name="alarm_after_due">%s epemuga ondoren</string>
-    <string name="caldav_server_unknown">Ezezaguna</string>
-    <string name="caldav_server_other">Bestelakoa</string>
-    <string name="caldav_server_type">Zerbitzari-mota</string>
     <string name="dismiss">Baztertu</string>
     <plurals name="reminder_minutes">
         <item quantity="one">Minutu</item>
@@ -610,5 +597,4 @@
     <string name="enable_reminders">Aktibatu oroigarriak</string>
     <string name="sort_completion_group">Osatu %s</string>
     <string name="TEA_creation_date">Sortze-data</string>
-    <string name="sign_in">Saioa hasi</string>
 </resources>

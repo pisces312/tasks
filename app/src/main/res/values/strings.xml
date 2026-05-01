@@ -365,10 +365,6 @@ File %1$s contained %2$s.\n\n
   <string name="send_anonymous_statistics_summary">Send anonymous usage statistics and crash reports to help improve Tasks. No personal data will be collected.</string>
   <string name="tag_already_exists">Tag already exists</string>
   <string name="name_cannot_be_empty">Name cannot be empty</string>
-  <string name="username_required">Username required</string>
-  <string name="url_required">URL required</string>
-  <string name="url_host_name_required">Hostname required</string>
-  <string name="url_invalid_scheme">Must begin with http(s)://</string>
   <string name="no_title">(No title)</string>
   <string name="back_button_saves_task">Back button saves task</string>
   <string name="show_edit_screen_without_unlock">Show edit screen without unlock</string>
@@ -412,7 +408,6 @@ File %1$s contained %2$s.\n\n
   <string name="user">User</string>
   <string name="password">Password</string>
   <string name="url">URL</string>
-  <string name="error_adding_account">Error: %s</string>
   <string name="notification_disable_battery_optimizations_description">Battery optimizations may delay notifications</string>
   <string name="bundle_notifications">Bundle notifications</string>
   <string name="default_reminder">All day tasks</string>
@@ -465,7 +460,6 @@ File %1$s contained %2$s.\n\n
   <string name="tasker_list_notification">List notification</string>
   <string name="help">Help</string>
   <string name="help_and_feedback">Help &amp; feedback</string>
-  <string name="network_error">Could not connect</string>
   <string name="upgrade_to_pro">Upgrade to pro</string>
   <string name="subscription">Subscription</string>
   <string name="refresh_purchases">Refresh purchases</string>
@@ -476,7 +470,6 @@ File %1$s contained %2$s.\n\n
   <string name="this_feature_requires_a_subscription">This feature requires a subscription</string>
   <string name="logout">Log out</string>
   <string name="delete_tasks_warning">%s will be deleted. This cannot be undone!</string>
-  <string name="logout_warning">All data for this account will be removed from your device</string>
   <string name="cannot_access_account">Cannot access account</string>
   <string name="reinitialize_account">Reinitialize</string>
   <string name="action_create_new_task">Create new task</string>
@@ -518,8 +511,6 @@ File %1$s contained %2$s.\n\n
   <string name="decsync_selection_description">File-based synchronization</string>
   <string name="davx5_selection_description">Synchronize your tasks with the DAVx⁵ app</string>
   <string name="show_advanced_settings">Show advanced settings</string>
-  <string name="caldav_account_description">Requires an account with a CalDAV service provider or a self-hosted server. Find a service provider by visiting tasks.org/caldav</string>
-  <string name="etesync_account_description">Requires an account with EteSync.com or a self-hosted server</string>
   <string name="preferences_advanced">Advanced</string>
   <string name="documentation">Documentation</string>
   <string name="wearable_notifications">Wearable notifications</string>
@@ -529,7 +520,6 @@ File %1$s contained %2$s.\n\n
   <string name="disable_battery_optimizations">Disable battery optimizations</string>
   <string name="more_settings">More settings</string>
   <string name="more_notification_settings_summary">Ringtone, vibrations, and more</string>
-  <string name="invalid_username_or_password">Invalid username or password</string>
   <string name="color_wheel">Color wheel</string>
   <string name="upgrade_blurb_1">Hi! My name is Alex. I am the independent developer behind Tasks</string>
   <string name="upgrade_blurb_2">I have spent thousands of hours working on Tasks, and I publish all of the source code online for free. In order to support my work some features require a subscription</string>
@@ -688,9 +678,6 @@ File %1$s contained %2$s.\n\n
   <string name="alarm_due">due</string>
   <string name="snoozed_until">Snoozed until %s</string>
   <string name="custom_notification">Custom notification</string>
-  <string name="caldav_server_unknown">Unknown</string>
-  <string name="caldav_server_other">Other</string>
-  <string name="caldav_server_type">Server type</string>
   <string name="dismiss">Dismiss</string>
   <string name="hint_customize_edit_title">Too much information?</string>
   <string name="hint_customize_edit_body">You can customize this screen by rearranging or removing fields</string>
@@ -698,7 +685,6 @@ File %1$s contained %2$s.\n\n
   <string name="enable_reminders_description">Reminders are disabled in Android Settings</string>
   <string name="enable_alarms">Get notified at the right time</string>
   <string name="enable_alarms_description">To make sure you\'re notified at the right time, grant permission to set alarms and reminders in Settings</string>
-  <string name="sign_in">Sign in</string>
   <string name="sign_in_subtitle">Already a subscriber or invited guest?</string>
   <string name="legal_disclosure_prefix_using">By using Tasks.org</string>
   <string name="terms_of_service">Terms of service</string>

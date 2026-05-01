@@ -119,7 +119,7 @@ class SyncWork @AssistedInject constructor(
         }
         inventory.updateTasksAccount()
         if (openTaskDao.shouldSync()) {
-            openTasksSynchronizer.get().sync()
+            openTasksSynchronizer.get().sync(hasPro = inventory.hasPro)
 
             if (source == SyncSource.USER_INITIATED) {
                 AccountManager

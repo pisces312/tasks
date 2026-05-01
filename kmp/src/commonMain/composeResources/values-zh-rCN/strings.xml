@@ -201,4 +201,16 @@
     <string name="unlock_pro_instructions">使用 Tasks.org Android 应用扫描下方二维码，解锁专业版功能</string>
     <string name="error_create_link_failed">创建关联失败。请检查您的互联网连接并重试。</string>
     <string name="error_confirmation_failed">确认关联失败。二维码可能无效或已过期。</string>
+    <string name="caldav_server_other">其他</string>
+    <string name="caldav_server_type">服务器类型</string>
+    <string name="caldav_server_unknown">未知</string>
+    <string name="error_adding_account">错误：%s</string>
+    <string name="invalid_username_or_password">用户名或密码无效</string>
+    <string name="network_error">无法连接</string>
+    <string name="sign_in">登录</string>
+    <string name="url_host_name_required">请填写主机名</string>
+    <string name="url_invalid_scheme">必须以 http(s):// 开头</string>
+    <string name="url_required">请填写网址</string>
+    <string name="username_required">请填写用户名</string>
+    <string name="etesync_account_description">需要一个 EteSync.com 账号或一个自托管服务器</string>
 </resources>

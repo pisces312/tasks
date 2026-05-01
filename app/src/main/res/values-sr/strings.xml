@@ -316,9 +316,6 @@
     <string name="send_anonymous_statistics_summary">Пошаљи анонимне статистике коришћења и извештаје падова апликације ради побољшања. Лични подаци неће бити прикупљени.</string>
     <string name="tag_already_exists">Таг већ постоји</string>
     <string name="name_cannot_be_empty">Поље имена не може бити празно</string>
-    <string name="username_required">Корисничко име је неопходно</string>
-    <string name="url_required">URL је неопходан</string>
-    <string name="url_invalid_scheme">Мора почети са http(s)://</string>
     <string name="no_title">(Без назива)</string>
     <string name="default_tags">Подразумевани тагови</string>
     <string name="default_recurrence">Подразумевано враћање</string>
@@ -355,7 +352,6 @@
     <string name="user">Корисник</string>
     <string name="password">Шифра</string>
     <string name="url">URL</string>
-    <string name="error_adding_account">Грешка: %s</string>
     <string name="notification_disable_battery_optimizations_description">Оптимизација батерије може одложити обавештења</string>
     <string name="badges">Беџеви</string>
     <string name="list">Листа</string>
@@ -385,7 +381,6 @@
     <string name="repeat_monthly_last_week">последњи</string>
     <string name="tasker_create_task">Креирај задатак</string>
     <string name="help">Помоћ</string>
-    <string name="network_error">Повезивање безуспешно</string>
     <string name="subscription">Претплате</string>
     <string name="button_subscribe">Претплати се</string>
     <string name="license_summary">,,Tasks.org\'\' је софтвер отвореног карактера, са лиценцом ,,GNU General Public License v3.0\'\'</string>
@@ -393,7 +388,6 @@
     <string name="this_feature_requires_a_subscription">Ова функционалност захтева претплату</string>
     <string name="logout">Одјави се</string>
     <string name="delete_tasks_warning">%s ће бити избрисан. Ово се не може опозвати!</string>
-    <string name="logout_warning">Сви подаци везани за овај налог ће бити обрисани са уређаја</string>
     <string name="cannot_access_account">Не може се приступити налогу</string>
     <string name="reinitialize_account">Поново иницијализуј</string>
     <string name="action_create_new_task">Креирај нови задатак</string>
@@ -429,7 +423,6 @@
     <string name="disable_battery_optimizations">Онемогући оптимизацију батерије</string>
     <string name="more_settings">Додатна подешавања</string>
     <string name="more_notification_settings_summary">Звук звона, вибрација и додатно</string>
-    <string name="invalid_username_or_password">Невалидно корисничко име или шифра</string>
     <string name="upgrade_blurb_1">Здраво! Моје име је Алекс. Ја сам независни развојни инжењер у ,,Tasks.org\'\' апликацији</string>
     <string name="upgrade_blurb_2">Провео сам хиљаде часова радећи на апликацији, коју објављујем онлајн бесплатно. Како бисте подржали мој рад, неке функционалности захтевају претплату</string>
     <string name="back">Назад</string>
@@ -506,7 +499,6 @@
     <string name="date_shortcut_must_come_after">%1$s мора бити након %2$s</string>
     <string name="filter_criteria_unstarted">Није започето</string>
     <string name="no_app_found">Ниједна апликација не може извршити захтев</string>
-    <string name="url_host_name_required">Назив уређаја на мрежи је неопходан</string>
     <string name="back_button_saves_task">Дугме ,,назад\'\' чува задатак</string>
     <string name="show_edit_screen_without_unlock">Прикажи екран измене без откључавања</string>
     <string name="show_edit_screen_without_unlock_summary">Омогућава коришћење брзих подешавања без откључавања уређаја</string>
@@ -547,8 +539,6 @@
     <string name="subtasks_multilevel_google_task">Подзадаци у више нивоа нису подржани од стране Гугл Задатака</string>
     <string name="subtasks_multilevel_microsoft">Подзадаци у више нивоа нису подржани од стране ,,Microsoft To Do\'\'</string>
     <string name="caldav_selection_description">Синхронизација заснована на стандардима отвореног интернета</string>
-    <string name="caldav_account_description">Захтева налог код ,,CalDAV\'\' провајдера или приватни сервер. Пронађи провајдера на страници tasks.org/caldav</string>
-    <string name="etesync_account_description">Захтева налог код ,,EteSync.com\'\' или приватни сервер</string>
     <string name="troubleshooting">Решавање проблема</string>
     <string name="notification_troubleshooting_summary">Тапни овде уколико постоје проблеми са обавештењима</string>
     <string name="color_wheel">Палета боја</string>
@@ -659,9 +649,6 @@
     <string name="alarm_after_due">%s након доспећа</string>
     <string name="snoozed_until">Одложено до %s</string>
     <string name="custom_notification">Лична обавештења</string>
-    <string name="caldav_server_unknown">Непознато</string>
-    <string name="caldav_server_other">Друго</string>
-    <string name="caldav_server_type">Тип сервера</string>
     <string name="dismiss">Одбаци</string>
     <string name="hint_customize_edit_title">Превише информација?</string>
     <string name="hint_customize_edit_body">Персонализуј овај екран премештањем или брисањем поља</string>
@@ -669,7 +656,6 @@
     <string name="enable_reminders_description">Подсетници су онемогућени у подешавањима уређаја</string>
     <string name="enable_alarms">Обавести ме у право време</string>
     <string name="enable_alarms_description">За могућност обавештења у право време, дозволи подешавања аларма и подсетника у подешавањима уређаја</string>
-    <string name="sign_in">Пријави се</string>
     <string name="add_shortcut_to_home_screen">Додај пречицу на почетни екран</string>
     <string name="add_widget_to_home_screen">Додај виџет на почетни екран</string>
     <string name="cost_money">Цена: $</string>

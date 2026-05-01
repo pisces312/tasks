@@ -12,9 +12,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import org.tasks.data.dao.CaldavDao
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.service.TaskDeleter
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.name_cannot_be_empty
 
 open class LocalAccountViewModel(
     private val caldavDao: CaldavDao,
@@ -52,10 +55,12 @@ open class LocalAccountViewModel(
         nameError.value = null
     }
 
-    fun save(errorMessage: String, onComplete: () -> Unit) {
+    fun save(onComplete: () -> Unit) {
         val name = displayName.value.trim()
         if (name.isBlank()) {
-            nameError.value = errorMessage
+            viewModelScope.launch {
+                nameError.value = getString(Res.string.name_cannot_be_empty)
+            }
             return
         }
         viewModelScope.launch {

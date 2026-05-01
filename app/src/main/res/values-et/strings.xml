@@ -166,10 +166,6 @@
     <string name="privacy_policy">Privaatsus</string>
     <string name="tag_already_exists">Silt on juba olemas</string>
     <string name="name_cannot_be_empty">Nimi ei saa olla tühi</string>
-    <string name="username_required">Kasutajanimi on nõutud</string>
-    <string name="url_required">URL on nõutud</string>
-    <string name="url_host_name_required">Hostinimi on nõutud</string>
-    <string name="url_invalid_scheme">Peab algama kujul http(s)://</string>
     <string name="no_title">(Pealkirjata)</string>
     <string name="back_button_saves_task">Tagasi nupp salvestab ülesande</string>
     <string name="default_list">Vaikimisi loend</string>
@@ -204,7 +200,6 @@
     <string name="repeat_monthly_last_week">viimane</string>
     <string name="tasker_create_task">Loo ülesanne</string>
     <string name="help">Abiinfo</string>
-    <string name="network_error">Ühenduse loomine ei õnnestunud</string>
     <string name="button_subscribe">Telli</string>
     <string name="pro_dashclock_extension">Dashclock laiendused</string>
     <string name="requires_pro_subscription">Eeldab Pro-taseme tellimust</string>
@@ -370,8 +365,6 @@
     <string name="completed">Lõpetatud</string>
     <string name="enable_reminders">Luba meeldetuletused</string>
     <string name="custom_notification">Kohandatud teavitused</string>
-    <string name="caldav_server_type">Serveri liik</string>
-    <string name="sign_in">Logi sisse</string>
     <string name="TEA_timer_comment_spent">Kulunud aeg:</string>
     <string name="opacity_header">Päise läbipaistmatus</string>
     <string name="opacity_row">Rea läbipaistmatus</string>
@@ -381,7 +374,6 @@
     <string name="last_backup">Viimane varundus: %s</string>
     <string name="reset_sort_order">Tühista sorteerimine</string>
     <string name="dismiss">Loobu</string>
-    <string name="caldav_server_other">Muu</string>
     <string name="customize_drawer">Kohanda menüüriba</string>
     <string name="CFC_startBefore_name">Algusajaks…</string>
     <string name="CFC_list_name">Nimekirjas…</string>
@@ -433,7 +425,6 @@
     <string name="repeat_type_completion_capitalized">Lõpetamise kuupäev</string>
     <string name="widget_show_dividers">Kuva eraldajad</string>
     <string name="help_and_feedback">Abi ja tagasiside</string>
-    <string name="caldav_server_unknown">Tundmatu</string>
     <string name="ok">Ok</string>
     <string name="cancel">Tühista</string>
     <string name="markdown_description">Luba Markdown pealkirjas ja kirjelduses</string>
@@ -552,7 +543,6 @@
     <string name="repeats_on">Kordub</string>
     <string name="repeats_plural">Kordub iga %s</string>
     <string name="repeats_plural_on">Kordub iga %1$s / %2$s</string>
-    <string name="logout_warning">Kõik selle kasutajakonto andmed eemaldatakse sellest seadmest</string>
     <string name="reinitialize_account">Initsialiseeri uuesti</string>
     <string name="location_arrived">Saabusid: %s</string>
     <string name="cost_money">Hind: $</string>
@@ -579,7 +569,6 @@
     <string name="list_separator_with_space">", "</string>
     <string name="astrid_sort_order">Astridi käsitsi järjestamine</string>
     <string name="astrid_sort_order_summary">Kasuta Astridi käsitsi järjestamist „Minu ülesanded“, „Täna“ ja siltide puhul. Tulevases rakenduse uuenduses see järjestuse viis asendub vaatega „Minu järjestus“</string>
-    <string name="error_adding_account">Viga: %s</string>
     <string name="dont_add_to_calendar">Ära lisa kalendrisse</string>
     <string name="license_summary">Tasks on avatud lähtekoodil põhinev tarkvara, mis on litsentseeritud GNU Üldise Avaliku Litsentsi versiooni 3.0 alusel</string>
     <string name="sync_warning_google_tasks_title">Teave Google Tasksi sünkroniseerimise kohta</string>
@@ -594,7 +583,6 @@
     <string name="badges_description">Näita ülesannete arvu Tasks rakenduse ikoonil. Palun arvesta et kõik avalehed ja käivitajad ei toeta seda võimalust.</string>
     <string name="repeat_monthly_on_day_number">Iga kuu päeval %1d</string>
     <string name="repeat_monthly_on_the_nth_weekday">Iga kuu %1$s %2$s</string>
-    <string name="invalid_username_or_password">Vigane kasutajanimi või salasõna</string>
     <string name="disable_battery_optimizations">Lülita akukasutuse optimeerimine välja</string>
     <string name="copy_multiple_tasks_confirmation">%s on kopeeritud</string>
     <string name="show_edit_screen_without_unlock">Näita muutmisvaadet ka ilma lukustust eemaldamata</string>
@@ -618,7 +606,6 @@
     <string name="auto_dismiss_datetime">Sulge kuupäevavalija automaatselt</string>
     <string name="android_auto_backup">Androidi varukoopiateenus</string>
     <string name="add_shortcut_to_home_screen">Lisa link avalehele</string>
-    <string name="caldav_account_description">Eeldab, et sul on olemas kasutajakonto CalDAV-põhise teenusepakkuja serveris või sinu omas vastavas serveris. Teenusepakkujaid leiad tasks.org/caldav lehelt</string>
     <string name="calendar_event_created">Kalendrisündmus loodud %s jaoks</string>
     <string name="github_sponsors">Sponsorid GitHubis</string>
     <string name="your_subscription_expired">Sinu tellimus on aegunud. Teenuse jätkamiseks uuenda tellimust.</string>
@@ -640,7 +627,6 @@
     <string name="etesync_selection_description">Sünkroniseerimine, mis kasutab läbivat krüptimist</string>
     <string name="caldav_selection_description">Sünkroniseerimine, mis põhineb avatud ja vabadel internetistandarditel</string>
     <string name="davx5_selection_description">Ülesannete sünkroniseerimise võimalus DAVx⁵ rakendusega</string>
-    <string name="etesync_account_description">Eeldab, et sul on olemas kasutajakonto EteSync.com teenusepakkuja serveris või sinu omas vastavas serveris</string>
     <string name="upgrade_blurb_2">Olen Tasksi loomiseks kulutanud tuhandeid tunde ja ma avaldan kogu rakenduse lähtekoodi veebis vaba litsentsi all. Selleks, et oleks võimalik minu töid ja tegemisi toetada, eeldavad selle rakenduse mõned funktsionaalsused tellimuse olemasolu</string>
     <string name="filter_any_due_date">Igal tähtajal</string>
     <string name="chip_appearance">Infosiltide välimus</string>

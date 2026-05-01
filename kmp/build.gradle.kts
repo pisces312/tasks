@@ -39,6 +39,12 @@ kotlin {
                 }
                 implementation(libs.persistent.cookiejar)
                 implementation(libs.pebblekit)
+                implementation(libs.dmfs.opentasks.provider.get().toString()) {
+                    exclude("com.github.tasks.opentasks", "opentasks-contract")
+                }
+                implementation(libs.dmfs.rfc5545.datetime)
+                implementation(libs.dmfs.recur)
+                implementation(libs.dmfs.jems)
                 api(libs.etebase)
             }
         }
@@ -46,6 +52,7 @@ kotlin {
             dependsOn(jvmCommonMain)
             dependencies {
                 implementation(libs.xpp3)
+                implementation(files("../libs/client-jvm-2.3.2.jar"))
             }
         }
         val jvmTest by getting {
@@ -64,6 +71,7 @@ kotlin {
                 exclude(group = "org.ogce", module = "xpp3")
             }
             compileOnly(libs.xpp3)
+            compileOnly(files("../libs/client-jvm-2.3.2.jar"))
         }
         commonMain.dependencies {
             implementation(projects.data)

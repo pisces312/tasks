@@ -7,19 +7,17 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
-import dagger.hilt.android.qualifiers.ApplicationContext
+import co.touchlab.kermit.Logger
 import org.dmfs.tasks.contract.TaskContract.Properties
 import org.dmfs.tasks.contract.TaskContract.TaskLists
 import org.dmfs.tasks.contract.TaskContract.Tasks
-import org.tasks.R
+import org.tasks.kmp.R
 import org.tasks.preferences.TasksPreferences
 import org.tasks.sync.SyncAdapters
 import org.tasks.sync.SyncSource
-import timber.log.Timber
-import javax.inject.Inject
 
-class OpenTaskContentObserver @Inject constructor(
-    @ApplicationContext context: Context,
+class OpenTaskContentObserver(
+    context: Context,
     private val syncAdapters: SyncAdapters,
     private val tasksPreferences: TasksPreferences,
 ) : ContentObserver(getHandler()), SyncStatusObserver {
@@ -37,18 +35,18 @@ class OpenTaskContentObserver @Inject constructor(
     override fun onChange(selfChange: Boolean, uri: Uri?) {
         when {
             selfChange || uri == null ->
-                Timber.v("Ignoring onChange selfChange=$selfChange uri=$uri")
+                Logger.v("OpenTaskContentObserver") { "Ignoring onChange selfChange=$selfChange uri=$uri" }
 
             uri.getQueryParameter("caller_is_syncadapter")?.toBoolean() == true-> {
-                Timber.d("onChange uri=$uri")
+                Logger.d("OpenTaskContentObserver") { "onChange uri=$uri" }
                 syncAdapters.sync(SyncSource.CONTENT_OBSERVER)
             }
 
             isSyncOngoing ->
-                Timber.v("Ignoring onChange uri=$uri sync in progress")
+                Logger.v("OpenTaskContentObserver") { "Ignoring onChange uri=$uri sync in progress" }
 
             else -> {
-                Timber.d("onChange uri=$uri")
+                Logger.d("OpenTaskContentObserver") { "onChange uri=$uri" }
                 syncAdapters.sync(SyncSource.CONTENT_OBSERVER)
             }
         }
@@ -61,7 +59,7 @@ class OpenTaskContentObserver @Inject constructor(
     }
 
     companion object {
-        fun getHandler() = HandlerThread("OT-handler)").let {
+        fun getHandler() = HandlerThread("OT-handler").let {
             it.start()
             Handler(it.looper)
         }

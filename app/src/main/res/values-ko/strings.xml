@@ -260,10 +260,6 @@
     <string name="send_anonymous_statistics_summary">Tasks를 향상시키기 위해 사용 기록과 충돌 보고서를 익명으로 전송합니다. 개인 정보는 수집되지 않습니다.</string>
     <string name="tag_already_exists">태그가 이미 존재합니다</string>
     <string name="name_cannot_be_empty">이름은 필수 입력항목입니다</string>
-    <string name="username_required">계정명 필수</string>
-    <string name="url_required">URL 필수</string>
-    <string name="url_host_name_required">호스트명 필수</string>
-    <string name="url_invalid_scheme">반드시 http(s):// 로 시작해야 합니다</string>
     <string name="no_title">(제목 없음)</string>
     <string name="back_button_saves_task">뒤로가기 버튼으로 할일 저장</string>
     <string name="default_list">기본 목록</string>
@@ -328,7 +324,6 @@
     <string name="tasker_create_task">할일 만들기</string>
     <string name="tasker_list_notification">목록 알림</string>
     <string name="help">도움말</string>
-    <string name="network_error">연결 실패</string>
     <string name="upgrade_to_pro">프로 서비스로 업그레이드</string>
     <string name="refresh_purchases">구매 새로고침</string>
     <string name="button_subscribe">신청</string>
@@ -336,7 +331,6 @@
     <string name="pro_dashclock_extension">Dashclock 확장프로그램</string>
     <string name="requires_pro_subscription">프로 서비스 구독이 필요합니다</string>
     <string name="logout">로그아웃</string>
-    <string name="logout_warning">이 계정의 모든 정보가 기기에서 삭제됩니다</string>
     <string name="cannot_access_account">계정에 접근할 수 없습니다</string>
     <string name="reinitialize_account">다시 초기화하기</string>
     <string name="action_create_new_task">새 할일 만들기</string>
@@ -351,7 +345,6 @@
     <string name="google_drive_backup">구글 드라이브에 백업</string>
     <string name="location_radius_meters">%s m</string>
     <string name="url">URL</string>
-    <string name="error_adding_account">오류: %s</string>
     <string name="list_separator_with_space">", "</string>
     <string name="visit_website">웹사이트 방문</string>
     <string name="choose_a_location">위치 선택</string>
@@ -382,8 +375,6 @@
     <string name="caldav_selection_description">개방형 인터넷 표준을 바탕으로 한 동기화</string>
     <string name="etesync_selection_description">종단간 암호화된 동기화</string>
     <string name="show_advanced_settings">고급 설정 표시</string>
-    <string name="caldav_account_description">CalDAV 서비스 제공업체나 자체호스팅 서버의 계정이 필요합니다. tasks.org/caldav에 방문하여 서비스 제공업체를 찾아보세요</string>
-    <string name="etesync_account_description">EteSync.com이나 자체호스팅 서버의 계정 필요</string>
     <string name="share">공유</string>
     <string name="select_all">모두 선택</string>
     <string name="no_time">마감시간 없음</string>
@@ -401,7 +392,6 @@
     <string name="chips">칩</string>
     <string name="upgrade_blurb_2">저는 Tasks 개발에 엄청나게 많은 시간을 쏟고 있으며, 모든 소스코드를 웹에 무상으로 공개하고 있습니다. 저의 작업을 후원하기 위해 일부 기능은 구독이 필요합니다</string>
     <string name="color_wheel">색상환</string>
-    <string name="invalid_username_or_password">유효하지 않은 사용자명과 비밀번호</string>
     <string name="more_notification_settings_summary">신호음, 진동 등</string>
     <string name="more_settings">더 많은 설정</string>
     <string name="disable_battery_optimizations">배터리 최적화 끄기</string>
@@ -565,8 +555,6 @@
     <string name="TEA_creation_date">생성일</string>
     <string name="now">지금</string>
     <string name="alarm_after_start">시작 후 %s</string>
-    <string name="caldav_server_type">서버 유형</string>
-    <string name="sign_in">로그인</string>
     <string name="enable_reminders">알람 활성화</string>
     <string name="hint_customize_edit_body">필드 순서를 변경하거나 삭제하실 수 있습니다</string>
     <string name="completion_sound">완료 효과음 재생</string>
@@ -577,8 +565,6 @@
     <string name="randomly_every">매 %s마다 무작위로</string>
     <string name="custom_filter_has_reminder">알림 있음</string>
     <string name="snackbar_tasks_completed">%d 할일 완료</string>
-    <string name="caldav_server_unknown">미정</string>
-    <string name="caldav_server_other">기타</string>
     <plurals name="reminder_minutes">
         <item quantity="other">분</item>
     </plurals>

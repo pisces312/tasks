@@ -36,14 +36,14 @@ import org.tasks.preferences.recordInstallIfNeeded
 import org.tasks.sse.SseClient
 import org.tasks.sync.SyncSource
 import org.tasks.di.commonModule
+import org.tasks.di.dataDir
 import org.tasks.di.platformModule
 import org.tasks.logging.FileLogWriter
-import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.io.File
-import java.net.URI
+import org.tasks.extensions.openInBrowser
 
 private val MIN_WIDTH = 400.dp
 private val MIN_HEIGHT = 300.dp
@@ -53,7 +53,7 @@ private val DEFAULT_HEIGHT = 600.dp
 @OptIn(FlowPreview::class)
 fun main() {
     org.tasks.caldav.CaldavSynchronizer.registerFactories()
-    val logDir = File(System.getProperty("user.home"), ".tasks.org/logs").apply { mkdirs() }
+    val logDir = File(dataDir(), "logs").apply { mkdirs() }
     Logger.setLogWriters(
         buildList {
             if (TasksBuildConfig.DEBUG) add(platformLogWriter())
@@ -168,7 +168,7 @@ fun main() {
             var currentEnv by remember { mutableStateOf(serverEnv.currentEnvironment) }
             App(
                 openUrl = { url ->
-                    Desktop.getDesktop().browse(URI(url))
+                    openInBrowser(url)
                 },
                 environments = serverEnv.environments,
                 currentEnvironment = currentEnv,

@@ -327,7 +327,6 @@
     <string name="user">Χρήστης</string>
     <string name="password">Κωδικός</string>
     <string name="url">Ηλεκτρονική διεύθυνση (URL)</string>
-    <string name="error_adding_account">Σφάλμα: %s</string>
     <string name="notification_disable_battery_optimizations_description">Οι βελτιστοποιήσεις μπαταρίας ενδέχεται να καθυστερούν τις ειδοποιήσεις</string>
     <string name="bundle_notifications">Ειδοποιήσεις πακέτου</string>
     <string name="badges">Μετάλλια</string>
@@ -375,7 +374,6 @@
     <string name="tasker_create_task">Δημιουργία εργασίας</string>
     <string name="tasker_list_notification">Ειδοποίηση λίστας</string>
     <string name="help">Βοήθεια</string>
-    <string name="network_error">Η σύνδεση απέτυχε</string>
     <string name="upgrade_to_pro">Αναβάθμιση σε συνδρομή</string>
     <string name="subscription">Συνδρομή εφαρμογής</string>
     <string name="refresh_purchases">Ανανέωση συναλλαγών</string>
@@ -386,7 +384,6 @@
     <string name="this_feature_requires_a_subscription">Αυτό το χαρακτηριστικό χρειάζεται συνδρομή</string>
     <string name="logout">Αποσύνδεση</string>
     <string name="delete_tasks_warning">%s θα διαγραφεί. Αυτό δεν γίνεται να αναιρεθεί!</string>
-    <string name="logout_warning">Όλα τα δεδομένα για αυτό το λογαριασμό θα αφαιρεθούν από τη συσκευή σας</string>
     <string name="cannot_access_account">Δεν υπάρχει πρόσβαση στο λογαριασμό</string>
     <string name="reinitialize_account">Εκ νέου αρχικοποίηση</string>
     <string name="action_create_new_task">Δημιουργία νέας εργασίας</string>
@@ -428,8 +425,6 @@
     <string name="decsync_selection_description">Συγχρονισμός βάσει αρχείων</string>
     <string name="davx5_selection_description">Συγχρονίστε τις εργασίες σας με την εφαρμογή DAVx⁵</string>
     <string name="show_advanced_settings">Εμφάνιση σύνθετων ρυθμίσεων</string>
-    <string name="caldav_account_description">Απαιτείται λογαριασμός σε πάροχο υπηρεσιών CalDAV ή σε αυτοφιλοξενούμενο διακομιστή. Βρείτε έναν πάροχο υπηρεσιών μεταβαίνοντας στη διεύθυνση tasks.org/caldav</string>
-    <string name="etesync_account_description">Απαιτείται λογαριασμός στο EteSync.com ή σε αυτο-φιλοξενούμενο διακομιστή</string>
     <string name="preferences_advanced">Συνθέτες</string>
     <string name="documentation">Έγγραφα</string>
     <string name="wearable_notifications">Ενημερώσεις φορητών συσκευών</string>
@@ -439,7 +434,6 @@
     <string name="disable_battery_optimizations">Απενεργοποίηση βελτιστοποιήσεων μπαταρίας</string>
     <string name="more_settings">Περισσότερες ρυθμίσεις</string>
     <string name="more_notification_settings_summary">Ήχος κλήσης, δόνηση, και άλλα</string>
-    <string name="invalid_username_or_password">Μη έγκυρο όνομα χρήστη ή κωδικός</string>
     <string name="color_wheel">Τροχός χρωμάτων</string>
     <string name="upgrade_blurb_1">Γεια! Με λένε Άλεξ. Είμαι ο ανεξάρτητος προγραμματιστής πίσω από την εφαρμογή Tasks</string>
     <string name="upgrade_blurb_2">Έχω ξοδέψει χιλιάδες ώρες δουλεύοντας στο Tasks, και δημοσιεύω όλο τον πηγαίο κώδικα στο διαδίκτυο δωρεάν. Για να υποστηρίξω τη δουλειά μου, κάποια χαρακτηριστικά χρειάζονται συνδρομή</string>
@@ -565,9 +559,6 @@
     <string name="alarm_after_due">%s μετά την προθεσμία</string>
     <string name="snoozed_until">Αναβλήθηκε μέχρι %s</string>
     <string name="custom_notification">Προσαρμοσμένη ειδοποίηση</string>
-    <string name="caldav_server_unknown">Άγνωστο</string>
-    <string name="caldav_server_other">Άλλο</string>
-    <string name="caldav_server_type">Τύπος διακομιστή</string>
     <string name="dismiss">Απορρίψτε</string>
     <string name="hint_customize_edit_title">Πάρα πολλές πληροφορίες;</string>
     <string name="hint_customize_edit_body">Μπορείτε να προσαρμόσετε αυτή την οθόνη αναδιατάσσοντας ή αφαιρώντας πεδία</string>
@@ -575,7 +566,6 @@
     <string name="enable_reminders_description">Οι υπενθυμίσεις είναι απενεργοποιημένες στις Ρυθμίσεις Android</string>
     <string name="enable_alarms">Ενημερωθείτε την κατάλληλη στιγμή</string>
     <string name="enable_alarms_description">Για να βεβαιωθείτε ότι θα ειδοποιηθείτε την κατάλληλη στιγμή, παραχωρήστε άδεια δημιουργίας υπενθυμίσεων και ειδοποιήσεων στις Ρυθμίσεις</string>
-    <string name="sign_in">Συνδεθείτε</string>
     <string name="add_shortcut_to_home_screen">Προσθήκη συντόμευσης στην αρχική οθόνη</string>
     <string name="add_widget_to_home_screen">Προσθήκη γραφικού στοιχείου στην αρχική οθόνη</string>
     <string name="cost_money">Κόστος: $</string>
@@ -641,10 +631,6 @@
     <string name="send_anonymous_statistics_summary">Στείλτε ανώνυμα στατιστικά στοιχεία χρήσης και αναφορές σφαλμάτων για να συμβάλετε στη βελτίωση του Tasks. Δεν θα συλλεχθούν προσωπικά δεδομένα.</string>
     <string name="tag_already_exists">Η ετικέτα υπάρχει ήδη</string>
     <string name="name_cannot_be_empty">Το όνομα δεν μπορεί να είναι κενό</string>
-    <string name="username_required">Απαιτείται όνομα χρήστη</string>
-    <string name="url_required">Απαιτείται διεύθυνση URL</string>
-    <string name="url_host_name_required">Απαιτείται όνομα κεντρικού υπολογιστή</string>
-    <string name="url_invalid_scheme">Πρέπει να αρχίζει με http(s)://</string>
     <string name="no_title">(Χωρίς τίτλο)</string>
     <string name="back_button_saves_task">Το κουμπί \"Πίσω\" αποθηκεύει την εργασία</string>
     <string name="show_edit_screen_without_unlock">Εμφάνιση οθόνης επεξεργασίας χωρίς ξεκλείδωμα</string>

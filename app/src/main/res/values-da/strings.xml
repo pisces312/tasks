@@ -133,7 +133,6 @@
     <string name="upgrade_blurb_2">Jeg har brugt tusindvis af timer på Tasks, og jeg udgiver hele kildekoden gratis. For at støtte mit arbejde kræver nogle funktioner et abonnement</string>
     <string name="upgrade_blurb_1">Hej! Jeg hedder Alex. Jeg er den selvstændige udvikler bag Tasks</string>
     <string name="color_wheel">Farvehjul</string>
-    <string name="invalid_username_or_password">Ugyldigt brugernavn eller adgangskode</string>
     <string name="more_notification_settings_summary">Ringetone, vibrér og mere</string>
     <string name="more_settings">Flere indstillinger</string>
     <string name="notification_troubleshooting_summary">Tryk her, hvis du har problemer med meddelelser</string>
@@ -141,8 +140,6 @@
     <string name="wearable_notifications">Wearables-meddelelser</string>
     <string name="documentation">Dokumentation</string>
     <string name="preferences_advanced">Avanceret</string>
-    <string name="etesync_account_description">Kræver en konto hos EteSync.com eller en selvhostet server</string>
-    <string name="caldav_account_description">Kræver en konto hos en CalDAV-tjenesteudbyder eller en selvhostet server. Find en tjenesteudbyder ved at besøge tasks.org/caldav</string>
     <string name="show_advanced_settings">Vis avancerede indstillinger</string>
     <string name="davx5_selection_description">Synkroniser dine opgaver med DAVx⁵-appen</string>
     <string name="etesync_selection_description">End-to-end-krypteret synkronisering</string>
@@ -179,13 +176,11 @@
     <string name="action_create_new_task">Opret ny opgave</string>
     <string name="reinitialize_account">Geninitialiser</string>
     <string name="cannot_access_account">Kunne ikke tilgå konto</string>
-    <string name="logout_warning">Alle data for denne konto fjernes fra din enhed</string>
     <string name="logout">Log ud</string>
     <string name="this_feature_requires_a_subscription">Denne funktion kræver et abonnement</string>
     <string name="requires_pro_subscription">Kræver pro-abonnement</string>
     <string name="pro_dashclock_extension">Dashclock-udvidelse</string>
     <string name="button_subscribe">Abonnér</string>
-    <string name="network_error">Kunne ikke oprette forbindelse</string>
     <string name="help_and_feedback">Hjælp og feedback</string>
     <string name="help">Hjælp</string>
     <string name="tasker_list_notification">Listemeddelelser</string>
@@ -217,7 +212,6 @@
     <string name="badges">Badges</string>
     <string name="bundle_notifications">Gruppér meddelelser</string>
     <string name="notification_disable_battery_optimizations_description">Batterioptimeringer kan forsinke meddelelser</string>
-    <string name="error_adding_account">Fejl: %s</string>
     <string name="url">URL</string>
     <string name="password">Adgangskode</string>
     <string name="user">Bruger</string>
@@ -254,10 +248,6 @@
     <string name="filter">Filter</string>
     <string name="default_list">Standardliste</string>
     <string name="no_title">(Ingen titel)</string>
-    <string name="url_invalid_scheme">Skal begynde med http(s)://</string>
-    <string name="url_host_name_required">Værtsnavn påkrævet</string>
-    <string name="url_required">URL påkrævet</string>
-    <string name="username_required">Brugernavn påkrævet</string>
     <string name="name_cannot_be_empty">Navnet må ikke være tomt</string>
     <string name="tag_already_exists">Tagget findes allerede</string>
     <string name="send_anonymous_statistics_summary">Send anonyme brugerstatistik og fejlrapporter for at hjælpe med at forbedre Tasks. Ingen personlige data indsamles.</string>
@@ -583,9 +573,6 @@
     <string name="completion_sound">Afspil fuldførelseslyd</string>
     <string name="customize_edit_screen_summary">Omarranger eller fjern felter</string>
     <string name="completed">Fuldført</string>
-    <string name="caldav_server_unknown">Ukendt</string>
-    <string name="caldav_server_other">Andet</string>
-    <string name="caldav_server_type">Servertype</string>
     <string name="dismiss">Afvis</string>
     <plurals name="reminder_days">
         <item quantity="one">Dag</item>
@@ -605,7 +592,6 @@
     <string name="enable_reminders">Aktiver påmindelser</string>
     <string name="enable_reminders_description">Påmindelser er deaktiveret i Android-indstillinger</string>
     <string name="TEA_creation_date">Oprettelsesdato</string>
-    <string name="sign_in">Log ind</string>
     <string name="customize_drawer">Tilpas skuffe</string>
     <string name="customize_drawer_summary">Træk og slip for at omarrangere menupunkter</string>
     <string name="swipe_to_snooze_description">Udsættelsestid</string>

@@ -130,4 +130,16 @@
         <item quantity="one">Zerrenda %1$d</item>
         <item quantity="other">%1$d zerrenda</item>
     </plurals>
+    <string name="caldav_server_other">Bestelakoa</string>
+    <string name="caldav_server_type">Zerbitzari-mota</string>
+    <string name="caldav_server_unknown">Ezezaguna</string>
+    <string name="error_adding_account">Errorea: %s</string>
+    <string name="invalid_username_or_password">Erabiltzaile-izen edo pasahitz okerra</string>
+    <string name="network_error">Ezin izan da konektatu</string>
+    <string name="sign_in">Saioa hasi</string>
+    <string name="url_host_name_required">Ostalari-izena ezinbestekoa da</string>
+    <string name="url_invalid_scheme">https:// batekin hasi behar da</string>
+    <string name="url_required">URL-a ezinbestekoa da</string>
+    <string name="username_required">Erabiltzaile-izena ezinbestekoa da</string>
+    <string name="etesync_account_description">EteSync.com zerbitzuko edo zuk zeuk ostatatutako zerbitzari bateko kontua behar du</string>
 </resources>

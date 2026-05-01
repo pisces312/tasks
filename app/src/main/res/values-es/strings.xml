@@ -275,10 +275,6 @@
     <string name="send_anonymous_statistics_summary">Enviar de forma anónima estadísticas de uso e informes de error para ayudar a mejorar Task. No se recogerán datos personales.</string>
     <string name="tag_already_exists">La etiqueta ya existe</string>
     <string name="name_cannot_be_empty">El nombre no puede estar vacío</string>
-    <string name="username_required">Nombre de usuario requerido</string>
-    <string name="url_required">Se requiere un URL</string>
-    <string name="url_host_name_required">Se necesita el nombre de anfitrión</string>
-    <string name="url_invalid_scheme">Debe comenzar por http(s)://</string>
     <string name="no_title">(Sin título)</string>
     <string name="back_button_saves_task">El botón Atrás guarda la tarea</string>
     <string name="default_list">Lista predeterminada</string>
@@ -342,7 +338,6 @@
     <string name="tasker_create_task">Crear tarea</string>
     <string name="tasker_list_notification">Listar notificación</string>
     <string name="help">Ayuda</string>
-    <string name="network_error">No se pudo conectar</string>
     <string name="upgrade_to_pro">Actualizar a profesional</string>
     <string name="refresh_purchases">Actualizar los acquisiciones</string>
     <string name="button_subscribe">Suscribe</string>
@@ -350,7 +345,6 @@
     <string name="pro_dashclock_extension">Extensión Dashclock</string>
     <string name="requires_pro_subscription">Requiere suscripción Pro</string>
     <string name="logout">Cerrar sesión</string>
-    <string name="logout_warning">Todos los datos de esta cuenta se borrarán del dispositivo</string>
     <string name="cannot_access_account">No se puede acceder a la cuenta</string>
     <string name="reinitialize_account">Reinicializar</string>
     <string name="action_create_new_task">Crear nueva tarea</string>
@@ -380,7 +374,6 @@
     <string name="location_radius_meters">%s m</string>
     <string name="color">Color</string>
     <string name="url">URL</string>
-    <string name="error_adding_account">Error : %s</string>
     <string name="list_separator_with_space">", "</string>
     <string name="icon">Icono</string>
     <string name="name_your_price">Precio flexible</string>
@@ -402,8 +395,6 @@
     <string name="caldav_selection_description">Sincronización basada en estándares abiertos de Internet</string>
     <string name="etesync_selection_description">Sincronización cifrada de extremo a extremo</string>
     <string name="show_advanced_settings">Mostrar la configuración avanzada</string>
-    <string name="caldav_account_description">Requiere una cuenta con un proveedor de servicios CalDAV o un servidor autoalojado. Encuentre un proveedor de servicios visitando tasks.org/caldav</string>
-    <string name="etesync_account_description">Requiere una cuenta en EteSync.com o un servidor autoalojado</string>
     <string name="help_and_feedback">Ayuda y retroalimentación</string>
     <string name="documentation">Documentación</string>
     <string name="preferences_advanced">Avanzado</string>
@@ -414,7 +405,6 @@
     <string name="disable_battery_optimizations">Desactivar optimizaciones de batería</string>
     <string name="more_settings">Más configuración</string>
     <string name="more_notification_settings_summary">Tono de llamada, vibraciones y más</string>
-    <string name="invalid_username_or_password">Nombre de usuario o contraseña inválidos</string>
     <string name="theme_system_default">Valor predeterminado del sistema</string>
     <string name="color_wheel">Rueda de colores</string>
     <string name="upgrade_blurb_1">¡Hola! Me llamo Alex. Soy el desarrollador independiente detrás de Tasks</string>
@@ -613,10 +603,7 @@
         <item quantity="other">Minutos</item>
     </plurals>
     <string name="custom_notification">Notificación personalizada</string>
-    <string name="caldav_server_type">Tipo de servidor</string>
     <string name="randomly_every">Aleatoriamente cada %s</string>
-    <string name="caldav_server_unknown">Desconocido</string>
-    <string name="caldav_server_other">Otro</string>
     <string name="dismiss">Descartar</string>
     <string name="customize_edit_screen_summary">Reorganizar o quitar campos</string>
     <string name="hint_customize_edit_title">¿Demasiada información\?</string>
@@ -625,7 +612,6 @@
     <string name="enable_reminders_description">Los recordatorios están deshabilitados en la configuración de Android</string>
     <string name="sort_completion_group">Completar %s</string>
     <string name="TEA_creation_date">Fecha de creación</string>
-    <string name="sign_in">Iniciar sesión</string>
     <string name="sort_list">Por lista</string>
     <plurals name="repeat_occurrence">
         <item quantity="one">ocurrencia</item>

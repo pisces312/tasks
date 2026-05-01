@@ -34,7 +34,6 @@ import tasks.kmp.generated.resources.discard_changes
 import tasks.kmp.generated.resources.display_name
 import tasks.kmp.generated.resources.local_lists
 import tasks.kmp.generated.resources.logout_warning
-import tasks.kmp.generated.resources.name_cannot_be_empty
 import tasks.kmp.generated.resources.save
 import tasks.kmp.generated.resources.task_count
 
@@ -47,13 +46,12 @@ fun LocalAccountScreen(
     hasChanges: Boolean,
     showDiscardDialog: Boolean,
     onNameChange: (String) -> Unit,
-    onSave: (errorMessage: String) -> Unit,
+    onSave: () -> Unit,
     onDelete: () -> Unit,
     onNavigateBack: () -> Unit,
     onDiscardDialogChange: (Boolean) -> Unit,
 ) {
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
-    val nameErrorMessage = stringResource(Res.string.name_cannot_be_empty)
 
     PlatformBackHandler(enabled = hasChanges) {
         onDiscardDialogChange(true)
@@ -89,7 +87,7 @@ fun LocalAccountScreen(
                     title = stringResource(Res.string.save),
                     icon = Icons.Outlined.Save,
                     enabled = hasChanges,
-                    onClick = { onSave(nameErrorMessage) },
+                    onClick = onSave,
                 )
             }
         }

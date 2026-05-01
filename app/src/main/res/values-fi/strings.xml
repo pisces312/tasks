@@ -327,7 +327,6 @@
     <string name="chips">Lisätietolaput</string>
     <string name="back">Takaisin</string>
     <string name="color_wheel">Väriympyrä</string>
-    <string name="invalid_username_or_password">Virheellinen käyttäjätunnus tai salasana</string>
     <string name="more_notification_settings_summary">Soittoääni, värinä, yms</string>
     <string name="more_settings">Lisäasetukset</string>
     <string name="disable_battery_optimizations">Älä säästä virtaa</string>
@@ -367,19 +366,14 @@
     <string name="requires_pro_subscription">Edellyttää pro-tilauksen</string>
     <string name="license_summary">Tasks on vapaa avoimen ohjelmakoodin ohjelmisto lisensöity GNU General Public License v3.0 -lisenssillä</string>
     <string name="button_subscribe">Tilaa</string>
-    <string name="network_error">Yhteyttä ei saatu</string>
     <string name="help_and_feedback">Apu &amp; palaute</string>
     <string name="list_separator_with_space">", "</string>
-    <string name="error_adding_account">Virhe: %s</string>
     <string name="url">URL</string>
     <string name="password">Salasana</string>
     <string name="user">Käyttäjä</string>
     <string name="theme_system_default">Järjestelmän oletus</string>
     <string name="launcher_icon">Käynnistyskuvake</string>
     <string name="icon">Kuvake</string>
-    <string name="url_invalid_scheme">On alettava http(s)://</string>
-    <string name="url_required">URL vaaditaan</string>
-    <string name="username_required">Käyttäjänimi vaaditaan</string>
     <string name="move">Siirrä</string>
     <string name="menu_discard_changes">Hylkää muutokset</string>
     <string name="location_radius_meters">%s m</string>
@@ -417,7 +411,6 @@
     <string name="action_new_task">Uusi tehtävä</string>
     <string name="pro_dashclock_extension">Dashclock-laajennus</string>
     <string name="upgrade_to_pro">Päivitä pro versioon</string>
-    <string name="etesync_account_description">Vaatii tilin Etesync.com :ssa tai itsehallinnoidun serverin</string>
     <string name="filter_no_priority">Ei tärkeyttä</string>
     <string name="filter_medium_priority">Normaali tärkeys</string>
     <string name="filter_overdue">Myöhässä oleva</string>
@@ -450,11 +443,9 @@
     <string name="wearable_notifications_summary">Näytä ilmoitukset puettavassa laitteessasi</string>
     <string name="wearable_notifications">Puettavan laitteen ilmoitukset</string>
     <string name="preferences_advanced">Kehittyneet</string>
-    <string name="caldav_account_description">Vaatii palveluntuottajan tai itsehallinnoidun CalDAV tilin. Tutustu palveluntarjoajiin osoitteessa tasks.org/caldav</string>
     <string name="whats_new">Mitä uutta</string>
     <string name="location_departed">Lähdit paikasta %s</string>
     <string name="location_arrived">Saavuit paikkaan %s</string>
-    <string name="logout_warning">Kaikki tälle tilille tallennetut tiedot poistetaan laitteeltasi</string>
     <string name="refresh_purchases">Päivitä ostoksesi</string>
     <string name="widget_due_date_hidden">Piilotettu</string>
     <string name="widget_due_date_below_title">Otsikon alle</string>
@@ -472,7 +463,6 @@
     <string name="date_shortcut_tomorrow_night">Huomenna illalla</string>
     <string name="backups_ignore_warnings_summary">Jätä varmuuskopiointivaroitukset huomiotta, jos et tarvitse varmuuskopioita tai sinulla on oma varmuuskopiointiratkaisu</string>
     <string name="astrid_sort_order_summary">Ota käyttöön Astridin manuaalinen lajittelutila \'Omat tehtävät\', \'Tänään\' ja tunnisteet. Tämä lajittelutila korvataan \'Oma järjestys\'-tilalla tulevassa päivityksessä</string>
-    <string name="url_host_name_required">Isäntänimi vaaditaan</string>
     <string name="date_shortcut_tomorrow_evening">Huomenna illalla</string>
     <string name="markdown_description">Ota Markdown käyttöön otsikossa ja kuvauksessa</string>
     <string name="markdown">Markdown</string>
@@ -586,10 +576,6 @@
     </plurals>
     <string name="completion_sound">Toista valmistumisääni</string>
     <string name="TEA_creation_date">Luontipäivä</string>
-    <string name="caldav_server_unknown">Tuntematon</string>
-    <string name="caldav_server_other">Muu</string>
-    <string name="caldav_server_type">Palvelimen tyyppi</string>
-    <string name="sign_in">Kirjaudu sisään</string>
     <string name="snackbar_tasks_completed">%d tehtävää suoritettu</string>
     <string name="custom_notification">Mukautettu ilmoitus</string>
     <string name="snoozed_until">Torkuta %s</string>

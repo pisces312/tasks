@@ -21,10 +21,14 @@ import org.tasks.billing.BillingProvider
 import org.tasks.billing.DesktopEntitlement
 import org.tasks.billing.DesktopLinkClient
 import org.tasks.billing.DesktopLinkClientImpl
+import org.tasks.billing.GitHubSponsorClient
+import org.tasks.billing.GitHubSponsorClientImpl
 import org.tasks.billing.SubscriptionProvider
 import org.tasks.caldav.FileStorage
 import org.tasks.caldav.VtodoCache
 import org.tasks.data.db.Database
+import org.tasks.etebase.EtebaseClientProvider
+import org.tasks.opentasks.OpenTasksSyncer
 import org.tasks.fcm.FcmTokenProvider
 import org.tasks.fcm.PushTokenManager
 import org.tasks.http.DefaultOkHttpClientFactory
@@ -39,7 +43,7 @@ import org.tasks.sse.SseClient
 import org.tasks.sse.SseTokenProvider
 import java.io.File
 
-private fun dataDir(): File {
+fun dataDir(): File {
     val override = System.getProperty("tasks.dataDir")?.takeIf { it.isNotBlank() }
     val home = System.getProperty("user.home")
     val file = override?.let { File(it) }
@@ -54,6 +58,7 @@ actual fun platformModule(): Module = module {
             versionCode = JvmBuildConfig.VERSION_CODE,
             billingProvider = BillingProvider.PADDLE,
             supportsCaldav = true,
+            supportsEteSync = true,
         )
     }
     single<Reporting> {
@@ -87,6 +92,27 @@ actual fun platformModule(): Module = module {
     factory {
         FileStorage(dataDir().absolutePath)
     }
+    factory {
+        EtebaseClientProvider(
+            filesDir = dataDir().absolutePath,
+            encryption = get(),
+            caldavDao = get(),
+            httpClientFactory = get(),
+        )
+    }
+    factory<OpenTasksSyncer> {
+        val caldavDao = get<org.tasks.data.dao.CaldavDao>()
+        val refreshBroadcaster = get<org.tasks.broadcast.RefreshBroadcaster>()
+        object : OpenTasksSyncer {
+            override suspend fun sync(hasPro: Boolean) {
+                caldavDao.getAccounts(org.tasks.data.entity.CaldavAccount.TYPE_OPENTASKS).forEach { account ->
+                    account.error = "OpenTasks sync is not supported on desktop"
+                    caldavDao.update(account)
+                    refreshBroadcaster.broadcastRefresh()
+                }
+            }
+        }
+    }
     factoryOf(::VtodoCache)
     single {
         DesktopEntitlement(
@@ -119,6 +145,14 @@ actual fun platformModule(): Module = module {
     }
     single<DesktopLinkClient> {
         DesktopLinkClientImpl(
+            httpClientFactory = get(),
+            serverEnvironment = get(),
+            desktopEntitlement = get(),
+            json = get(),
+        )
+    }
+    single<GitHubSponsorClient> {
+        GitHubSponsorClientImpl(
             httpClientFactory = get(),
             serverEnvironment = get(),
             desktopEntitlement = get(),

@@ -82,9 +82,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.BasicAlertDialog
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.Serializable
@@ -96,12 +98,19 @@ import org.tasks.auth.OAuthProvider
 import org.tasks.compose.drawer.DrawerItem
 import org.tasks.compose.drawer.TaskListDrawer
 
+import co.touchlab.kermit.Logger
 import org.tasks.auth.TasksServerEnvironment
 import org.tasks.compose.NavigationBarScrim
 import org.tasks.compose.PlatformBackHandler
+import org.tasks.compose.settings.CaldavAccountSettingsDetail
+import org.tasks.compose.settings.CaldavAccountSettingsPane
+import org.tasks.compose.settings.EtebaseAccountSettingsDetail
+import org.tasks.compose.settings.EtebaseAccountSettingsPane
 import org.tasks.compose.settings.LocalAccountSettingsDetail
 import org.tasks.compose.settings.LocalAccountSettingsPane
 import org.tasks.compose.settings.MainSettingsScreen
+import org.tasks.compose.settings.OpenTaskAccountSettingsDetail
+import org.tasks.compose.settings.OpenTaskAccountSettingsPane
 import org.tasks.compose.settings.ProCardState
 import org.tasks.compose.settings.SettingsPane
 import org.tasks.compose.settings.TasksAccountSettingsDetail
@@ -178,6 +187,12 @@ data object AddAccountDestination : NavKey
 data object TaskListDestination : NavKey
 
 @Serializable
+data object CaldavSignInDestination : NavKey
+
+@Serializable
+data object EtebaseSignInDestination : NavKey
+
+@Serializable
 data object SettingsDestination : NavKey
 
 @Serializable
@@ -222,6 +237,8 @@ fun App(
                         polymorphic(NavKey::class) {
                             subclass(WelcomeDestination::class, WelcomeDestination.serializer())
                             subclass(AddAccountDestination::class, AddAccountDestination.serializer())
+                            subclass(CaldavSignInDestination::class, CaldavSignInDestination.serializer())
+                            subclass(EtebaseSignInDestination::class, EtebaseSignInDestination.serializer())
                             subclass(TaskListDestination::class, TaskListDestination.serializer())
                             subclass(SettingsDestination::class, SettingsDestination.serializer())
                             subclass(LinkDesktopDestination::class, LinkDesktopDestination.serializer())
@@ -253,6 +270,10 @@ fun App(
 
             NavDisplay(
                 backStack = backStack,
+                entryDecorators = listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                ),
                 entryProvider = entryProvider {
                     entry<WelcomeDestination> {
                         LaunchedEffect(Unit) {
@@ -280,7 +301,9 @@ fun App(
                         val addAccountViewModel = koinViewModel<AddAccountViewModel>()
                         LaunchedEffect(Unit) {
                             addAccountViewModel.accountAdded.collect {
-                                backStack.removeLastOrNull()
+                                if (backStack.lastOrNull() is AddAccountDestination) {
+                                    backStack.removeLastOrNull()
+                                }
                             }
                         }
                         val signInState by addAccountViewModel.signInState.collectAsState()
@@ -307,6 +330,8 @@ fun App(
                                 }
                                 when (platform) {
                                     Platform.TASKS_ORG -> showProviderPicker = true
+                                    Platform.CALDAV -> backStack.add(CaldavSignInDestination)
+                                    Platform.ETEBASE -> backStack.add(EtebaseSignInDestination)
                                     else -> addAccountViewModel.signIn(platform)
                                 }
                             },
@@ -378,6 +403,18 @@ fun App(
                             }
                         }
                     }
+                    entry<CaldavSignInDestination> {
+                        org.tasks.compose.settings.CaldavSignInScreen(
+                            onNavigateBack = { backStack.removeLastOrNull() },
+                            onAccountCreated = { backStack.removeLastOrNull() },
+                        )
+                    }
+                    entry<EtebaseSignInDestination> {
+                        org.tasks.compose.settings.EtebaseSignInScreen(
+                            onNavigateBack = { backStack.removeLastOrNull() },
+                            onAccountCreated = { backStack.removeLastOrNull() },
+                        )
+                    }
                     entry<TaskListDestination> {
                         val taskListViewModel = koinViewModel<TaskListViewModel>()
                         val drawerViewModel = koinViewModel<DrawerViewModel>()
@@ -416,6 +453,7 @@ fun App(
                     }
                     entry<DesktopProDestination> {
                         val desktopLinkClient = koinInject<org.tasks.billing.DesktopLinkClient>()
+                        val gitHubSponsorClient = koinInject<org.tasks.billing.GitHubSponsorClient>()
                         DesktopProScreen(
                             onBack = { backStack.removeLastOrNull() },
                             onCreateLink = { desktopLinkClient.createLink() },
@@ -423,6 +461,8 @@ fun App(
                             onLinkSuccess = { jwt, refreshToken, sku, formattedPrice ->
                                 desktopLinkClient.onLinkSuccess(jwt, refreshToken, sku, formattedPrice)
                             },
+                            onGitHubSignIn = { gitHubSponsorClient.signIn(openUrl) },
+                            onOpenSponsorPage = { openUrl("https://github.com/sponsors/abaker") },
                         )
                     }
                 },
@@ -1407,12 +1447,41 @@ private fun SettingsScreen(
                                 && !purchaseState.hasTasksAccount,
                         onLinkDesktopClick = onLinkDesktopClick,
                         onAccountClick = { account ->
-                            if (account.isLocalList) {
-                                scope.launch {
-                                    navigator.navigateTo(
-                                        ListDetailPaneScaffoldRole.Detail,
-                                        LocalAccountSettingsPane(account),
-                                    )
+                            when {
+                                account.isLocalList -> {
+                                    scope.launch {
+                                        navigator.navigateTo(
+                                            ListDetailPaneScaffoldRole.Detail,
+                                            LocalAccountSettingsPane(account),
+                                        )
+                                    }
+                                }
+                                account.isCaldavAccount -> {
+                                    scope.launch {
+                                        navigator.navigateTo(
+                                            ListDetailPaneScaffoldRole.Detail,
+                                            CaldavAccountSettingsPane(account),
+                                        )
+                                    }
+                                }
+                                account.isEtebaseAccount -> {
+                                    scope.launch {
+                                        navigator.navigateTo(
+                                            ListDetailPaneScaffoldRole.Detail,
+                                            EtebaseAccountSettingsPane(account),
+                                        )
+                                    }
+                                }
+                                account.isOpenTasks -> {
+                                    scope.launch {
+                                        navigator.navigateTo(
+                                            ListDetailPaneScaffoldRole.Detail,
+                                            OpenTaskAccountSettingsPane(account),
+                                        )
+                                    }
+                                }
+                                else -> {
+                                    Logger.w("App") { "Unhandled account click: ${account.accountType}" }
                                 }
                             }
                         },
@@ -1497,6 +1566,30 @@ private fun SettingsScreen(
                                 scope.launch { navigator.navigateBack() }
                             },
                             onAddAccountClick = onAddAccountClick,
+                        )
+                    }
+                    is CaldavAccountSettingsPane -> {
+                        CaldavAccountSettingsDetail(
+                            pane = selectedContent,
+                            onNavigateBack = {
+                                scope.launch { navigator.navigateBack() }
+                            },
+                        )
+                    }
+                    is EtebaseAccountSettingsPane -> {
+                        EtebaseAccountSettingsDetail(
+                            pane = selectedContent,
+                            onNavigateBack = {
+                                scope.launch { navigator.navigateBack() }
+                            },
+                        )
+                    }
+                    is OpenTaskAccountSettingsPane -> {
+                        OpenTaskAccountSettingsDetail(
+                            pane = selectedContent,
+                            onNavigateBack = {
+                                scope.launch { navigator.navigateBack() }
+                            },
                         )
                     }
 

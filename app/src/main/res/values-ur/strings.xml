@@ -331,10 +331,6 @@
     <string name="default_list">ڈیفالٹ فہرست</string>
     <string name="back_button_saves_task">بیک کے بٹن سے ٹاسک محفوظ کرنا</string>
     <string name="no_title">(کوئی عنوان نہیں)</string>
-    <string name="url_invalid_scheme">http(s):// کے ساتھ شروع ہونا ضروری ہے</string>
-    <string name="url_host_name_required">ہوسٹ کا نام مطلوب ہے</string>
-    <string name="url_required">یو آر ایل مطلوب ہے</string>
-    <string name="username_required">صارف کا نام مطلوب ہے</string>
     <string name="name_cannot_be_empty">نام خالی نہیں ہو سکتا</string>
     <string name="tag_already_exists">ٹیگ پہلے ہی موجود ہے</string>
     <string name="send_anonymous_statistics_summary">ٹاسکس ایپ کو بہتر بنانے کیلئے استعمال کے اعدادوشمار اور کریش رپورٹس گمنام طریقے سے بھیجیں۔ کوئی ذاتی ڈیٹا اکٹھا نہیں کیا جائے گا۔</string>
@@ -342,7 +338,6 @@
     <string name="privacy_policy">رازداری کی پالیسی</string>
     <string name="bundle_notifications">بنڈل نوٹٰیفیکیشنز</string>
     <string name="notification_disable_battery_optimizations_description">بیٹری کی بچت نوٹیفیکیشنز کو ملتوی کر سکتی ہے</string>
-    <string name="error_adding_account">ایرر:%s</string>
     <string name="url">یو آر ایل</string>
     <string name="password">پاسورڈ</string>
     <string name="user">صارف</string>
@@ -396,7 +391,6 @@
     <string name="refresh_purchases">خریداریوں کو ری فریش کریں</string>
     <string name="subscription">سبسکرپشن</string>
     <string name="upgrade_to_pro">پرو پر اپ گریڈ کریں</string>
-    <string name="network_error">رابطہ نہیں ہو سکا</string>
     <string name="help_and_feedback">مدداور تجاویز</string>
     <string name="help">مدد</string>
     <string name="tasker_list_notification">لسٹ نوٹیفیکیشنز</string>
@@ -418,7 +412,6 @@
     <string name="action_create_new_task">نیا ٹاسک بنائیں</string>
     <string name="reinitialize_account">دوبارہ شروع کریں</string>
     <string name="cannot_access_account">اکاونٹ تک رسائی نہیں ہو سکتی</string>
-    <string name="logout_warning">اس اکاؤنٹ کاتمام ڈیٹا آپ کی ڈٰوائس سے ختم ہو جائے گا</string>
     <string name="logout">لاگ آؤٹ</string>
     <string name="this_feature_requires_a_subscription">یہ فیچر سبسکرپشن سے چلے گا</string>
     <string name="requires_pro_subscription">پرو سبسکرپشن کی ضرورت ہے</string>

@@ -333,7 +333,6 @@
     <string name="action_create_new_task">Criar nova tarefa</string>
     <string name="reinitialize_account">Reinicializar</string>
     <string name="cannot_access_account">Não é possível aceder à conta</string>
-    <string name="logout_warning">Todos os dados desta conta serão removidos do seu aparelho</string>
     <string name="logout">Sair</string>
     <string name="requires_pro_subscription">Requer assinatura Pro</string>
     <string name="pro_dashclock_extension">Extensão Dashclock</string>
@@ -347,15 +346,10 @@
     <string name="badges_description">Mostrar a contagem de tarefas no ícone do Tasks no lançador. Nem todos os lançadores suportam emblemas.</string>
     <string name="list_separator_with_space">", "</string>
     <string name="badges">Emblemas</string>
-    <string name="error_adding_account">Erro: %s</string>
     <string name="url">URL</string>
     <string name="password">Palavra-passe</string>
     <string name="user">Utilizador</string>
     <string name="launcher_icon">Ícone do lançador</string>
-    <string name="url_invalid_scheme">Deve iniciar com http(s)://</string>
-    <string name="url_host_name_required">É necessário o nome do host</string>
-    <string name="url_required">É necessário o URL</string>
-    <string name="username_required">É necessário o nome de utilizador</string>
     <string name="move">Mover</string>
     <string name="geofence_radius">Raio da cerca geográfica</string>
     <string name="add_location">Adicionar local</string>
@@ -427,7 +421,6 @@
     <string name="upgrade_blurb_1">Olá! O meu nome é Alex e sou o programador independente por trás do Tasks</string>
     <string name="color_wheel">Roda de cores</string>
     <string name="theme_system_default">Predefinição do sistema</string>
-    <string name="invalid_username_or_password">Nome de utilizador ou palavra-passe inválido</string>
     <string name="more_notification_settings_summary">Toque, vibrações e mais</string>
     <string name="more_settings">Mais configurações</string>
     <string name="disable_battery_optimizations">Desativar otimizações da bateria</string>
@@ -438,8 +431,6 @@
     <string name="preferences_advanced">Avançado</string>
     <string name="documentation">Documentação</string>
     <string name="help_and_feedback">Ajuda &amp; sugestões</string>
-    <string name="etesync_account_description">Precisa de uma conta no EteSync.com ou de um servidor auto-alojado</string>
-    <string name="caldav_account_description">Precisa de uma conta com um fornecedor CalDAV ou de um servidor auto-alojado. Encontre um fornecedor visitando tasks.org/caldav</string>
     <string name="show_advanced_settings">Mostrar configurações avançadas</string>
     <string name="etesync_selection_description">Sincronização com encriptação ponta-a-ponta</string>
     <string name="choose_synchronization_service">Selecione uma plataforma</string>
@@ -457,7 +448,6 @@
     </plurals>
     <string name="SSD_sort_my_order">Minha ordem</string>
     <string name="name_your_price">Dê o seu valor</string>
-    <string name="network_error">Não foi possível conectar</string>
     <string name="location_radius_meters">%s m</string>
     <string name="davx5_selection_description">Sincronize as suas tarefas com a aplicação DAVx⁵</string>
     <string name="permission_read_tasks">Acesso completo à base de dados do Tasks</string>
@@ -595,9 +585,6 @@
         <item quantity="other">Semanas</item>
     </plurals>
     <string name="custom_notification">Notificação personalizada</string>
-    <string name="caldav_server_unknown">Desconhecido</string>
-    <string name="caldav_server_other">Outro</string>
-    <string name="caldav_server_type">Tipo de servidor</string>
     <string name="customize_edit_screen_summary">Reorganizar ou remover campos</string>
     <string name="hint_customize_edit_title">Demasiada informação\?</string>
     <string name="hint_customize_edit_body">Pode personalizar este ecrã reorganizando ou removendo campos</string>
@@ -606,7 +593,6 @@
     <string name="enable_reminders_description">Os lembretes estão desativados nas configurações do Android</string>
     <string name="sort_completion_group">Concluído %s</string>
     <string name="TEA_creation_date">Data de criação</string>
-    <string name="sign_in">Iniciar sessão</string>
     <string name="sort_list">Por lista</string>
     <string name="change_priority">Mudar prioridade</string>
     <string name="repeats_every">Repete a cada</string>

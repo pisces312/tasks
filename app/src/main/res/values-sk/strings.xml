@@ -282,10 +282,6 @@
     <string name="send_anonymous_statistics_summary">Zasielať anonymné štatistiky používania a správy o zlyhaní aplikácie pre zlepšenia Úloh. Žiadne osobné údaje nebudú zhromažďované.</string>
     <string name="tag_already_exists">Štítok už jestvuje</string>
     <string name="name_cannot_be_empty">Názov nesmie ostať prázdny </string>
-    <string name="username_required">Vyžaduje sa meno užívateľa </string>
-    <string name="url_required">Vyžaduje sa URL</string>
-    <string name="url_host_name_required">Vyžaduje sa adresa servera</string>
-    <string name="url_invalid_scheme">Musí sa začínať http(s)://</string>
     <string name="no_title">Bez názvu</string>
     <string name="back_button_saves_task">Uložiť úlohu tlačidlom Späť</string>
     <string name="default_list">Predvolený zoznam</string>
@@ -349,7 +345,6 @@
     <string name="tasker_create_task">Vytvoriť úlohu</string>
     <string name="tasker_list_notification">Zoznam upozornení</string>
     <string name="help">Pomoc</string>
-    <string name="network_error">Chyba pripojenia</string>
     <string name="upgrade_to_pro">Rozšíriť na verziu pro</string>
     <string name="refresh_purchases">Obnoviť nákupy</string>
     <string name="button_subscribe">Prihlásiť sa</string>
@@ -357,7 +352,6 @@
     <string name="pro_dashclock_extension">Rozšírenie Dashclock</string>
     <string name="requires_pro_subscription">Vyžaduje platenú verziu pro</string>
     <string name="logout">Odhlásiť sa</string>
-    <string name="logout_warning">Všetky údaje tohto účtu budú odstránené z Vášho zariadenia</string>
     <string name="cannot_access_account">Chyba v prístupe k účtu</string>
     <string name="reinitialize_account">Znovu aktivovať</string>
     <string name="action_create_new_task">Vytvoriť novú úlohu</string>
@@ -454,7 +448,6 @@
     <string name="default_recurrence">Predvolené opakovanie</string>
     <string name="opacity_header">Priehľadnosť záhlavia</string>
     <string name="url">URL adresa</string>
-    <string name="error_adding_account">Chyba: %s</string>
     <string name="sort_list">Podľa zoznamu</string>
     <string name="swipe_to_snooze_title">Prejdením prstom odložíte</string>
     <string name="swipe_to_snooze_description">Čas odloženia</string>
@@ -544,7 +537,6 @@
     <string name="automatic_backups">Automatické zálohovanie</string>
     <string name="follow_reddit">Pripojte sa k r/tasks</string>
     <string name="custom_filter_has_reminder">Má pripomienku</string>
-    <string name="etesync_account_description">Vyžaduje účet na EteSync.com alebo vlastný server</string>
     <string name="whats_new">Čo je nové</string>
     <string name="list_separator_with_space">", "</string>
     <string name="repeat_monthly_on_the_nth_weekday">%1$s. %2$s v mesiaci</string>
@@ -562,7 +554,6 @@
     <string name="price_per_year_with_currency">%s ročne</string>
     <string name="current_subscription">Súčasné predplatné: %s</string>
     <string name="follow_twitter">Sledujte @tasks_org</string>
-    <string name="caldav_account_description">Vyžaduje účet u poskytovateľa služby CalDAV alebo vlastný server. Vhodných poskytovateľov nájdete na tasks.org/caldav</string>
     <string name="more_settings">Ďalšie nastavenia</string>
     <string name="open_source">Otvorený zdrojový kód</string>
     <string name="github_sponsor">Sponzor</string>
@@ -620,7 +611,6 @@
     <string name="notification_troubleshooting_summary">Kliknite sem, ak máte problémy so zobrazovaním upozornení</string>
     <string name="disable_battery_optimizations">Vypnúť šetrenie batérie</string>
     <string name="more_notification_settings_summary">Zvuk upozornení, vibrácie atď</string>
-    <string name="invalid_username_or_password">Neplatné meno používateľa alebo heslo</string>
     <string name="chips">Známky</string>
     <string name="chip_appearance">Vzhľad známok</string>
     <string name="places">Miesta</string>
@@ -650,12 +640,10 @@
     <string name="sign_in_with_google">Prihlásenie účtom Google</string>
     <string name="app_passwords_more_info">Synchronizujte svoje úlohy a kalendáre s desktopovými a mobilnými aplikáciami tretích strán. Pre viac informácii kliknite sem</string>
     <string name="invite_invalid">Neplatná pozvánka</string>
-    <string name="caldav_server_unknown">Neznámy</string>
     <string name="add_shortcut_to_home_screen">Pridať skratku na domovskú obrazovku</string>
     <string name="multiline_title">Povoliť názvy na viac riadkov</string>
     <string name="multiline_title_on">Stlačením Enter pridáte konce riadkov</string>
     <string name="enable_reminders_description">Pripomienky sú zakázané v nastaveniach systému Android</string>
-    <string name="sign_in">Prihlásiť sa</string>
     <string name="enable_reminders">Povoliť pripomienky</string>
     <string name="hint_customize_edit_body">Túto obrazovku si môžete prispôsobiť preskupením alebo odobraním polí</string>
     <string name="add_widget_to_home_screen">Pridať widget na domovskú obrazovku</string>
@@ -673,8 +661,6 @@
     <string name="sync_warning_microsoft">Nie všetky podrobnosti pripomienok sa synchronizujú s Microsoft To Do.</string>
     <string name="sync_warning_google_tasks_title">O synchronizácií pripomienok Google</string>
     <string name="sync_warning_google_tasks">Nie všetky podrobnosti pripomienok sa synchronizujú s Google Tasks</string>
-    <string name="caldav_server_other">Ďalšie</string>
-    <string name="caldav_server_type">Typ servera</string>
     <string name="enable_alarms_description">Ak chcete byť informovaný včas, udeľte v nastaveniach oprávnenia k nastaveniu budíka a pripomienok</string>
     <string name="hint_customize_edit_title">Príliš veľa informácií?</string>
     <string name="help_and_feedback">Pomoc a spätná väzba</string>

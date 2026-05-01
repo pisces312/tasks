@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.jsonPrimitive
+import org.tasks.extensions.openInBrowser
 import java.net.InetSocketAddress
 import java.net.URLDecoder
 import java.util.concurrent.atomic.AtomicReference
@@ -18,9 +19,7 @@ private const val TAG = "DesktopOAuthFlow"
 class DesktopOAuthFlow(
     private val oauthClient: TasksOAuthClient = TasksOAuthClient(),
     private val serverEnvironment: TasksServerEnvironment,
-    private val openUrl: (String) -> Unit = { url ->
-        java.awt.Desktop.getDesktop().browse(java.net.URI(url))
-    },
+    private val openUrl: (String) -> Unit = { url -> openInBrowser(url) },
 ) {
     suspend fun signIn(provider: OAuthProvider): OAuthResult = withContext(Dispatchers.IO) {
         val discoveryUrl = "${serverEnvironment.caldavUrl}${provider.discoveryPath}"
@@ -84,7 +83,7 @@ class DesktopOAuthFlow(
                     <html><body>
                     <h2>Sign in successful!</h2>
                     <p>You can close this window and return to Tasks.</p>
-                    <script>window.close()</script>
+                    <script>setTimeout(function(){ window.close(); }, 2000)</script>
                     </body></html>
                 """.trimIndent()
                 else -> """

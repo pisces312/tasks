@@ -46,7 +46,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
     fun loadRemoteParentInfo() = runBlocking {
         val (_, list) = withVtodo(SUBTASK)
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         val task = caldavDao.getTaskByRemoteId(list.uuid!!, "dfede1b0-435b-4bba-9708-2422e781747c")
         assertEquals("7daa4a5c-cc76-4ddf-b4f8-b9d3a9cb00e7", task?.remoteParent)
@@ -64,7 +64,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
                 with(CaldavTaskMaker.REMOTE_PARENT, "1234")
         ))
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         assertEquals("1234", openTaskDao.getTask(listId, "abcd")?.task?.let(::Ical4androidTaskAdapter)?.parent)
     }
@@ -73,7 +73,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
     fun createNewTags() = runBlocking {
         val (_, list) = withVtodo(TWO_TAGS)
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         assertEquals(
                 setOf("Tag1", "Tag2"),
@@ -90,7 +90,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
         val (_, list) = withVtodo(ONE_TAG)
         val tag = TagData(name = "Tag1").let { it.copy(id = tagDataDao.insert(it)) }
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         assertEquals(
                 listOf(tag),
@@ -112,7 +112,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
         insertTag(task, "Tag1")
         insertTag(task, "Tag2")
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         assertEquals(
                 setOf("Tag1", "Tag2"),
@@ -124,7 +124,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
     fun loadOrder() = runBlocking {
         val (_, list) = withVtodo(ONE_TAG)
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         val task = caldavDao.getTaskByRemoteId(list.uuid!!, "3076145036806467726")!!.task
         assertEquals(633734058L, taskDao.fetch(task)?.order)
@@ -141,7 +141,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
                 with(CaldavTaskMaker.TASK, task.id)
         ))
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         assertEquals(
                 5678L,
@@ -153,7 +153,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
     fun readCollapsedState() = runBlocking {
         val (_, list) = withVtodo(HIDE_SUBTASKS)
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         val task = caldavDao
                 .getTaskByRemoteId(list.uuid!!, "2822976a-b71e-4962-92e4-db7297789c20")
@@ -172,7 +172,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
                 with(REMOTE_ID, "abcd")
         ))
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         assertTrue(Ical4androidTaskAdapter(openTaskDao.getTask(listId, "abcd")?.task!!).collapsed)
     }
@@ -181,13 +181,13 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
     fun removeCollapsedState() = runBlocking {
         val (listId, list) = withVtodo(HIDE_SUBTASKS)
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         val task = caldavDao.getTaskByRemoteId(list.uuid!!, "2822976a-b71e-4962-92e4-db7297789c20")
 
         taskSaver.setCollapsed(task!!.task, false)
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         assertFalse(
                 Ical4androidTaskAdapter(
@@ -203,7 +203,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
         val (_, list) = withVtodo(SNOOZED)
 
         withTZ(CHICAGO) {
-            synchronizer.sync()
+            synchronizer.sync(hasPro = true)
         }
 
         val task = caldavDao
@@ -242,7 +242,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
         ))
 
         freezeAt(DateTime(2021, 2, 4, 12, 30, 45, 125)) {
-            synchronizer.sync()
+            synchronizer.sync(hasPro = true)
         }
 
         assertEquals(1612467000000, Ical4androidTaskAdapter(openTaskDao.getTask(listId, "abcd")?.task!!).snooze)
@@ -267,7 +267,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
         ))
 
         freezeAt(DateTime(2021, 2, 4, 13, 30, 45, 125)) {
-            synchronizer.sync()
+            synchronizer.sync(hasPro = true)
         }
 
         assertNull(Ical4androidTaskAdapter(openTaskDao.getTask(listId, "abcd")?.task!!).snooze)
@@ -277,7 +277,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
     fun removeSnoozeTime() = withTZ(CHICAGO) {
         val (listId, list) = withVtodo(SNOOZED)
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         val task = caldavDao.getTaskByRemoteId(list.uuid!!, "4CBBC669-70E3-474D-A0A3-0FC42A14A5A5")
             ?: throw IllegalStateException("Missing task")
@@ -288,7 +288,7 @@ class OpenTasksPropertiesTests : OpenTasksTest() {
         alarmDao.deleteSnoozed(listOf(1))
         taskSaver.touch(listOf(task.task))
 
-        synchronizer.sync()
+        synchronizer.sync(hasPro = true)
 
         assertNull(
                 Ical4androidTaskAdapter(

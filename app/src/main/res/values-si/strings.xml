@@ -21,7 +21,6 @@
     <string name="chip_appearance">චිප් පෙනුම</string>
     <string name="TEA_timer_est">කාලය %s</string>
     <string name="astrid_sort_order_summary">\'මගේ කාර්යයන්\', \'අද\' සහ ටැග් සඳහා Astrid හි අතින් වර්ග කිරීමේ මාදිලිය සක්‍රීය කරන්න. මෙම වර්ග කිරීමේ මාදිලිය අනාගත යාවත්කාලීනයකදී \'මාගේ පිලිවෙල\' මගින් ප්‍රතිස්ථාපනය වනු ඇත</string>
-    <string name="error_adding_account">දෝෂය: %s</string>
     <string name="widget_due_date_hidden">සඟවන්න</string>
     <string name="widget_due_date_below_title">මාතෘකාවට පහළින්</string>
     <string name="widget_due_date_after_title">මාතෘකාවෙන් පසු</string>
@@ -166,7 +165,6 @@
     <string name="back">ආපසු</string>
     <string name="upgrade_blurb_2">මම Tasks සඳහා පැය දහස් ගණනක් වැඩ කර ඇති අතර, මම සියලු ප්‍රභව කේත නොමිලේ මාර්ගගතව ප්‍රකාශයට පත් කරමි. මගේ කාර්යයට සහාය වීම සඳහා සමහර විශේෂාංග සඳහා දායකත්වයක් අවශ්‍ය වේ</string>
     <string name="upgrade_blurb_1">හායි! මගෙ නම ඇලෙක්ස්. Tasks පිටුපස සිටින ස්වාධීන සංවර්ධකයා මමයි</string>
-    <string name="invalid_username_or_password">අවලංගු පරිශීලක නාමයක් හෝ මුරපදයකි</string>
     <string name="more_notification_settings_summary">නාද, කම්පන සහ තවත් දේ</string>
     <string name="more_settings">තවත් සැකසුම්</string>
     <string name="disable_battery_optimizations">බැටරි ප්‍රශස්තිකරණය අක්‍රීය කරන්න</string>
@@ -174,8 +172,6 @@
     <string name="troubleshooting">දෝෂගවේෂණය</string>
     <string name="documentation">ප්‍රලේඛනය</string>
     <string name="preferences_advanced">උසස්</string>
-    <string name="etesync_account_description">EteSync.com හෝ ස්වයං සත්කාරක සේවාදායකයක් සමඟ ගිණුමක් අවශ්‍ය වේ</string>
-    <string name="caldav_account_description">CalDAV සේවා සැපයුම්කරුවෙකු හෝ ස්වයං සත්කාරක සේවාදායකයක් සමඟ ගිණුමක් අවශ්‍ය වේ. tasks.org/caldav වෙත පිවිසීමෙන් සේවා සපයන්නෙකු සොයා ගන්න</string>
     <string name="show_advanced_settings">උසස් සැකසුම් පෙන්වන්න</string>
     <string name="davx5_selection_description">DAVx⁵ යෙදුම සමඟ ඔබගේ කාර්යයන් සමමුහුර්ත කරන්න</string>
     <string name="decsync_selection_description">ගොනු මත පදනම් වූ සමමුහුර්තකරණය</string>
@@ -456,7 +452,6 @@
     <string name="action_create_new_task">නව කාර්යයක් සාදන්න</string>
     <string name="reinitialize_account">නැවත ආරම්භ කරන්න</string>
     <string name="cannot_access_account">ගිණුමට ප්‍රවේශ විය නොහැක</string>
-    <string name="logout_warning">මෙම ගිණුම සඳහා වන සියලුම දත්ත ඔබගේ උපාංගයෙන් ඉවත් වනු ඇත</string>
     <string name="logout">ඉවත් වන්න</string>
     <string name="this_feature_requires_a_subscription">මෙම අංගයට දායකත්වයක් අවශ්‍ය වේ</string>
     <string name="requires_pro_subscription">Pro දායකත්වයක් අවශ්‍යයි</string>
@@ -464,7 +459,6 @@
     <string name="button_subscribe">දායක වන්න</string>
     <string name="refresh_purchases">මිලදී ගැනීම් නැවුම් කරන්න</string>
     <string name="subscription">දායකත්වය</string>
-    <string name="network_error">සම්බන්ධ වීමට නොහැකි විය</string>
     <string name="help_and_feedback">උදව් සහ ප්‍රතිපෝෂණ</string>
     <string name="help">උදව්</string>
     <string name="tasker_list_notification">ලැයිස්තු දැනුම්දීම</string>
@@ -489,10 +483,6 @@
     <string name="default_tags">පෙරනිමි ටැග්</string>
     <string name="default_list">පෙරනිමි ලැයිස්තුව</string>
     <string name="no_title">(මාතෘකාවක් නැත)</string>
-    <string name="url_invalid_scheme">http(s):// වලින් ආරම්භවිය යුතුය</string>
-    <string name="url_host_name_required">ධාරක නාමය (Hostname) අවශ්‍යයි</string>
-    <string name="url_required">URL අවශ්‍යයි</string>
-    <string name="username_required">පරිශීලක නාමය අවශ්‍යයි</string>
     <string name="name_cannot_be_empty">නම හිස්ව තැබිය නොහැකිය</string>
     <string name="tag_already_exists">ටැගය දැනටමත් පවතී</string>
     <string name="send_anonymous_statistics_summary">Tasks වැඩි දියුණු කිරීම සඳහා නිර්නාමික භාවිත තොරතුරු සහ බිඳ වැටීම් වාර්තා (crash reports) යවන්න. පුද්ගලික දත්ත එකතු නොකෙරේ.</string>

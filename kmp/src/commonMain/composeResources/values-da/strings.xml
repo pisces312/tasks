@@ -170,4 +170,16 @@
         <item quantity="one">%1$d liste</item>
         <item quantity="other">%1$d lister</item>
     </plurals>
+    <string name="caldav_server_other">Andet</string>
+    <string name="caldav_server_type">Servertype</string>
+    <string name="caldav_server_unknown">Ukendt</string>
+    <string name="error_adding_account">Fejl: %s</string>
+    <string name="invalid_username_or_password">Ugyldigt brugernavn eller adgangskode</string>
+    <string name="network_error">Kunne ikke oprette forbindelse</string>
+    <string name="sign_in">Log ind</string>
+    <string name="url_host_name_required">Værtsnavn påkrævet</string>
+    <string name="url_invalid_scheme">Skal begynde med http(s)://</string>
+    <string name="url_required">URL påkrævet</string>
+    <string name="username_required">Brugernavn påkrævet</string>
+    <string name="etesync_account_description">Kræver en konto hos EteSync.com eller en selvhostet server</string>
 </resources>

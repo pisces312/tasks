@@ -261,10 +261,6 @@
     <string name="send_anonymous_statistics_summary">Envoyer des statistiques d\'utilisation anonymes et des rapports d\'erreur pour améliorer Tasks. Aucune donnée personnelle ne sera collectée.</string>
     <string name="tag_already_exists">L\'étiquette existe déjà</string>
     <string name="name_cannot_be_empty">Le nom doit être renseigné</string>
-    <string name="username_required">Nom d\'utilisateur requis</string>
-    <string name="url_required">Adresse web requise</string>
-    <string name="url_host_name_required">Nom d\'hôte requis</string>
-    <string name="url_invalid_scheme">Doit commencer par http(s)://</string>
     <string name="no_title">(Sans titre)</string>
     <string name="back_button_saves_task">Le bouton « Retour » enregistre la tâche</string>
     <string name="default_list">Liste par défaut</string>
@@ -329,7 +325,6 @@
     <string name="tasker_create_task">Créer une tâche</string>
     <string name="tasker_list_notification">Notification de liste</string>
     <string name="help">Aide</string>
-    <string name="network_error">Impossible de se connecter</string>
     <string name="upgrade_to_pro">Mise à niveau vers la version « pro »</string>
     <string name="refresh_purchases">Rafraîchir les achats</string>
     <string name="button_subscribe">S\'abonner</string>
@@ -337,7 +332,6 @@
     <string name="pro_dashclock_extension">Extension du tableau de bord</string>
     <string name="requires_pro_subscription">Nécessite un abonnement pro</string>
     <string name="logout">Se déconnecter</string>
-    <string name="logout_warning">Toutes les données liées à ce compte seront supprimées de votre appareil</string>
     <string name="cannot_access_account">Impossible d\'accéder au compte</string>
     <string name="reinitialize_account">Réinitialiser</string>
     <string name="action_create_new_task">Créer une nouvelle tâche</string>
@@ -383,7 +377,6 @@
     <string name="version_string">Version %s</string>
     <string name="icon">Icône</string>
     <string name="name_your_price">Donnez votre prix</string>
-    <string name="error_adding_account">Erreur : %s</string>
     <string name="SSD_sort_my_order">Mon tri</string>
     <plurals name="subtask_count">
         <item quantity="one">%d sous-tâche</item>
@@ -402,9 +395,7 @@
     <string name="caldav_selection_description">Synchronisation basée sur des normes d\'Internet ouvertes</string>
     <string name="etesync_selection_description">Synchronisation du chiffrement de bout en bout</string>
     <string name="show_advanced_settings">Afficher les paramètres avancés</string>
-    <string name="caldav_account_description">Nécessite un compte auprès d\'un fournisseur de services « CalDAV » ou un serveur auto-hébergé. Veuillez trouver un fournisseur de services en visitant tasks.org/caldav</string>
-    <string name="etesync_account_description">Nécessite un compte « EteSync.com » ou un serveur auto-hébergé</string>
-    <string name="help_and_feedback">Aide et remarques</string>
+    <string name="help_and_feedback">Aide et remarques</string>
     <string name="documentation">Documentation</string>
     <string name="preferences_advanced">Avancé</string>
     <string name="wearable_notifications">Notifications de la montre</string>
@@ -414,7 +405,6 @@
     <string name="disable_battery_optimizations">Désactiver les optimisations de la batterie</string>
     <string name="more_settings">Plus de paramètres</string>
     <string name="more_notification_settings_summary">Sonnerie, vibrations et plus encore</string>
-    <string name="invalid_username_or_password">Nom d\'utilisateur ou mot de passe non valide</string>
     <string name="theme_system_default">Valeur par défaut du système</string>
     <string name="color_wheel">Palette de couleurs</string>
     <string name="upgrade_blurb_1">Salut ! Je m\'appelle Alex. Je suis le développeur indépendant à l\'origine de Tasks</string>
@@ -614,9 +604,6 @@
     </plurals>
     <string name="custom_notification">Notification personnalisée</string>
     <string name="randomly_every">Aléatoirement, par intervalle de %s</string>
-    <string name="caldav_server_unknown">Inconnu</string>
-    <string name="caldav_server_other">Autre</string>
-    <string name="caldav_server_type">Type de serveur</string>
     <string name="dismiss">Rejeter</string>
     <string name="customize_edit_screen_summary">Réorganiser ou supprimer des champs</string>
     <string name="hint_customize_edit_body">Vous pouvez personnaliser cet écran en réorganisant ou en supprimant des champs</string>
@@ -625,7 +612,6 @@
     <string name="enable_reminders">Activer les rappels</string>
     <string name="TEA_creation_date">Date de création</string>
     <string name="sort_completion_group">Achèvement %s</string>
-    <string name="sign_in">Se connecter</string>
     <string name="sort_list">Par liste</string>
     <string name="repeats_on">Le</string>
     <string name="repeats_after">Après</string>

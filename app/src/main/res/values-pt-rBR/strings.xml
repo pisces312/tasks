@@ -275,10 +275,6 @@
     <string name="send_anonymous_statistics_summary">Enviar estatísticas de uso e relatórios de falha anonimamente para ajudar a melhorar o Tasks. Nenhuma informação pessoal será coletada.</string>
     <string name="tag_already_exists">Etiqueta já existe</string>
     <string name="name_cannot_be_empty">Nome não pode ser vazio</string>
-    <string name="username_required">Nome de usuário necessário</string>
-    <string name="url_required">É necessário o URL</string>
-    <string name="url_host_name_required">É necessário o nome do Host</string>
-    <string name="url_invalid_scheme">Deve iniciar com http(s)://</string>
     <string name="no_title">(Sem título)</string>
     <string name="back_button_saves_task">Botão \'voltar\' salva a tarefa</string>
     <string name="default_list">Lista padrão</string>
@@ -343,7 +339,6 @@
     <string name="tasker_create_task">Criar tarefa</string>
     <string name="tasker_list_notification">Listar notificações</string>
     <string name="help">Ajuda</string>
-    <string name="network_error">Não foi possível conectar</string>
     <string name="upgrade_to_pro">Comprar assinatura</string>
     <string name="refresh_purchases">Atualizar compras</string>
     <string name="button_subscribe">Assinar</string>
@@ -351,7 +346,6 @@
     <string name="pro_dashclock_extension">Extensão Dashclock</string>
     <string name="requires_pro_subscription">É necessária uma assinatura PRO</string>
     <string name="logout">Sair</string>
-    <string name="logout_warning">Todos os dados dessa conta serão removidos do seu dispositivo</string>
     <string name="cannot_access_account">Não é possível acessar a conta</string>
     <string name="reinitialize_account">Reinicializar</string>
     <string name="action_create_new_task">Criar nova tarefa</string>
@@ -398,7 +392,6 @@
     <string name="upgrade_blurb_2">Eu investi centenas de horas trabalhando no Tasks, e eu publico todo o código-fonte online de graça. Para apoiar meu trabalho, algumas funcionalidades precisam de um plano de assinatura</string>
     <string name="upgrade_blurb_1">Olá! Meu nome é Alex e eu sou o desenvolvedor independente por trás do Tasks</string>
     <string name="color_wheel">Círculo de cores</string>
-    <string name="invalid_username_or_password">Nome de usuário ou senha inválido</string>
     <string name="more_notification_settings_summary">Sons, vibrações e mais</string>
     <string name="more_settings">Mais configurações</string>
     <string name="disable_battery_optimizations">Desativar \'Otimização da Bateria\'</string>
@@ -408,8 +401,6 @@
     <string name="wearable_notifications">Notificações em dispositivos Weareables</string>
     <string name="documentation">Documentação</string>
     <string name="preferences_advanced">Avançado</string>
-    <string name="etesync_account_description">Precisa de uma conta com EteSync.com ou uma instância desse serviço auto-hospedada</string>
-    <string name="caldav_account_description">Precisa de uma conta com um provedor CalDAV. Encontre um provedor visitando tasks.org/caldav</string>
     <string name="show_advanced_settings">Mostrar configurações avançadas</string>
     <string name="etesync_selection_description">Sincronização criptografada de ponta a ponta</string>
     <string name="caldav_selection_description">Sincronização usando protocolos padrões e livres da Internet</string>
@@ -428,7 +419,6 @@
     <string name="this_feature_requires_a_subscription">Essa função requer uma assinatura</string>
     <string name="help_and_feedback">Ajuda &amp; feedback</string>
     <string name="list_separator_with_space">", "</string>
-    <string name="error_adding_account">Erro: %s</string>
     <string name="url">URL</string>
     <string name="widget_due_date_hidden">Escondido</string>
     <string name="widget_due_date_below_title">Abaixo do título</string>
@@ -613,18 +603,14 @@
     <string name="alarm_after_start">%s após o início</string>
     <string name="alarm_before_due">%s antes do vencimento</string>
     <string name="alarm_after_due">%s após o vencimento</string>
-    <string name="caldav_server_unknown">Desconhecido</string>
-    <string name="caldav_server_type">Tipo de servidor</string>
     <string name="customize_edit_screen_summary">Reordenar ou remover campos</string>
     <string name="randomly_every">Aleatório a cada %s</string>
-    <string name="caldav_server_other">Outro</string>
     <string name="dismiss">Dispensar</string>
     <string name="hint_customize_edit_title">Informação demais\?</string>
     <string name="hint_customize_edit_body">Você pode personalizar esta tela reordenamento ou removendo campos</string>
     <string name="enable_reminders">Ativar lembretes</string>
     <string name="enable_reminders_description">Os lembretes estão desabilitados nas configurações do Android</string>
     <string name="TEA_creation_date">Data de criação</string>
-    <string name="sign_in">Fazer login</string>
     <string name="repeats_custom_recurrence">Recorrência personalizada</string>
     <plurals name="repeat_occurrence">
         <item quantity="one">ocorrência</item>

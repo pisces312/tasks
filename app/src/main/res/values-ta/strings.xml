@@ -175,7 +175,6 @@
     <string name="upgrade_blurb_2">நான் பணிகளில் ஆயிரக்கணக்கான மணிநேரங்களை செலவிட்டேன், மேலும் மூலக் குறியீடு அனைத்தையும் ஆன்லைனில் இலவசமாக வெளியிடுகிறேன். எனது பணியை ஆதரிக்க சில அம்சங்களுக்கு சந்தா தேவை</string>
     <string name="upgrade_blurb_1">வணக்கம்! என் பெயர் அலெக்ஸ். பணிகளுக்குப் பின்னால் உள்ள சுயாதீன டெவலப்பர் நான்</string>
     <string name="color_wheel">வண்ண சக்கரம்</string>
-    <string name="invalid_username_or_password">தவறான பயனர்பெயர் அல்லது கடவுச்சொல்</string>
     <string name="more_notification_settings_summary">ரிங்டோன், அதிர்வுகள் மற்றும் பல</string>
     <string name="more_settings">மேலும் அமைப்புகள்</string>
     <string name="disable_battery_optimizations">பேட்டரி மேம்படுத்தல்களை முடக்கு</string>
@@ -184,8 +183,6 @@
     <string name="wearable_notifications">அணியக்கூடிய அறிவிப்புகள்</string>
     <string name="documentation">ஆவணம்</string>
     <string name="preferences_advanced">மேம்படுத்தபட்ட</string>
-    <string name="etesync_account_description">EteSync.com அல்லது சுய ஹோஸ்ட் செய்த சேவையகத்துடன் கணக்கு தேவை</string>
-    <string name="caldav_account_description">CalDAV சேவை வழங்குநர் அல்லது சுய ஹோஸ்ட் செய்த சேவையகத்துடன் கணக்குத் தேவை. Tasks.org/caldav ஐப் பார்வையிடுவதன் மூலம் ஒரு சேவை வழங்குநரைக் கண்டறியவும்</string>
     <string name="show_advanced_settings">மேம்பட்ட அமைப்புகளைக் காட்டு</string>
     <string name="etesync_selection_description">திறந்த மூல, இறுதி முதல் இறுதி மறைகுறியாக்க ஒத்திசைவு</string>
     <string name="caldav_selection_description">திறந்த இணைய தரங்களின் அடிப்படையில் ஒத்திசைவு</string>
@@ -221,7 +218,6 @@
     <string name="action_create_new_task">புதிய பணியை உருவாக்கவும்</string>
     <string name="reinitialize_account">மீண்டும் துவக்கு</string>
     <string name="cannot_access_account">கணக்கை அணுக முடியாது</string>
-    <string name="logout_warning">இந்தக் கணக்கிற்கான எல்லா தரவும் உங்கள் சாதனத்திலிருந்து அகற்றப்படும்</string>
     <string name="logout">வெளியேறு</string>
     <string name="this_feature_requires_a_subscription">இந்த அம்சத்திற்கு சந்தா தேவை</string>
     <string name="requires_pro_subscription">சார்பு சந்தா தேவை</string>
@@ -230,7 +226,6 @@
     <string name="button_subscribe">பதிவு</string>
     <string name="refresh_purchases">வாங்குதல்களைப் புதுப்பிக்கவும்</string>
     <string name="upgrade_to_pro">சார்புக்கு மேம்படுத்தவும்</string>
-    <string name="network_error">இணைக்க முடியவில்லை</string>
     <string name="help_and_feedback">உதவி &amp; கருத்து</string>
     <string name="help">உதவி</string>
     <string name="tasker_list_notification">பட்டியல் அறிவிப்பு</string>
@@ -258,7 +253,6 @@
     <string name="badges">அடையாளக்குறிகள்</string>
     <string name="bundle_notifications">மூட்டை அறிவிப்புகள்</string>
     <string name="notification_disable_battery_optimizations_description">பேட்டரி மேம்படுத்தல்கள் அறிவிப்புகளை தாமதப்படுத்தக்கூடும்</string>
-    <string name="error_adding_account">பிழை: %s</string>
     <string name="url">URL</string>
     <string name="password">கடவுச்சொல்</string>
     <string name="user">பயனர்</string>
@@ -296,10 +290,6 @@
     <string name="default_list">இயல்புநிலை பட்டியல்</string>
     <string name="back_button_saves_task">பின் பொத்தான் பணியைச் சேமிக்கிறது</string>
     <string name="no_title">(தலைப்பு இல்லை)</string>
-    <string name="url_invalid_scheme">Http (கள்) உடன் தொடங்க வேண்டும்: //</string>
-    <string name="url_host_name_required">ஹோஸ்ட்பெயர் தேவை</string>
-    <string name="url_required">URL தேவை</string>
-    <string name="username_required">பயனர்பெயர் தேவை</string>
     <string name="name_cannot_be_empty">பெயர் காலியாக இருக்க முடியாது</string>
     <string name="tag_already_exists">குறிச்சொல் ஏற்கனவே உள்ளது</string>
     <string name="send_anonymous_statistics_summary">பணிகளை மேம்படுத்த உதவ அநாமதேய பயன்பாட்டு புள்ளிவிவரங்கள் மற்றும் செயலிழப்பு அறிக்கைகளை அனுப்பவும். தனிப்பட்ட தரவு எதுவும் சேகரிக்கப்படாது.</string>
@@ -614,10 +604,6 @@
     <string name="upgrade_open_source_description">உங்கள் சந்தா தொடர்ச்சியான வளர்ச்சியை ஆதரிக்கிறது</string>
     <string name="invite_awaiting_response">காத்திருக்கும் பதிலுக்காக அழைக்கவும்</string>
     <string name="alarm_after_due">உரிய பிறகு %s</string>
-    <string name="caldav_server_unknown">தெரியவில்லை</string>
-    <string name="caldav_server_other">மற்றொன்று</string>
-    <string name="caldav_server_type">சேவையக வகை</string>
-    <string name="sign_in">விடுபதிகை</string>
     <string name="snoozed_until">%s வரை உறக்கநிலை</string>
     <string name="app_password">பயன்பாட்டு கடவுச்சொல்</string>
     <string name="migrating_tasks">இடம்பெயரும் பணிகள்</string>

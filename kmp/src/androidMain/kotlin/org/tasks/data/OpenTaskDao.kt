@@ -6,7 +6,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
-import dagger.hilt.android.qualifiers.ApplicationContext
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.dmfs.tasks.contract.TaskContract.CommonSyncColumns
@@ -16,22 +16,19 @@ import org.dmfs.tasks.contract.TaskContract.TaskListColumns
 import org.dmfs.tasks.contract.TaskContract.TaskLists
 import org.dmfs.tasks.contract.TaskContract.Tasks
 import org.json.JSONObject
-import org.tasks.R
-import timber.log.Timber
 import org.tasks.data.dao.CaldavDao
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_OPENTASKS
 import org.tasks.data.entity.CaldavAccount.Companion.openTaskType
 import org.tasks.data.entity.CaldavCalendar
 import java.util.UUID
-import javax.inject.Inject
 
-open class OpenTaskDao @Inject constructor(
-        @ApplicationContext context: Context,
-        private val caldavDao: CaldavDao
+open class OpenTaskDao(
+        context: Context,
+        private val caldavDao: CaldavDao,
 ) {
     protected val cr: ContentResolver = context.contentResolver
-    val authority = context.getString(R.string.opentasks_authority)
+    val authority: String = context.getString(org.tasks.kmp.R.string.opentasks_authority)
     val tasks: Uri = Tasks.getContentUri(authority)
     val taskLists: Uri = TaskLists.getContentUri(authority)
     val properties: Uri = Properties.getContentUri(authority)
@@ -63,7 +60,7 @@ open class OpenTaskDao @Inject constructor(
                         url = it.getString(CommonSyncColumns._SYNC_ID),
                         ctag = it.getString(TaskLists.SYNC_VERSION)?.let { json ->
                             runCatching { JSONObject(json).getString("value") }
-                                .onFailure { Timber.w("Failed to parse ${TaskLists.SYNC_VERSION}: $json") }
+                                .onFailure { Logger.w("OpenTaskDao") { "Failed to parse ${TaskLists.SYNC_VERSION}: $json" } }
                                 .getOrNull()
                         },
                         access = when (it.getInt(TaskLists.ACCESS_LEVEL)) {

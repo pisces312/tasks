@@ -12,8 +12,11 @@ import org.koin.core.context.startKoin
 import org.tasks.di.commonModule
 import org.tasks.di.platformModule
 import org.tasks.logging.FileLogWriter
+import org.tasks.opentasks.OpenTaskContentObserver
 import org.tasks.preferences.AppPreferences
+import org.tasks.preferences.TasksPreferences
 import org.tasks.preferences.recordInstallIfNeeded
+import org.tasks.sync.SyncAdapters
 import java.io.File
 
 class TasksApplication : Application() {
@@ -45,5 +48,11 @@ class TasksApplication : Application() {
         }
         koin.getOrNull<org.tasks.fcm.PushTokenManager>()
             ?.registerTokenForAllAccounts()
+        val observer = OpenTaskContentObserver(
+            context = this,
+            syncAdapters = koin.get<SyncAdapters>(),
+            tasksPreferences = koin.get<TasksPreferences>(),
+        )
+        OpenTaskContentObserver.registerObserver(this, observer)
     }
 }

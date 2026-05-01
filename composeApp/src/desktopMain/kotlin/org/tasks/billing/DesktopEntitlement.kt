@@ -61,6 +61,7 @@ class DesktopEntitlement(
         val refreshToken: String,
         val sku: String? = null,
         val formattedPrice: String? = null,
+        val provider: EntitlementProvider,
     )
 
     @Serializable
@@ -104,10 +105,10 @@ class DesktopEntitlement(
         }
     }
 
-    suspend fun storeEntitlement(jwt: String, refreshToken: String, sku: String? = null, formattedPrice: String? = null) {
+    suspend fun storeEntitlement(jwt: String, refreshToken: String, sku: String? = null, formattedPrice: String? = null, provider: EntitlementProvider) {
         if (!verifySignature(jwt)) return
         val payload = parsePayload(jwt) ?: return
-        val entitlement = StoredEntitlement(jwt, refreshToken, sku, formattedPrice)
+        val entitlement = StoredEntitlement(jwt, refreshToken, sku, formattedPrice, provider)
         val plainText = json.encodeToString(StoredEntitlement.serializer(), entitlement)
         val encrypted = encryption.encrypt(plainText) ?: return
         withContext(Dispatchers.IO) {
@@ -141,9 +142,9 @@ class DesktopEntitlement(
                     return@launch
                 }
                 try {
-                    val result = callRefresh(entitlement.refreshToken)
+                    val result = callRefresh(entitlement.refreshToken, entitlement.provider)
                     if (result != null) {
-                        storeEntitlement(result.jwt!!, result.refresh_token!!, result.sku, result.formatted_price)
+                        storeEntitlement(result.jwt!!, result.refresh_token!!, result.sku, result.formatted_price, entitlement.provider)
                         logger.i { "Desktop entitlement refreshed" }
                         return@launch
                     }
@@ -234,10 +235,13 @@ class DesktopEntitlement(
         return if (start == 0) this else sliceArray(start until size)
     }
 
-    private suspend fun callRefresh(refreshToken: String): RefreshResponse? =
+    private suspend fun callRefresh(refreshToken: String, provider: EntitlementProvider): RefreshResponse? =
         withContext(Dispatchers.IO) {
             val client = httpClientFactory.newClient()
-            val url = "${serverEnvironment.caldavUrl}/desktop/refresh"
+            val url = when (provider) {
+                EntitlementProvider.GITHUB_SPONSOR -> "${serverEnvironment.caldavUrl}/desktop/github/refresh"
+                EntitlementProvider.PLAY -> "${serverEnvironment.caldavUrl}/desktop/refresh"
+            }
             val body = json.encodeToString(
                 RefreshRequest.serializer(),
                 RefreshRequest(refresh_token = refreshToken)

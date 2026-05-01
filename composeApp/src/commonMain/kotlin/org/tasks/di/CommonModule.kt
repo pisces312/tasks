@@ -30,7 +30,10 @@ import org.tasks.data.TaskSaver
 import org.tasks.data.db.Database
 import org.tasks.data.entity.Alarm
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_CALDAV
+import org.tasks.data.entity.CaldavAccount.Companion.TYPE_ETEBASE
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_TASKS
+import org.tasks.etebase.EtebaseSynchronizer
+import org.tasks.opentasks.OpenTasksSyncer
 import org.tasks.data.entity.Place
 import org.tasks.data.entity.Task
 import org.tasks.filters.FilterProvider
@@ -53,6 +56,9 @@ import org.tasks.sync.SyncSource
 import org.tasks.tasklist.HeaderFormatter
 import org.tasks.compose.accounts.AddAccountViewModel
 import org.tasks.viewmodel.AppViewModel
+import org.tasks.viewmodel.CaldavAccountSettingsViewModel
+import org.tasks.viewmodel.EtebaseAccountSettingsViewModel
+import org.tasks.viewmodel.OpenTaskAccountViewModel
 import org.tasks.viewmodel.DrawerViewModel
 import org.tasks.viewmodel.SortSettingsViewModel
 import org.tasks.viewmodel.TaskEditViewModel
@@ -179,22 +185,29 @@ val commonModule = module {
                 }
             }
             override suspend fun sync(source: SyncSource) {
-                if (!mutex.tryLock()) {
-                    pending.set(true)
-                    return
-                }
-                try {
-                    do {
-                        pending.set(false)
-                        val synchronizer = get<CaldavSynchronizer>()
-                        val caldavDao = get<org.tasks.data.dao.CaldavDao>()
-                        val purchaseState = get<org.tasks.billing.PurchaseState>()
-                        caldavDao.getAccounts(TYPE_CALDAV, TYPE_TASKS).forEach { account ->
-                            synchronizer.sync(account, hasPro = purchaseState.hasPro)
-                        }
-                    } while (pending.getAndSet(false))
-                } finally {
-                    mutex.unlock()
+                scope.launch {
+                    if (!mutex.tryLock()) {
+                        pending.set(true)
+                        return@launch
+                    }
+                    try {
+                        do {
+                            pending.set(false)
+                            val caldavSynchronizer = get<CaldavSynchronizer>()
+                            val etebaseSynchronizer = get<EtebaseSynchronizer>()
+                            val caldavDao = get<org.tasks.data.dao.CaldavDao>()
+                            val hasPro = get<org.tasks.billing.PurchaseState>().hasPro
+                            caldavDao.getAccounts(TYPE_CALDAV, TYPE_TASKS).forEach { account ->
+                                caldavSynchronizer.sync(account, hasPro = hasPro)
+                            }
+                            caldavDao.getAccounts(TYPE_ETEBASE).forEach { account ->
+                                etebaseSynchronizer.sync(account, hasPro = hasPro)
+                            }
+                            get<OpenTasksSyncer>().sync(hasPro = hasPro)
+                        } while (pending.getAndSet(false))
+                    } finally {
+                        mutex.unlock()
+                    }
                 }
             }
         }
@@ -222,6 +235,7 @@ val commonModule = module {
     factoryOf(::TaskSaver)
     factoryOf(::iCalendar)
     factoryOf(::CaldavSynchronizer)
+    factoryOf(::EtebaseSynchronizer)
     factory { FilterProvider(get(), get(), get(), get(), get(), get(), get()) }
     singleOf(::HeaderFormatter)
     singleOf(::ChipDataProvider)
@@ -278,6 +292,11 @@ val commonModule = module {
         )
     }
     viewModel {
+        OpenTaskAccountViewModel(
+            caldavDao = get(),
+        )
+    }
+    viewModel {
         TasksAccountViewModel(
             provider = get(),
             reporting = get(),
@@ -290,6 +309,26 @@ val commonModule = module {
             tasksPreferences = get(),
             subscriptionProvider = get(),
             caldavUrl = get<org.tasks.auth.TasksServerEnvironment>().caldavUrl,
+        )
+    }
+    viewModel {
+        CaldavAccountSettingsViewModel(
+            caldavDao = get(),
+            caldavClientProvider = get(),
+            encryption = get(),
+            taskDeleter = get(),
+            backgroundWork = get(),
+            reporting = get(),
+        )
+    }
+    viewModel {
+        EtebaseAccountSettingsViewModel(
+            caldavDao = get(),
+            clientProvider = get(),
+            encryption = get(),
+            taskDeleter = get(),
+            backgroundWork = get(),
+            reporting = get(),
         )
     }
     viewModel {

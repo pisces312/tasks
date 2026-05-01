@@ -1156,6 +1156,11 @@
 +|    +--- com.github.franmontiel:PersistentCookieJar:1.0.1
 +|    |    \--- com.squareup.okhttp3:okhttp:3.1.2 -> 5.3.2 (*)
 +|    +--- com.getpebble:pebblekit:4.0.1
++|    +--- com.github.tasks.opentasks:opentasks-provider:562fec5
++|    +--- org.dmfs:rfc5545-datetime:0.2.4
++|    +--- org.dmfs:lib-recur:0.11.4
++|    |    \--- org.dmfs:rfc5545-datetime:0.2.4
++|    +--- org.dmfs:jems:1.33
 +|    +--- org.jetbrains.compose.components:components-resources:1.10.2 (*)
 +|    +--- org.jetbrains.kotlin:kotlin-stdlib:2.3.10 (*)
 +|    +--- project :data

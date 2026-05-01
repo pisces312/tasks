@@ -300,10 +300,6 @@
     <string name="pick_from_gallery">Vybrat z galerie</string>
     <string name="pick_from_storage">Vybrat z úložiště</string>
     <string name="name_cannot_be_empty">Název nemůže být prázdný</string>
-    <string name="username_required">Zadejte uživatelské jméno</string>
-    <string name="url_required">Zadejte URL</string>
-    <string name="url_host_name_required">Zadejte adresu serveru</string>
-    <string name="url_invalid_scheme">Musí začínat na http(s)://</string>
     <string name="launcher_icon">Ikona na domovské obrazovce</string>
     <string name="widget_header_settings">Nastavení záhlaví</string>
     <string name="widget_row_settings">Nastavení řádku</string>
@@ -313,7 +309,6 @@
     <string name="user">Uživatel</string>
     <string name="password">Heslo</string>
     <string name="url">URL</string>
-    <string name="error_adding_account">Chyba: %s</string>
     <string name="notification_disable_battery_optimizations_description">Režim snížení spotřeby energie z akumulátoru může zpozdit upozornění</string>
     <string name="bundle_notifications">Seskupovat upozornění</string>
     <string name="badges">Odznaky</string>
@@ -349,7 +344,6 @@
     <string name="tasker_create_task">Vytvořit úkol</string>
     <string name="tasker_list_notification">Vypsat upozornění</string>
     <string name="help">Nápověda</string>
-    <string name="network_error">Nepodařilo se připojit</string>
     <string name="upgrade_to_pro">Získat verzi Pro</string>
     <string name="refresh_purchases">Obnovit nákupy</string>
     <string name="button_subscribe">Předplatit</string>
@@ -361,7 +355,6 @@
     <string name="logout">Odhlásit se</string>
     <string name="this_feature_requires_a_subscription">Tato funkce vyžaduje předplatné</string>
     <string name="when_overdue">Po termínu</string>
-    <string name="logout_warning">Všechna data daného účtu budou z tohoto zařízení odstraněna</string>
     <string name="cannot_access_account">Nepodařilo se připojit k účtu</string>
     <string name="action_create_new_task">Vytvořit nový úkol</string>
     <string name="show_description">Zobrazit popis</string>
@@ -392,8 +385,6 @@
     <string name="caldav_selection_description">Synchronizace založená na otevřených internetových standardech</string>
     <string name="etesync_selection_description">Synchronizace šifrovaná mezi koncovými body</string>
     <string name="show_advanced_settings">Zobrazit pokročilé možnosti</string>
-    <string name="caldav_account_description">Vyžaduje účet u poskytovatele s CalDAV službou nebo vlastní server. Vhodné poskytovatele najdete na tasks.org/caldav</string>
-    <string name="etesync_account_description">Vyžaduje účet na EteSync.com nebo vlastní server</string>
     <string name="documentation">Dokumentace</string>
     <string name="preferences_advanced">Pokročilé možnosti</string>
     <string name="wearable_notifications">Upozornění na hodinkách</string>
@@ -454,7 +445,6 @@
     <string name="upgrade_blurb_2">Strávil jsem tisíce hodin prací na Tasks a bezplatně zveřejňuji veškerý zdrojový kód online. Za účelem podpory mé práce některé funkce vyžadují předplatné</string>
     <string name="upgrade_blurb_1">Ahoj! Jmenuji se Alex a jsem nezávislý vývojář aplikace Tasks</string>
     <string name="color_wheel">Více barev</string>
-    <string name="invalid_username_or_password">Neplatné uživatelské jméno nebo heslo</string>
     <string name="davx5_selection_description">Synchronizujte své úkoly pomocí aplikace DAVx⁵</string>
     <string name="building_notifications">Vytvářejí se oznámení</string>
     <string name="support_development_subscribe">Odemkněte si další funkce a podpořte software s otevřeným zdrojovým kódem</string>
@@ -612,12 +602,9 @@
     <string name="alarm_after_due">%s po termínu</string>
     <string name="custom_notification">Vlastní oznámení</string>
     <string name="completion_sound">Přehrát zvuk dokončení</string>
-    <string name="caldav_server_unknown">Neznámý</string>
-    <string name="caldav_server_other">Další</string>
     <string name="snackbar_task_completed">Úkol splněn</string>
     <string name="completed">Splněný</string>
     <string name="snackbar_tasks_completed">%d úkolů splněno</string>
-    <string name="caldav_server_type">Typ serveru</string>
     <string name="dismiss">Odmítnout</string>
     <string name="hint_customize_edit_title">Příliš mnoho informací\?</string>
     <string name="hint_customize_edit_body">Tuto obrazovku si můžete přizpůsobit přeskupením nebo odebráním polí</string>
@@ -625,7 +612,6 @@
     <string name="sort_completion_group">Dokončeno %s</string>
     <string name="enable_reminders">Povolit připomínky</string>
     <string name="enable_reminders_description">Připomínky jsou zakázány v nastavení Android</string>
-    <string name="sign_in">Přihlásit se</string>
     <string name="sort_list">Podle seznamu</string>
     <string name="change_priority">Změnit prioritu</string>
     <string name="repeats_every">Opakuje se každý</string>

@@ -314,7 +314,6 @@
     <string name="hide_unused_places">隱藏未使用地點</string>
     <string name="hide_unused_tags">隱藏未使用標籤</string>
     <string name="color_wheel">色輪</string>
-    <string name="invalid_username_or_password">無效的使用者名稱或密碼</string>
     <string name="more_notification_settings_summary">鈴聲、震動、與更多</string>
     <string name="more_settings">更多設定</string>
     <string name="disable_battery_optimizations">關閉電池最佳化</string>
@@ -351,7 +350,6 @@
     <string name="action_new_task">新工作</string>
     <string name="action_create_new_task">建立新工作</string>
     <string name="cannot_access_account">無法存取帳號</string>
-    <string name="logout_warning">所有此帳號的資料將會自裝置移除</string>
     <string name="this_feature_requires_a_subscription">此功能需要訂閱</string>
     <string name="logout">登出</string>
     <string name="requires_pro_subscription">需要訂閱專業版</string>
@@ -360,7 +358,6 @@
     <string name="refresh_purchases">刷新付款</string>
     <string name="subscription">訂閱</string>
     <string name="upgrade_to_pro">升級至專業版</string>
-    <string name="network_error">無法連接</string>
     <string name="help_and_feedback">幫助與回饋</string>
     <string name="help">幫助</string>
     <string name="tasker_create_task">建立工作</string>
@@ -376,7 +373,6 @@
     <string name="dont_add_to_calendar">不要新增至日曆</string>
     <string name="list_separator_with_space">", "</string>
     <string name="notification_disable_battery_optimizations_description">電池最佳化可能使通知延遲</string>
-    <string name="error_adding_account">錯誤: %s</string>
     <string name="url">URL</string>
     <string name="password">密碼</string>
     <string name="user">使用者名稱</string>
@@ -408,10 +404,6 @@
     <string name="default_tags">預設標籤</string>
     <string name="back_button_saves_task">返回鈕儲存工作</string>
     <string name="no_title">(無標題)</string>
-    <string name="url_invalid_scheme">必須由 http(s):// 開頭</string>
-    <string name="url_host_name_required">需要主機名稱</string>
-    <string name="url_required">需要URL</string>
-    <string name="username_required">需要使用者名稱</string>
     <string name="filter_criteria_unstarted">尚未開始</string>
     <string name="show_unstarted">顯示未開始項</string>
     <string name="widget_show_title">顯示標題</string>
@@ -514,10 +506,8 @@
     <string name="repeats_every">每次重複</string>
     <string name="alarm_before_due">到期前 %s</string>
     <string name="alarm_after_start">開始後 %s</string>
-    <string name="etesync_account_description">需要 EteSync.com 帳戶或自架伺服器</string>
     <string name="repeats_weekly_on">重複於</string>
     <string name="repeats_on">在</string>
-    <string name="caldav_account_description">需要 CalDAV 服務提供者帳戶或自架伺服器。請參考 tasks.org/caldav 尋找服務提供者</string>
     <string name="repeats_never">永不</string>
     <string name="name_your_price">自行設定價格</string>
     <string name="repeat_monthly_on_the_nth_weekday">每月於 %1$s %2$s</string>
@@ -545,8 +535,6 @@
     <string name="save_percent">儲存 %d%%</string>
     <string name="tasks_org_account_required">需要 Tasks.org 帳戶</string>
     <string name="snackbar_tasks_completed">已完成 %d 項任務</string>
-    <string name="caldav_server_other">其他</string>
-    <string name="caldav_server_type">伺服器類型</string>
     <string name="troubleshooting">疑難排解</string>
     <string name="notification_troubleshooting_summary">若有通知問題，點選這裡</string>
     <string name="upgrade_blurb_2">我花了數千小時的心血在開發 Tasks 上，並且將所有程式碼免費開源。為了支持我的工作，某些功能需要訂閱</string>
@@ -592,10 +580,8 @@
     <string name="background_location">背景定位</string>
     <string name="backups_ignore_warnings_summary">如果你不需要備份或有自己的備份解決方案，請忽略備份警告</string>
     <string name="completed">已完成</string>
-    <string name="caldav_server_unknown">未知</string>
     <string name="hint_customize_edit_title">資訊過多嗎？</string>
     <string name="snoozed_until">延後至 %s</string>
-    <string name="sign_in">登入</string>
     <string name="alarm_before_start">開始前 %s</string>
     <string name="enable_reminders_description">在 Android 設定中禁用提醒</string>
     <string name="enable_reminders">啟用提醒</string>

@@ -82,9 +82,7 @@ fun LocalAccountSettingsDetail(
                 hasChanges = hasChanges,
                 showDiscardDialog = showDiscardDialog,
                 onNameChange = viewModel::setDisplayName,
-                onSave = { errorMessage ->
-                    viewModel.save(errorMessage, onNavigateBack)
-                },
+                onSave = { viewModel.save(onNavigateBack) },
                 onDelete = {
                     viewModel.delete(onNavigateBack)
                 },

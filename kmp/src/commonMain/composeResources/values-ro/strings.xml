@@ -151,4 +151,16 @@
         <item quantity="few">%1$d liste</item>
         <item quantity="other">%1$d liste</item>
     </plurals>
+    <string name="caldav_server_other">Altele</string>
+    <string name="caldav_server_type">Tip de server</string>
+    <string name="caldav_server_unknown">Necunoscut</string>
+    <string name="error_adding_account">Eroare: %s</string>
+    <string name="invalid_username_or_password">Nume de utilizator sau parolă greșite</string>
+    <string name="network_error">Nu s-a putut conecta</string>
+    <string name="sign_in">Conectează-te</string>
+    <string name="url_host_name_required">Numele de gazdă necesar</string>
+    <string name="url_invalid_scheme">Trebuie să înceapă cu http(s)://</string>
+    <string name="url_required">URL necesar</string>
+    <string name="username_required">Nume de utilizator necesar</string>
+    <string name="etesync_account_description">Necesită un cont cu EteSync.com sau un server auto-găzduit</string>
 </resources>

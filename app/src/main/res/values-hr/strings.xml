@@ -50,7 +50,6 @@
     <string name="show_description">Pokaži opis</string>
     <string name="action_create_new_task">Stvori novi zadatak</string>
     <string name="cannot_access_account">Nije moguće pristupiti računu</string>
-    <string name="logout_warning">Svi podaci za ovaj račun uklonit će se s uređaja</string>
     <string name="logout">Odjavi se</string>
     <string name="license_summary">Tasks je slobodan program otvorenog koda, licenciran pod GNU General Public License v3.0</string>
     <string name="no_time">Bez vremena</string>
@@ -205,7 +204,6 @@
     <string name="automatic_backups">Automatsko spremanje sigurnosnih kopija</string>
     <string name="permission_read_tasks">Potpuni pristup bazi podataka programa Tasks</string>
     <string name="reset_sort_order">Obnovi redoslijed razvrstavanja</string>
-    <string name="caldav_account_description">Zahtijeva račun pri pružatelju CalDAV-usluga ili vlastiti poslužitelj. Pronađi pružatelja usluga na tasks.org/caldav</string>
     <string name="show_advanced_settings">Pokaži napredne postavke</string>
     <string name="davx5_selection_description">Sinkroniziraj tvoje zadatke s DAVx⁵</string>
     <string name="decsync_selection_description">Sinkronizacija pojedinačnih datoteka</string>
@@ -239,7 +237,6 @@
     <string name="refresh_purchases">Osvježi kupnje</string>
     <string name="subscription">Pretplata</string>
     <string name="upgrade_to_pro">Nadogradi na Pro verziju</string>
-    <string name="network_error">Neuspjelo spajanje</string>
     <string name="tasker_list_notification">Obavijest popisa</string>
     <string name="tasker_create_task">Stvori zadatak</string>
     <string name="repeat_monthly_last_week">zadnji</string>
@@ -277,7 +274,6 @@
     <string name="badges">Značke</string>
     <string name="bundle_notifications">Grupiraj obavijesti</string>
     <string name="notification_disable_battery_optimizations_description">Optimiranje baterije može odgoditi obavijesti</string>
-    <string name="error_adding_account">Greška: %s</string>
     <string name="url">URL</string>
     <string name="password">Lozinka</string>
     <string name="user">Korisnik</string>
@@ -315,10 +311,6 @@
     <string name="default_list">Standardni popis</string>
     <string name="back_button_saves_task">Gumb za natrag sprema zadatak</string>
     <string name="no_title">(bez naslova)</string>
-    <string name="url_invalid_scheme">Mora početi s http(s)://</string>
-    <string name="url_host_name_required">Naziv računala je obavezno</string>
-    <string name="url_required">URL-adresa je obavezna</string>
-    <string name="username_required">Korisničko ime je obavezno</string>
     <string name="name_cannot_be_empty">Ime ne smije biti prazno</string>
     <string name="tag_already_exists">Oznaka već postoji</string>
     <string name="send_anonymous_statistics_summary">Šalji anonimnu statistiku korištenja i izvještaje o prekidima programa radi poboljšanja programa Tasks. Osobni podaci se ne prikupljaju.</string>
@@ -478,7 +470,6 @@
     <string name="back">Natrag</string>
     <string name="upgrade_blurb_2">Proveo sam tisuće sati radeći na programu Tasks, a sav izvorni kod objavljujem na mreži besplatno. U svrhu podržavanja mog rada, neke funkcije zahtijevaju pretplatu</string>
     <string name="upgrade_blurb_1">Bok! Moje ime je Alex. Ja sam neovisan programer programa Tasks</string>
-    <string name="invalid_username_or_password">Neispravno korisničko ime ili lozinka</string>
     <string name="more_notification_settings_summary">Zvona, vibracije i više</string>
     <string name="more_settings">Daljnje postavke</string>
     <string name="disable_battery_optimizations">Deaktiviraj optimiranja baterije</string>
@@ -486,7 +477,6 @@
     <string name="troubleshooting">Rješavanje problema</string>
     <string name="wearable_notifications_summary">Prikaži obavijesti na nosivim uređajima</string>
     <string name="wearable_notifications">Obavijesti nosivih uređaja</string>
-    <string name="etesync_account_description">Zahtijeva račun na EteSync.com ili vlastiti poslužitelj</string>
     <string name="widget_show_header">Pokaži zaglavlje</string>
     <string name="widget_show_checkboxes">Pokaži potvrdne okvire</string>
     <plurals name="Ntasks">
@@ -614,9 +604,6 @@
         <item quantity="other">Minuta</item>
     </plurals>
     <string name="randomly_every">Slučajno svakih %s</string>
-    <string name="caldav_server_unknown">Nepoznato</string>
-    <string name="caldav_server_other">Drugi</string>
-    <string name="caldav_server_type">Vrsta poslužitelja</string>
     <string name="dismiss">Odbaci</string>
     <string name="hint_customize_edit_body">Ovaj ekran možeš prilagoditi mijenjanjem rasporeda polja ili uklanjanjem polja</string>
     <string name="customize_edit_screen_summary">Prerasporedi ili ukloni polja</string>
@@ -625,7 +612,6 @@
     <string name="enable_reminders_description">Podsjetnici su deaktivirani u Android postavkama</string>
     <string name="sort_completion_group">Završeno %s</string>
     <string name="TEA_creation_date">Datum stvaranja</string>
-    <string name="sign_in">Prijavi se</string>
     <string name="sort_list">Po popisu</string>
     <string name="repeats_never">Nikada</string>
     <string name="repeats_after">Nakon</string>

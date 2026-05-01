@@ -36,6 +36,8 @@ import tasks.kmp.generated.resources.Res
 import tasks.kmp.generated.resources.EPr_edit_screen_options
 import tasks.kmp.generated.resources.add_account
 import tasks.kmp.generated.resources.backup_BPr_header
+import tasks.kmp.generated.resources.caldav
+import tasks.kmp.generated.resources.etesync
 import tasks.kmp.generated.resources.date_and_time
 import tasks.kmp.generated.resources.debug
 import tasks.kmp.generated.resources.about
@@ -45,6 +47,7 @@ import tasks.kmp.generated.resources.navigation_drawer
 import tasks.kmp.generated.resources.notifications
 import tasks.kmp.generated.resources.preferences_advanced
 import tasks.kmp.generated.resources.preferences_look_and_feel
+import tasks.kmp.generated.resources.settings
 import tasks.kmp.generated.resources.task_defaults
 import tasks.kmp.generated.resources.task_list_options
 import tasks.kmp.generated.resources.link_desktop
@@ -80,6 +83,24 @@ data class TasksAccountSettingsPane(
     val account: CaldavAccount,
 ) : SettingsPane {
     override val titleRes: StringResource = Res.string.tasks_org
+}
+
+data class CaldavAccountSettingsPane(
+    val account: CaldavAccount,
+) : SettingsPane {
+    override val titleRes: StringResource = Res.string.caldav
+}
+
+data class EtebaseAccountSettingsPane(
+    val account: CaldavAccount,
+) : SettingsPane {
+    override val titleRes: StringResource = Res.string.etesync
+}
+
+data class OpenTaskAccountSettingsPane(
+    val account: CaldavAccount,
+) : SettingsPane {
+    override val titleRes: StringResource = Res.string.settings
 }
 
 @Composable

@@ -149,4 +149,16 @@
         <item quantity="one">%1$d பட்டியல்</item>
         <item quantity="other">%1$d பட்டியல்கள்</item>
     </plurals>
+    <string name="caldav_server_other">மற்றொன்று</string>
+    <string name="caldav_server_type">சேவையக வகை</string>
+    <string name="caldav_server_unknown">தெரியவில்லை</string>
+    <string name="error_adding_account">பிழை: %s</string>
+    <string name="invalid_username_or_password">தவறான பயனர்பெயர் அல்லது கடவுச்சொல்</string>
+    <string name="network_error">இணைக்க முடியவில்லை</string>
+    <string name="sign_in">விடுபதிகை</string>
+    <string name="url_host_name_required">ஹோஸ்ட்பெயர் தேவை</string>
+    <string name="url_invalid_scheme">Http (கள்) உடன் தொடங்க வேண்டும்: //</string>
+    <string name="url_required">URL தேவை</string>
+    <string name="username_required">பயனர்பெயர் தேவை</string>
+    <string name="etesync_account_description">EteSync.com அல்லது சுய ஹோஸ்ட் செய்த சேவையகத்துடன் கணக்கு தேவை</string>
 </resources>

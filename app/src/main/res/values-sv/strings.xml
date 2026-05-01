@@ -284,10 +284,6 @@
     <string name="location_radius_meters">%s m</string>
     <string name="copy">Kopiera</string>
     <string name="move">Flytta</string>
-    <string name="username_required">Användarnamn krävs</string>
-    <string name="url_required">URL krävs</string>
-    <string name="url_host_name_required">Värddatornamn krävs</string>
-    <string name="url_invalid_scheme">Måste börja med http(s)://</string>
     <string name="filter">Filter</string>
     <string name="launcher_icon">Hemskärmsikon</string>
     <string name="widget_header_settings">Överskriftsinställningar</string>
@@ -336,7 +332,6 @@
     <string name="tasker_create_task">Skapa uppgift</string>
     <string name="tasker_list_notification">Lista meddelande</string>
     <string name="help">Hjälp</string>
-    <string name="network_error">Kunde inte ansluta</string>
     <string name="upgrade_to_pro">Uppgradera till Pro</string>
     <string name="refresh_purchases">Uppdatera inköp</string>
     <string name="button_subscribe">Prenumerera</string>
@@ -344,7 +339,6 @@
     <string name="pro_dashclock_extension">DashClock extension</string>
     <string name="requires_pro_subscription">Kräver Pro-abonnemang</string>
     <string name="logout">Logga ut</string>
-    <string name="logout_warning">Alla data för det här kontot tas bort från enheten</string>
     <string name="cannot_access_account">Kan inte komma åt kontot</string>
     <string name="reinitialize_account">Ominitiera</string>
     <string name="action_create_new_task">Skapa ny uppgift</string>
@@ -372,7 +366,6 @@
     <string name="icon">Ikon</string>
     <string name="name_your_price">Namnge ditt pris</string>
     <string name="SSD_sort_my_order">Min sortering</string>
-    <string name="error_adding_account">Fel: %s</string>
     <string name="lists">Listor</string>
     <string name="sort_modified_group">Ändrad %s</string>
     <string name="sort_created_group">Skapad %s</string>
@@ -395,7 +388,6 @@
     <string name="places">Platser</string>
     <string name="back">Tillbaka</string>
     <string name="color_wheel">Färghjul</string>
-    <string name="invalid_username_or_password">Ogiltigt användarnamn eller lösenord</string>
     <string name="more_notification_settings_summary">Ringsignal, vibrationer och mer</string>
     <string name="more_settings">Mer inställningar</string>
     <string name="troubleshooting">Felsökning</string>
@@ -412,8 +404,6 @@
     <string name="CFC_list_name">I lista…</string>
     <string name="email">E-post</string>
     <string name="upgrade_blurb_2">Jag har ägnat tusentals timmar åt Tasks och jag publicerar all källkod fritt på nätet. För att stöda mitt arbete kräver vissa funktioner ett abonnemang</string>
-    <string name="etesync_account_description">Kräver ett konto hos EteSync.com eller en egen värdserver</string>
-    <string name="caldav_account_description">Kräver ett konto hos en CalDAV-tjänsteleverantör eller en egen server. Hitta en tjänsteleverantör genom att besöka tasks.org/caldav</string>
     <string name="menu_discard_changes">Ignorera ändringar</string>
     <string name="astrid_sort_order_summary">Aktivera Astrids manuella sorteringsläge för \"Mina uppgifter\", \"Idag\" och taggar. Detta sorteringsläge kommer att ersättas av \"Min sortering\" i en framtida uppdatering.</string>
     <string name="markdown_description">Aktivera Markdown i titel och beskrivning</string>
@@ -592,9 +582,6 @@
     <string name="snackbar_task_completed">Uppgiften slutförd</string>
     <string name="snackbar_tasks_completed">%d uppgifter slutförda</string>
     <string name="custom_filter_has_reminder">Har påminnelse</string>
-    <string name="caldav_server_unknown">Okänd</string>
-    <string name="caldav_server_other">Övrig</string>
-    <string name="caldav_server_type">Servertyp</string>
     <string name="dismiss">Avfärda</string>
     <string name="customize_edit_screen_summary">Ordna om eller ta bort fält</string>
     <string name="hint_customize_edit_title">För mycket information\?</string>
@@ -602,7 +589,6 @@
     <string name="enable_reminders_description">Påminnelser är avstängda i Android-inställningarna</string>
     <string name="TEA_creation_date">Skapatdatum</string>
     <string name="sort_completion_group">Slutfört %s</string>
-    <string name="sign_in">Logga in</string>
     <string name="sort_list">Efter lista</string>
     <string name="enable_reminders">Aktivera påminnelser</string>
     <string name="repeats_every">Upprepas varje</string>

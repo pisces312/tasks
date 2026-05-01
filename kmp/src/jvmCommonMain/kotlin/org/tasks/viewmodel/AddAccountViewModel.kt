@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -25,14 +24,15 @@ open class AddAccountViewModel(
 
     val hasPro: Boolean get() = purchaseState.hasPro
 
-    private val _accountAdded = MutableSharedFlow<Unit>()
+    private val _accountAdded = MutableSharedFlow<Unit>(replay = 1)
     val accountAdded: SharedFlow<Unit> = _accountAdded
 
     init {
-        val accountCount = caldavDao.watchAccounts().map { it.size }
         viewModelScope.launch {
-            val initialCount = accountCount.first()
-            accountCount.drop(1).first { it > initialCount }
+            val initialCount = caldavDao.getAccounts().size
+            caldavDao.watchAccounts()
+                .map { it.size }
+                .first { it > initialCount }
             syncAdapters.sync(SyncSource.ACCOUNT_ADDED)
             backgroundWork.updateBackgroundSync()
             _accountAdded.emit(Unit)

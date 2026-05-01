@@ -17,6 +17,9 @@ import org.tasks.service.TaskDeleter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.tasks.R
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.error_adding_account
+import tasks.kmp.generated.resources.network_error
 import org.tasks.Strings.isNullOrEmpty
 import org.tasks.activities.BaseListSettingsActivity
 import org.tasks.compose.DeleteButton
@@ -110,8 +113,8 @@ abstract class BaseCaldavCalendarSettingsActivity : BaseListSettingsActivity() {
             is DisplayableException -> lifecycleScope.launch {
                 snackbar.showSnackbar(org.jetbrains.compose.resources.getString(t.resource))
             }
-            is ConnectException -> showSnackbar(R.string.network_error)
-            else -> showSnackbar(R.string.error_adding_account, t.message!!)
+            is ConnectException -> showSnackbar(runBlocking { org.jetbrains.compose.resources.getString(Res.string.network_error) })
+            else -> showSnackbar(runBlocking { org.jetbrains.compose.resources.getString(Res.string.error_adding_account, t.message!!) })
         }
         return
     }

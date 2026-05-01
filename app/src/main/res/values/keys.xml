@@ -3,9 +3,8 @@
   This file contains preference keys and preference list values.
   These should not be translated 
 -->
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
   <string name="app_package">org.tasks</string>
-  <string name="opentasks_authority" tools:node="replace">org.tasks.opentasks</string>
   <string name="backup_api_key">AEdPqrEAAAAI49v5bBusi_bq1bgLBB1LIsepNV0eBrFkQrBZkw</string>
   <string name="FSA_label">Tasks Shortcut</string>
   <string name="caldav">CalDAV</string>
@@ -17,12 +16,6 @@
   <string name="microsoft">Microsoft To&#xA0;Do</string>
   <string name="etebase_url">https://api.etebase.com/partner/tasksorg/</string>
   <string name="help_url_sync">https://tasks.org/sync</string>
-  <string name="caldav_server_owncloud">ownCloud</string>
-  <string name="caldav_server_nextcloud">Nextcloud</string>
-  <string name="caldav_server_sabredav">sabre/dav</string>
-  <string name="caldav_server_openxchange">Open-Xchange</string>
-  <string name="caldav_server_synology_calendar">Synology Calendar</string>
-  <string name="caldav_server_mailbox_org">Mailbox.org</string>
 
   <string name="url_davx5">https://tasks.org/davx5</string>
   <string name="url_caldav">https://tasks.org/caldav</string>

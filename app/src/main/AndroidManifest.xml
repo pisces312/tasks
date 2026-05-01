@@ -463,15 +463,11 @@
     <activity android:name=".activities.FilterSettingsActivity"/>
 
     <activity
-      android:name=".caldav.CaldavAccountSettingsActivity"
+      android:name=".caldav.CaldavSignInActivity"
       android:theme="@style/Tasks"/>
 
     <activity
-      android:name=".etebase.EtebaseAccountSettingsActivity"
-      android:theme="@style/Tasks" />
-
-    <activity
-      android:name=".opentasks.OpenTaskAccountSettingsActivity"
+      android:name=".etebase.EtebaseSignInActivity"
       android:theme="@style/Tasks" />
 
     <activity

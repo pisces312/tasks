@@ -186,4 +186,16 @@
         <item quantity="two">%1$d רשימות</item>
         <item quantity="other">%1$d רשימות</item>
     </plurals>
+    <string name="caldav_server_other">אחר</string>
+    <string name="caldav_server_type">סוג שרת</string>
+    <string name="caldav_server_unknown">לא ידוע</string>
+    <string name="error_adding_account">שגיאה: %s</string>
+    <string name="invalid_username_or_password">שם המשתמש או הסיסמה שגויים</string>
+    <string name="network_error">לא ניתן להתחבר</string>
+    <string name="sign_in">כניסה</string>
+    <string name="url_host_name_required">נדרש שם מארח</string>
+    <string name="url_invalid_scheme">חייב להתחיל עם http(s)://‎</string>
+    <string name="url_required">נדרשת כתובת URL</string>
+    <string name="username_required">נדרש שם משתמש</string>
+    <string name="etesync_account_description">דורש חשבון אצל EteSync.com או שרת באירוח עצמי</string>
 </resources>

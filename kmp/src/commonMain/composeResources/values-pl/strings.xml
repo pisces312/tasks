@@ -142,4 +142,16 @@
         <item quantity="many">%1$d list</item>
         <item quantity="other">%1$d list</item>
     </plurals>
+    <string name="caldav_server_other">Inne</string>
+    <string name="caldav_server_type">Typ serwera</string>
+    <string name="caldav_server_unknown">Nieznane</string>
+    <string name="error_adding_account">Błąd: %s</string>
+    <string name="invalid_username_or_password">Nieprawidłowa nazwa użytkownika lub hasło</string>
+    <string name="network_error">Błąd połączenia</string>
+    <string name="sign_in">Zaloguj się</string>
+    <string name="url_host_name_required">Wymagana nazwa hosta</string>
+    <string name="url_invalid_scheme">Musi rozpoczynać się od http(s)://</string>
+    <string name="url_required">Wymagany URL</string>
+    <string name="username_required">Wymagana nazwa użytkownika</string>
+    <string name="etesync_account_description">Wymaga konta na EteSync.com lub własnego serwera</string>
 </resources>

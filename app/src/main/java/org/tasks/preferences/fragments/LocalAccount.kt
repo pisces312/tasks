@@ -64,7 +64,7 @@ class LocalAccount : Fragment() {
                 hasChanges = hasChanges,
                 showDiscardDialog = showDiscardDialog,
                 onNameChange = viewModel::setDisplayName,
-                onSave = { errorMessage -> viewModel.save(errorMessage, navigateBack) },
+                onSave = { viewModel.save(navigateBack) },
                 onDelete = { viewModel.delete(navigateBack) },
                 onNavigateBack = navigateBack,
                 onDiscardDialogChange = { showDiscardDialog = it },

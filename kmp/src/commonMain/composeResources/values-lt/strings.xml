@@ -132,4 +132,16 @@
         <item quantity="few">%1$d sąrašai</item>
         <item quantity="other">%1$d sąrašų</item>
     </plurals>
+    <string name="caldav_server_other">Kitas</string>
+    <string name="caldav_server_type">Serverio tipas</string>
+    <string name="caldav_server_unknown">Nežinomas</string>
+    <string name="error_adding_account">Klaida: %s</string>
+    <string name="invalid_username_or_password">Neteisingas vartotojo vardas arba slaptažodis</string>
+    <string name="network_error">Nepavyko prisijungti</string>
+    <string name="sign_in">Prisijungti</string>
+    <string name="url_host_name_required">Reikalingas serverio vardas</string>
+    <string name="url_invalid_scheme">Turi prasidėti http(s)://</string>
+    <string name="url_required">Reikalingas URL</string>
+    <string name="username_required">Reikalingas vartotojo vardas</string>
+    <string name="etesync_account_description">Reikia paskyros EteSync.com arba asmeninis serveris</string>
 </resources>

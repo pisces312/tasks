@@ -59,7 +59,7 @@ import org.tasks.analytics.Firebase
 import org.tasks.auth.SignInActivity
 import org.tasks.auth.TasksServerEnvironment
 import org.tasks.billing.Inventory
-import org.tasks.caldav.CaldavAccountSettingsActivity
+import org.tasks.caldav.CaldavSignInActivity
 import org.tasks.compose.AddAccountDestination
 import org.tasks.compose.HomeDestination
 import org.tasks.compose.ImportTasksViewModel
@@ -81,7 +81,7 @@ import org.tasks.data.newLocalAccount
 import org.tasks.data.dao.TagDataDao
 import org.tasks.data.entity.Task
 import org.tasks.dialogs.NewFilterDialog
-import org.tasks.etebase.EtebaseAccountSettingsActivity
+import org.tasks.etebase.EtebaseSignInActivity
 import org.tasks.extensions.Context.nightMode
 import org.tasks.extensions.Context.openUri
 import org.tasks.extensions.Context.toast
@@ -321,12 +321,12 @@ class MainActivity : AppCompatActivity() {
 
                                 Platform.CALDAV ->
                                     syncLauncher.launch(
-                                        Intent(this@MainActivity, CaldavAccountSettingsActivity::class.java)
+                                        Intent(this@MainActivity, CaldavSignInActivity::class.java)
                                     )
 
                                 Platform.ETEBASE ->
                                     syncLauncher.launch(
-                                        Intent(this@MainActivity, EtebaseAccountSettingsActivity::class.java)
+                                        Intent(this@MainActivity, EtebaseSignInActivity::class.java)
                                     )
 
                                 else -> throw IllegalArgumentException()

@@ -149,4 +149,16 @@
         <item quantity="one">%1$d λίστα</item>
         <item quantity="other">%1$d λίστες</item>
     </plurals>
+    <string name="caldav_server_other">Άλλο</string>
+    <string name="caldav_server_type">Τύπος διακομιστή</string>
+    <string name="caldav_server_unknown">Άγνωστο</string>
+    <string name="error_adding_account">Σφάλμα: %s</string>
+    <string name="invalid_username_or_password">Μη έγκυρο όνομα χρήστη ή κωδικός</string>
+    <string name="network_error">Η σύνδεση απέτυχε</string>
+    <string name="sign_in">Συνδεθείτε</string>
+    <string name="url_host_name_required">Απαιτείται όνομα κεντρικού υπολογιστή</string>
+    <string name="url_invalid_scheme">Πρέπει να αρχίζει με http(s)://</string>
+    <string name="url_required">Απαιτείται διεύθυνση URL</string>
+    <string name="username_required">Απαιτείται όνομα χρήστη</string>
+    <string name="etesync_account_description">Απαιτείται λογαριασμός στο EteSync.com ή σε αυτο-φιλοξενούμενο διακομιστή</string>
 </resources>

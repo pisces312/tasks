@@ -201,10 +201,6 @@
     <string name="send_anonymous_statistics_summary">Kirim statistik penggunaan dan laporan kerusakan secara anonim untuk membantu membuat Tasks menjadi lebih baik. Tidak ada data personal yang dikumpulkan.</string>
     <string name="tag_already_exists">Tag sudah ada</string>
     <string name="name_cannot_be_empty">Nama tidak boleh kosong</string>
-    <string name="username_required">Nama pengguna diperlukan</string>
-    <string name="url_required">URL diperlukan</string>
-    <string name="url_host_name_required">Nama host diperlukan</string>
-    <string name="url_invalid_scheme">Harus diawali dengan http(s)://</string>
     <string name="no_title">(Tanpa judul)</string>
     <string name="back_button_saves_task">Tombol kembali menyimpan tugas</string>
     <string name="default_list">Daftar bawaan</string>
@@ -234,7 +230,6 @@
     <string name="user">Pengguna</string>
     <string name="password">Kata sandi</string>
     <string name="url">URL</string>
-    <string name="error_adding_account">Galat: %s</string>
     <string name="notification_disable_battery_optimizations_description">Pengoptimalan baterai mungkin akan menunda notifikasi</string>
     <string name="badges">Lencana</string>
     <string name="list">Daftar</string>
@@ -283,7 +278,6 @@
     <string name="repeat_monthly_last_week">terakhir</string>
     <string name="tasker_create_task">Buat tugas</string>
     <string name="help">Bantuan</string>
-    <string name="network_error">Tidak dapat terkoneksi</string>
     <string name="upgrade_to_pro">Tingkatkan ke pro</string>
     <string name="refresh_purchases">Segarkan pembelian</string>
     <string name="button_subscribe">Langganan</string>
@@ -291,7 +285,6 @@
     <string name="pro_dashclock_extension">Ekstensi Dashclock</string>
     <string name="requires_pro_subscription">Memerlukan langganan pro</string>
     <string name="logout">Keluar</string>
-    <string name="logout_warning">Semua data akun ini akan dihapus dari perangkat Anda</string>
     <string name="cannot_access_account">Tidak bisa mengakses akun</string>
     <string name="reinitialize_account">Inisialisasi ulang</string>
     <string name="action_create_new_task">Buat tugas baru</string>
@@ -319,8 +312,6 @@
     <string name="etesync_selection_description">Enkripsi klien-ke-klien bersumber terbuka</string>
     <string name="theme_wallpaper">Latar</string>
     <string name="show_advanced_settings">Tampilkan pengaturan lanjutan</string>
-    <string name="caldav_account_description">Membutuhkan akun penyedia layanan CalDAV atau server host-mandiri. Temukan penyedia layanan dengan mengunjungi tasks.org/caldav</string>
-    <string name="etesync_account_description">Membutuhkan akun EteSync.com atau server hosting-mandiri</string>
     <string name="help_and_feedback">Bantuan &amp; umpanbalik</string>
     <string name="documentation">Dokumentasi</string>
     <string name="preferences_advanced">Lanjutan</string>
@@ -346,7 +337,6 @@
     <string name="hide_unused_tags">Sembunyikan tag yang tidak digunakan</string>
     <string name="chip_appearance">Penampilan chip</string>
     <string name="back">Kembali</string>
-    <string name="invalid_username_or_password">Nama pengguna dan kata sandi salah</string>
     <string name="davx5_selection_description">Sinkronkan tugas Anda dengan aplikasi DAVx⁵</string>
     <string name="whats_new">Apa yang Baru</string>
     <string name="missing_permissions">Perizinan hilang</string>
@@ -558,9 +548,6 @@
     <string name="completed">Selesai</string>
     <string name="custom_filter_has_reminder">Berpengingat</string>
     <string name="completion_sound">Mainkan suara selesai</string>
-    <string name="caldav_server_unknown">Tidak diketahui</string>
-    <string name="caldav_server_other">Lainnya</string>
-    <string name="caldav_server_type">Tipe server</string>
     <string name="snoozed_until">Tunda sampai %s</string>
     <plurals name="reminder_week">
         <item quantity="other">Minggu</item>
@@ -675,7 +662,6 @@
     <string name="enable_reminders_description">Pengingat dinonaktifkan di Pengaturan Android</string>
     <string name="enable_alarms">Dapatkan notifikasi pada waktu yang tepat</string>
     <string name="enable_alarms_description">Untuk memastikan Anda mendapat notifikasi pada waktu yang tepat, berikan izin untuk mengatur alarm dan pengingat di Pengaturan</string>
-    <string name="sign_in">Masuk</string>
     <string name="sign_in_subtitle">Sudah berlangganan atau diundang sebagai tamu?</string>
     <string name="legal_disclosure_prefix_using">Dengan menggunakan Tasks.org</string>
     <string name="terms_of_service">Ketentuan layanan</string>

@@ -223,7 +223,6 @@
     <string name="filter_no_priority">Sen prioridade</string>
     <string name="repeat_type_due">data de fin</string>
     <string name="geofence_radius">Radio da xeocerca</string>
-    <string name="error_adding_account">Erro: %s</string>
     <string name="repeats_yearly">por ano</string>
     <string name="button_subscribe">Suscribirse</string>
     <string name="pro_dashclock_extension">Engadido de reloxo</string>
@@ -239,8 +238,6 @@
     <string name="repeat_monthly_first_week">primeiro</string>
     <string name="next_saturday">Próx Sáb</string>
     <string name="show_unstarted">Amosar sen comezar</string>
-    <string name="url_host_name_required">Precísase o hostname</string>
-    <string name="url_invalid_scheme">Ten que comezar cun http(s)://</string>
     <string name="default_tags">Etiquetas predefinidas</string>
     <string name="default_recurrence">Recurrencia predefinida</string>
     <string name="opacity_header">Opacidade da cabeceira</string>
@@ -265,7 +262,6 @@
     <string name="repeat_monthly_last_week">último</string>
     <string name="tasker_create_task">Crear tarefa</string>
     <string name="tasker_list_notification">Última notificación</string>
-    <string name="network_error">Non se puido conectar</string>
     <string name="subscription">Suscrición</string>
     <string name="action_open">Abrir</string>
     <string name="auto_dismiss_datetime_edit">Edición de tarefas</string>
@@ -325,7 +321,6 @@
     <string name="help">Axuda</string>
     <string name="help_and_feedback">Axuda e soporte</string>
     <string name="refresh_purchases">Anovar as compras</string>
-    <string name="logout_warning">Todos dos datos desta conta vabse a borrar deste dispositivo</string>
     <string name="sign_in_with_google">Acceso con Google</string>
     <string name="authentication_required">Precísase autenticación</string>
     <string name="migrate">migrar</string>
@@ -338,17 +333,13 @@
     <string name="settings_default">Predefinido</string>
     <string name="migrate_count">Mover %s a Tasks.org</string>
     <string name="list_members">Lista de participantes</string>
-    <string name="caldav_server_unknown">Descoñecido</string>
-    <string name="caldav_server_other">Outro</string>
     <string name="more_options">Máis opcións</string>
     <string name="snackbar_tasks_completed">%d tarefas finalizadas</string>
-    <string name="caldav_server_type">Tipo de servidor</string>
     <string name="next_sunday">Próx Dom</string>
     <string name="now">Agora</string>
     <string name="header_spacing">Espazado</string>
     <string name="subtasks">Subtarefas</string>
     <string name="menu_discard_changes">Descartar mudanzas</string>
-    <string name="username_required">Precísase nome de usuario</string>
     <string name="widget_open_list">Abrir lista</string>
     <string name="user">Usuario/a</string>
     <string name="repeats_hourly">por hora</string>
@@ -398,7 +389,6 @@
     <string name="linkify">Amosar as ligazóns</string>
     <string name="linkify_description">Engadir ligazóns ás páxinas web, direccións e números de teléfono</string>
     <string name="choose_new_location">Escoller nova posición</string>
-    <string name="invalid_username_or_password">Nome de usuario ou contrasinl erróneos</string>
     <string name="sort_created_group">Creouse %s</string>
     <string name="sort_modified_group">Modificada %s</string>
     <string name="last_backup_never">nunca</string>
@@ -430,7 +420,6 @@
     <string name="snooze_all">Pospoñer todo</string>
     <string name="repeat_option_every_year">Todos os anos</string>
     <string name="google_drive_backup">Seguranza en Google Drive</string>
-    <string name="url_required">Precísase a URL</string>
     <string name="opacity_row">Opacidade da fila</string>
     <string name="opacity_footer">Opacidade do rodapé</string>
     <string name="launcher_icon">Icona de escritorio</string>
@@ -537,8 +526,6 @@
     <string name="banner_app_updated_description">Tarefas acaba de actualizarse a %s. Queres ver as notas da versión?</string>
     <string name="name_your_price">Prezo flexible</string>
     <string name="subtasks_multilevel_microsoft">Subtarefas multinivel non compatibles con Microsoft To Do</string>
-    <string name="caldav_account_description">Require unha conta cun provedor de servizos CalDAV ou un servidor autoaloxado. Atopa un provedor de servizos visitando tasks.org/caldav</string>
-    <string name="etesync_account_description">Require unha conta con EteSync.com ou un servidor autoaloxado</string>
     <string name="wearable_notifications">Notificacións de reloxo intelixente</string>
     <string name="wearable_notifications_summary">Amosar notificacións no teu reloxo intelixente</string>
     <string name="notification_troubleshooting_summary">Toca aquí se tes problemas coas notificacións</string>
@@ -590,7 +577,6 @@
     <string name="enable_reminders_description">Os recordatorios están desactivados na Configuración de Android</string>
     <string name="enable_alarms">Recibir notificacións no momento adecuado</string>
     <string name="enable_alarms_description">Para asegurarte de que recibes notificacións no momento adecuado, concede permiso para configurar alarmas e recordatorios na Configuración</string>
-    <string name="sign_in">Iniciar sesión</string>
     <string name="add_shortcut_to_home_screen">Engadir acceso directo á pantalla de inicio</string>
     <string name="add_widget_to_home_screen">Engadir widget á pantalla de inicio</string>
     <string name="cost_money">Custo: $</string>

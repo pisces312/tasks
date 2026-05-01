@@ -258,10 +258,6 @@
     <string name="send_anonymous_statistics_summary">Anonieme gebruiksstatistieken en crashrapporten versturen om Tasks te verbeteren. Persoonlijke gegevens worden niet verzameld.</string>
     <string name="tag_already_exists">Label bestaat reeds</string>
     <string name="name_cannot_be_empty">Naam mag niet leeg zijn</string>
-    <string name="username_required">Gebruikersnaam vereist</string>
-    <string name="url_required">URL vereist</string>
-    <string name="url_host_name_required">Hostnaam vereist</string>
-    <string name="url_invalid_scheme">Moet beginnen met http(s)://</string>
     <string name="no_title">(geen titel)</string>
     <string name="back_button_saves_task">Terug-knop slaat taak op</string>
     <string name="default_list">Standaardlijst</string>
@@ -323,7 +319,6 @@
     <string name="repeat_monthly_last_week">laatste</string>
     <string name="tasker_create_task">Taak maken</string>
     <string name="tasker_list_notification">Lijst melding</string>
-    <string name="network_error">Verbinding niet gelukt</string>
     <string name="upgrade_to_pro">Opwaarderen naar pro</string>
     <string name="refresh_purchases">Aankopen bijwerken</string>
     <string name="button_subscribe">Abonneren</string>
@@ -331,7 +326,6 @@
     <string name="pro_dashclock_extension">Dashclock extensie</string>
     <string name="requires_pro_subscription">Pro abonnement vereist</string>
     <string name="logout">Uitloggen</string>
-    <string name="logout_warning">Alle gegevens van deze account zullen van dit toestel worden verwijderd</string>
     <string name="cannot_access_account">Krijgt geen toegang tot account</string>
     <string name="reinitialize_account">Herinitialiseren</string>
     <string name="action_create_new_task">Nieuwe taak maken</string>
@@ -369,7 +363,6 @@
     <string name="help">Hulp</string>
     <string name="icon">Pictogram</string>
     <string name="SSD_sort_my_order">Mijn volgorde</string>
-    <string name="error_adding_account">Fout: %s</string>
     <plurals name="subtask_count">
         <item quantity="one">%d subtaak</item>
         <item quantity="other">%d subtaken</item>
@@ -386,8 +379,6 @@
     <string name="caldav_selection_description">Synchroniseren op eigen open source CalDAV-server of bij derden</string>
     <string name="etesync_selection_description">End-to-end versleuteld synchroniseren met EteSync</string>
     <string name="show_advanced_settings">Geavanceerde instellingen tonen</string>
-    <string name="caldav_account_description">Voorwaarde is een account op eigen server of bij een CalDAV-dienstverlener. Kijk op www.tasks.org/caldav</string>
-    <string name="etesync_account_description">Voorwaarde is een account op www.EteSync.com of een eigen server</string>
     <string name="help_and_feedback">Hulp &amp; feedback</string>
     <string name="documentation">Documentatie (website)</string>
     <string name="preferences_advanced">Geavanceerd</string>
@@ -398,7 +389,6 @@
     <string name="disable_battery_optimizations">Batterij-optimalisatie uitzetten</string>
     <string name="more_settings">Meer instellingen</string>
     <string name="more_notification_settings_summary">Beltoon, trillen en meer</string>
-    <string name="invalid_username_or_password">Ongeldige gebruikersnaam of wachtwoord</string>
     <string name="theme_system_default">Systeemstandaard</string>
     <string name="color_wheel">Kleurenschijf</string>
     <string name="upgrade_blurb_1">Hallo! Mijn naam is Alex. Ik ben de onafhankelijke ontwikkelaar achter Tasks</string>
@@ -594,9 +584,6 @@
     </plurals>
     <string name="custom_notification">Aangepaste melding</string>
     <string name="randomly_every">Willekeurig elke %s</string>
-    <string name="caldav_server_type">Type server</string>
-    <string name="caldav_server_unknown">Onbekend</string>
-    <string name="caldav_server_other">Andere</string>
     <string name="customize_edit_screen_summary">Velden herschikken of verwijderen</string>
     <string name="dismiss">Sluiten</string>
     <string name="hint_customize_edit_title">Teveel informatie\?</string>
@@ -605,7 +592,6 @@
     <string name="enable_reminders_description">Herinneringen staan uit in Android Instellingen</string>
     <string name="TEA_creation_date">Aanmaakdatum</string>
     <string name="sort_completion_group">Voltooid %s</string>
-    <string name="sign_in">Log in</string>
     <string name="sort_list">Op lijstvolgorde</string>
     <plurals name="repeat_occurrence">
         <item quantity="one">gebeurtenis</item>

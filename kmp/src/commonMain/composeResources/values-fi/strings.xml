@@ -162,4 +162,16 @@
         <item quantity="one">%1$d list</item>
         <item quantity="other">%1$d lista</item>
     </plurals>
+    <string name="caldav_server_other">Muu</string>
+    <string name="caldav_server_type">Palvelimen tyyppi</string>
+    <string name="caldav_server_unknown">Tuntematon</string>
+    <string name="error_adding_account">Virhe: %s</string>
+    <string name="invalid_username_or_password">Virheellinen käyttäjätunnus tai salasana</string>
+    <string name="network_error">Yhteyttä ei saatu</string>
+    <string name="sign_in">Kirjaudu sisään</string>
+    <string name="url_host_name_required">Isäntänimi vaaditaan</string>
+    <string name="url_invalid_scheme">On alettava http(s)://</string>
+    <string name="url_required">URL vaaditaan</string>
+    <string name="username_required">Käyttäjänimi vaaditaan</string>
+    <string name="etesync_account_description">Vaatii tilin Etesync.com :ssa tai itsehallinnoidun serverin</string>
 </resources>

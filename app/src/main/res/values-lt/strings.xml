@@ -286,10 +286,6 @@
     <string name="send_anonymous_statistics_summary">Siųsti anoniminę naudojimo statistiką ir strigčių ataskaitas, kad padėtumėte patobulinti Tasks. Asmens duomenys nebus renkami.</string>
     <string name="tag_already_exists">Etiketė jau egzistuoja</string>
     <string name="name_cannot_be_empty">Pavadinimas negali būti tuščias</string>
-    <string name="username_required">Reikalingas vartotojo vardas</string>
-    <string name="url_required">Reikalingas URL</string>
-    <string name="url_host_name_required">Reikalingas serverio vardas</string>
-    <string name="url_invalid_scheme">Turi prasidėti http(s)://</string>
     <string name="no_title">(Be pavadinimo)</string>
     <string name="back_button_saves_task">Mygtukas „Atgal“ išsaugo užduotį</string>
     <string name="default_list">Numatytas sąrašas</string>
@@ -354,7 +350,6 @@
     <string name="tasker_create_task">Sukurti užduotį</string>
     <string name="tasker_list_notification">Rodyti pranešimus</string>
     <string name="help">Pagalba</string>
-    <string name="network_error">Nepavyko prisijungti</string>
     <string name="upgrade_to_pro">Atnaujinti į pro versiją</string>
     <string name="refresh_purchases">Atnaujinti pirkimus</string>
     <string name="button_subscribe">Prenumeruoti</string>
@@ -362,7 +357,6 @@
     <string name="pro_dashclock_extension">Dashclock plėtinys</string>
     <string name="requires_pro_subscription">Reikalinga „pro“ prenumerata</string>
     <string name="logout">Atsijungti</string>
-    <string name="logout_warning">Visi šios paskyros duomenys iš šio įrenginio bus pašalinti</string>
     <string name="cannot_access_account">Paskyra nepasiekiama</string>
     <string name="reinitialize_account">Inicijuoti iš naujo</string>
     <string name="action_create_new_task">Sukurti naują užduotį</string>
@@ -413,7 +407,6 @@
     <string name="widget_show_menu">Rodyti meniu</string>
     <string name="menu_discard_changes">Atmesti pakeitimus</string>
     <string name="theme_system_default">Sistemos numatyta</string>
-    <string name="invalid_username_or_password">Neteisingas vartotojo vardas arba slaptažodis</string>
     <string name="more_notification_settings_summary">Skambučiai, vibracija ir kita</string>
     <string name="more_settings">Papildomi nustatymai</string>
     <string name="disable_battery_optimizations">Išjungti baterijos optimizaciją</string>
@@ -506,7 +499,6 @@
     <string name="name_your_price">Nustatykite savo kainą</string>
     <string name="background_location_permission_required">Tasks renka vietovės duomenis, kad įgalintų priminimus pagal vietovę, net kai programa uždaryta arba nenaudojama.</string>
     <string name="help_and_feedback">Pagalba ir atsiliepimai</string>
-    <string name="error_adding_account">Klaida: %s</string>
     <string name="default_tags">Numatytos etiketės</string>
     <string name="location_radius_meters">%s m.</string>
     <string name="subtasks">Antrinės užduotys</string>
@@ -576,8 +568,6 @@
     <string name="wearable_notifications_summary">Rodyti pranešimus ant jūsų dėvimo įrenginio</string>
     <string name="wearable_notifications">Dėvimo įrenginio pranešimai</string>
     <string name="notification_troubleshooting_summary">Bakstelėkite čia, jei kyla problemų dėl pranešimų</string>
-    <string name="etesync_account_description">Reikia paskyros EteSync.com arba asmeninis serveris</string>
-    <string name="caldav_account_description">Reikia paskyros pas CalDAV paslaugų teikėją arba turėti asmeninį serverį. Paslaugų teikėją raskite apsilankę tasks.org/caldav</string>
     <string name="decsync_selection_description">Failais paremta sinchronizacija</string>
     <string name="etesync_selection_description">Sinchronizacija paremta abipusiu šifravimu</string>
     <string name="caldav_selection_description">Sinchronizacija paremta atviro interneto standartais</string>
@@ -587,10 +577,8 @@
     <string name="collapse_subtasks">Sutraukti antrines užduotis</string>
     <string name="expand_subtasks">Išplėsti antrines užduotis</string>
     <string name="when_started">Kai pradedama</string>
-    <string name="caldav_server_unknown">Nežinomas</string>
     <string name="enable_reminders">Įgalinti priminimus</string>
     <string name="hint_customize_edit_body">Galite tinkinti šį ekraną pertvarkydami arba pašalindami laukus</string>
-    <string name="caldav_server_type">Serverio tipas</string>
     <string name="hint_customize_edit_title">Per daug informacijos\?</string>
     <string name="enable_reminders_description">Priminimai išjungti Android nustatymuose</string>
     <string name="custom_filter_has_reminder">Turi priminimą</string>
@@ -625,10 +613,8 @@
     <string name="sort_completion_group">Užbaigimas %s</string>
     <string name="alarm_before_due">%s iki termino pabaigos</string>
     <string name="alarm_after_due">%s pasibaigus terminui</string>
-    <string name="caldav_server_other">Kitas</string>
     <string name="alarm_before_start">%s prieš pradžią</string>
     <string name="alarm_after_start">%s po pradžios</string>
     <string name="snackbar_task_completed">Užduotis įvykdyta</string>
     <string name="snackbar_tasks_completed">%d užduotys įvykdytos</string>
-    <string name="sign_in">Prisijungti</string>
 </resources>

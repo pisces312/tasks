@@ -139,4 +139,16 @@
         <item quantity="one">%1$d liste</item>
         <item quantity="other">%1$d lister</item>
     </plurals>
+    <string name="caldav_server_other">Annet</string>
+    <string name="caldav_server_type">Tjenertype</string>
+    <string name="caldav_server_unknown">Ukjent</string>
+    <string name="error_adding_account">Feil: %s</string>
+    <string name="invalid_username_or_password">Ugyldig brukernavn eller passord</string>
+    <string name="network_error">Kunne ikke koble til</string>
+    <string name="sign_in">Logg inn</string>
+    <string name="url_host_name_required">Vertsnavn kreves</string>
+    <string name="url_invalid_scheme">Må begynne med http(s)://</string>
+    <string name="url_required">Nettadresse kreves</string>
+    <string name="username_required">Brukernavn kreves</string>
+    <string name="etesync_account_description">Krever en konto hos EteSync.com eller selvdrevet tjener</string>
 </resources>

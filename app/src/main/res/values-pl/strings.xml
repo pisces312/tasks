@@ -276,10 +276,6 @@
     <string name="send_anonymous_statistics_summary">Wyślij anonimowe statyki użycia i raporty o awariach celem ulepszenia Tasks. Żadne prywatne dane nie będą gromadzone.</string>
     <string name="tag_already_exists">Tag już istnieje</string>
     <string name="name_cannot_be_empty">Nazwa nie może być pusta</string>
-    <string name="username_required">Wymagana nazwa użytkownika</string>
-    <string name="url_required">Wymagany URL</string>
-    <string name="url_host_name_required">Wymagana nazwa hosta</string>
-    <string name="url_invalid_scheme">Musi rozpoczynać się od http(s)://</string>
     <string name="no_title">(Bez tytułu)</string>
     <string name="back_button_saves_task">Przycisk Cofnij zapisuje zadanie</string>
     <string name="default_list">Domyślna lista</string>
@@ -344,14 +340,12 @@
     <string name="tasker_create_task">Stwórz zadanie</string>
     <string name="tasker_list_notification">Lista powiadomień</string>
     <string name="help">Pomoc</string>
-    <string name="network_error">Błąd połączenia</string>
     <string name="upgrade_to_pro">Upgrade do pro</string>
     <string name="refresh_purchases">Odśwież zakupy</string>
     <string name="button_subscribe">Zasubskrybuj</string>
     <string name="license_summary">Tasks jest aplikacją darmową/libre z otwartym kodem źródłowym, na licencji GNU General Public License v3.0</string>
     <string name="requires_pro_subscription">Wymaga subskrypcji pro</string>
     <string name="logout">Wyloguj</string>
-    <string name="logout_warning">Wszystkie dane z tego konta zostaną usunięte z urządzenia</string>
     <string name="cannot_access_account">Brak dostępu do konta</string>
     <string name="reinitialize_account">Powiąż ponownie</string>
     <string name="action_create_new_task">Stwórz nowe zadanie</string>
@@ -377,7 +371,6 @@
     <string name="CFC_tag_text">Tag; \?</string>
     <string name="location_radius_meters">%s m</string>
     <string name="url">URL</string>
-    <string name="error_adding_account">Błąd: %s</string>
     <string name="list_separator_with_space">", "</string>
     <string name="pro_dashclock_extension">Rozszerzenie do Dashclock</string>
     <string name="invalid_backup_file">Nieprawidłowy plik kopii zapasowej</string>
@@ -402,8 +395,6 @@
     <string name="caldav_selection_description">Synchronizacja oparta na otwartych standardach</string>
     <string name="etesync_selection_description">Szyfrowana synchronizacja end-to-end</string>
     <string name="show_advanced_settings">Pokaż ustawienia zaawansowane</string>
-    <string name="caldav_account_description">Wymaga konta u dostawcy usług CalDAV lub własnego serwera. Znajdź dostawcę usług na tasks.org/caldav</string>
-    <string name="etesync_account_description">Wymaga konta na EteSync.com lub własnego serwera</string>
     <string name="help_and_feedback">Pomoc i opinie</string>
     <string name="documentation">Dokumentacja</string>
     <string name="preferences_advanced">Zaawansowane</string>
@@ -414,7 +405,6 @@
     <string name="disable_battery_optimizations">Wyłącz oszczędzanie baterii</string>
     <string name="more_settings">Więcej ustawień</string>
     <string name="more_notification_settings_summary">Dzwonek, wibracje i inne</string>
-    <string name="invalid_username_or_password">Nieprawidłowa nazwa użytkownika lub hasło</string>
     <string name="theme_system_default">Domyślny systemowy</string>
     <string name="color_wheel">Paleta</string>
     <string name="upgrade_blurb_1">Cześć! Mam na imię Alex. Jestem niezależnym deweloperem stojącym za Tasks</string>
@@ -581,7 +571,6 @@
     <string name="next_monday">Następny poniedziałek</string>
     <string name="next_sunday">Następna niedziela</string>
     <string name="completed">Zakończone</string>
-    <string name="caldav_server_unknown">Nieznane</string>
     <plurals name="reminder_week">
         <item quantity="one">Tydzień</item>
         <item quantity="few">Tygodnie</item>
@@ -602,8 +591,6 @@
         <item quantity="many">Minut</item>
         <item quantity="other">Minut</item>
     </plurals>
-    <string name="caldav_server_other">Inne</string>
-    <string name="caldav_server_type">Typ serwera</string>
     <string name="now">Teraz</string>
     <string name="custom_filter_has_reminder">Ma przypomnienie</string>
     <string name="snoozed_until">Uśpione do %s</string>
@@ -629,7 +616,6 @@
     <string name="TEA_creation_date">Data utworzenia</string>
     <string name="sort_completion_group">Ukończono %s</string>
     <string name="enable_reminders_description">Przypomnienia są wyłączone w Ustawieniach Androida</string>
-    <string name="sign_in">Zaloguj się</string>
     <plurals name="repeat_occurrence">
         <item quantity="one">zdarzenie</item>
         <item quantity="few">zdarzenia</item>

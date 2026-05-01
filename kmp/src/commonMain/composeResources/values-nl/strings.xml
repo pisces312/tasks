@@ -166,4 +166,16 @@
         <item quantity="one">%1$d lijst</item>
         <item quantity="other">%1$d lijsten</item>
     </plurals>
+    <string name="caldav_server_other">Andere</string>
+    <string name="caldav_server_type">Type server</string>
+    <string name="caldav_server_unknown">Onbekend</string>
+    <string name="error_adding_account">Fout: %s</string>
+    <string name="invalid_username_or_password">Ongeldige gebruikersnaam of wachtwoord</string>
+    <string name="network_error">Verbinding niet gelukt</string>
+    <string name="sign_in">Log in</string>
+    <string name="url_host_name_required">Hostnaam vereist</string>
+    <string name="url_invalid_scheme">Moet beginnen met http(s)://</string>
+    <string name="url_required">URL vereist</string>
+    <string name="username_required">Gebruikersnaam vereist</string>
+    <string name="etesync_account_description">Voorwaarde is een account op www.EteSync.com of een eigen server</string>
 </resources>

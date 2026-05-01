@@ -312,7 +312,6 @@
     <string name="tasker_create_task">Crear tasca</string>
     <string name="tasker_list_notification">Notificació de llista</string>
     <string name="upgrade_to_pro">Actualitza a pro</string>
-    <string name="network_error">No s\'ha pogut connectar</string>
     <string name="subscription">Subscripció</string>
     <string name="linkify">Mostra els enllaços</string>
     <string name="linkify_description">Afegeix enllaçaos a llocs web, adreces, i números de telèfon</string>
@@ -391,7 +390,6 @@
     <string name="list_separator_with_space">", "</string>
     <string name="repeats_plural_on">Es repeteix cada %1$s el %2$s</string>
     <string name="swipe_to_snooze_title">Llisca per posposar</string>
-    <string name="error_adding_account">Error: %s</string>
     <string name="add_reminder">Afegeix un recordatori</string>
     <string name="google_drive_backup">Còpia de seguretat a Google Drive</string>
     <string name="pick_a_date_and_time">Escull una data i hora</string>
@@ -433,8 +431,6 @@
     <string name="show_edit_screen_without_unlock">Mostra la pantalla d\'edició sense desbloquejar</string>
     <string name="customize_edit_screen_summary">Reorganitza o elimina camps</string>
     <string name="name_cannot_be_empty">El nom no pot ser buit</string>
-    <string name="username_required">El nom d\'usuari és necessari</string>
-    <string name="url_invalid_scheme">Ha de començar amb http(s)://</string>
     <string name="back_button_saves_task">El botó enrere guarda la tasca</string>
     <string name="add_location">Afegeix un lloc</string>
     <string name="swipe_to_snooze_description">Posposa</string>
@@ -443,8 +439,6 @@
     <string name="list_settings">Preferències de les llistes</string>
     <string name="delete">Esborra</string>
     <string name="no_app_found">No hi ha cap aplicació que pugui gestionar aquesta sol·licitud</string>
-    <string name="url_required">La URL és necessària</string>
-    <string name="url_host_name_required">El hostname és necessari</string>
     <string name="date_shortcut_must_come_after">%1$s ha d\'anar després de %2$s</string>
     <string name="discard_changes">Descarta els canvis?</string>
     <string name="default_list">Llista per defecte</string>
@@ -510,7 +504,6 @@
     <string name="this_feature_requires_a_subscription">Aquesta característica requereix una subscripció</string>
     <string name="logout">Surt</string>
     <string name="delete_tasks_warning">%s serà eliminat. Això no es pot desfer!</string>
-    <string name="logout_warning">Totes les dades d\'aquest compte s\'eliminaran del vostre dispositiu</string>
     <string name="cannot_access_account">No es pot accedir al compte</string>
     <string name="reinitialize_account">Reinicialitzeu</string>
     <string name="banner_app_updated_title">S\'ha actualitzat l\'aplicació</string>
@@ -524,8 +517,6 @@
     <string name="decsync_selection_description">Sincronització per fitxers</string>
     <string name="davx5_selection_description">Sincronitza les teves tasques amb l\'aplicació DAVx5</string>
     <string name="show_advanced_settings">Mostreu la configuració avançada</string>
-    <string name="caldav_account_description">Requereix un compte amb un proveïdor de servei CalDAV o un servidor allotjat per si mateix. Cerqueu un proveïdor de serveis visitant tasks.org/caldav</string>
-    <string name="etesync_account_description">Requereix un compte amb EteSync.com o un servidor allotjat</string>
     <string name="preferences_advanced">Avançat</string>
     <string name="documentation">Documentació</string>
     <string name="wearable_notifications">Notificacions de rellotge intel·ligent</string>
@@ -535,7 +526,6 @@
     <string name="disable_battery_optimizations">Desactiveu les optimitzacions de la bateria</string>
     <string name="more_settings">Més configuracions</string>
     <string name="more_notification_settings_summary">To de trucada, vibracions i més</string>
-    <string name="invalid_username_or_password">Nom d\'usuari o contrasenya no vàlids</string>
     <string name="color_wheel">Roda de color</string>
     <string name="upgrade_blurb_1">Hola! Em dic Alex. Soc el desenvolupador independent darrere de les tasques</string>
     <string name="upgrade_blurb_2">He passat milers d\'hores treballant en tasques, i publico tot el codi font en internet de forma gratuïta. Per tal de donar suport al meu treball algunes funcions requereixen una subscripció</string>
@@ -661,9 +651,6 @@
     <string name="alarm_after_due">%s després de venciment</string>
     <string name="snoozed_until">Posposat fins a %s</string>
     <string name="custom_notification">Notificació personalitzada</string>
-    <string name="caldav_server_unknown">Desconegut</string>
-    <string name="caldav_server_other">Altres</string>
-    <string name="caldav_server_type">Tipus de servidor</string>
     <string name="dismiss">Descarteu</string>
     <string name="hint_customize_edit_title">Massa informació?</string>
     <string name="hint_customize_edit_body">Podeu personalitzar aquesta pantalla reordenant o eliminant camps</string>
@@ -671,7 +658,6 @@
     <string name="enable_reminders_description">Els recordatoris estan desactivats a la configuració de l\'Android</string>
     <string name="enable_alarms">Notifiqueu-vos en el moment adequat</string>
     <string name="enable_alarms_description">Per assegurar-vos que us notifiqueu en el moment adequat, concediu permís per establir alarmes i recordatoris a la configuració</string>
-    <string name="sign_in">Inicieu la sessió</string>
     <string name="add_shortcut_to_home_screen">Afegiu una drecera a la pantalla d\'inici</string>
     <string name="add_widget_to_home_screen">Afegiu un giny a la pantalla d\'inici</string>
     <string name="cost_money">Cost: $</string>

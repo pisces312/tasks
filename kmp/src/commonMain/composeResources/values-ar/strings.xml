@@ -157,4 +157,16 @@
         <item quantity="many">%1$d قائمة</item>
         <item quantity="other">%1$d قائمة</item>
     </plurals>
+    <string name="caldav_server_other">آخر</string>
+    <string name="caldav_server_type">نوع الخادم</string>
+    <string name="caldav_server_unknown">غير معروف</string>
+    <string name="error_adding_account">خطأ: %s</string>
+    <string name="invalid_username_or_password">خطأ في اسم المستخدم أو كلمة مرور</string>
+    <string name="network_error">لم يمكن الاتصال</string>
+    <string name="sign_in">سجل دخولك</string>
+    <string name="url_host_name_required">اسم المضيف مطلوب</string>
+    <string name="url_invalid_scheme">يجب أن يبدأ بhttp(s)://</string>
+    <string name="url_required">الرابط مطلوب</string>
+    <string name="username_required">اسم المستعمل مطلوب</string>
+    <string name="etesync_account_description">يتطلب حسابًا مع EteSync.com أو خادمًا مستضافًا ذاتيًا</string>
 </resources>

@@ -62,10 +62,8 @@
     <string name="social">สังคม</string>
     <string name="follow_reddit">เข้าร่วม r/tasks</string>
     <string name="cannot_access_account">ไม่สามารถเข้าถึงบัญชี</string>
-    <string name="logout_warning">ข้อมูลทั้งหมดสําหรับบัญชีนี้จะถูกลบออกจากอุปกรณ์ของคุณ</string>
     <string name="logout">ออกจากระบบ</string>
     <string name="this_feature_requires_a_subscription">คุณลักษณะนี้ต้องการการสมัครใช้งาน</string>
-    <string name="network_error">ไม่สามารถเชื่อมต่อได้</string>
     <string name="authorization_cancelled">ยกเลิกการตรวจสอบแล้ว</string>
     <string name="privacy">ข้อมูลส่วนบุคคล</string>
     <string name="open_source">เปิดแหล่งที่มา</string>
@@ -116,7 +114,6 @@
     <string name="upgrade_blurb_2">ฉันใช้เวลาหลายพันชั่วโมงในการทํางานและฉันเผยแพร่ซอร์สโค้ดทั้งหมดออนไลน์ฟรี เพื่อสนับสนุนงานของฉันคุณสมบัติบางอย่างต้องมีการสมัครสมาชิก</string>
     <string name="upgrade_blurb_1">สวัสดี! ฉันชื่ออเล็กซ์ ฉันเป็นนักพัฒนาอิสระที่อยู่เบื้องหลังงาน</string>
     <string name="color_wheel">วงล้อสี</string>
-    <string name="invalid_username_or_password">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</string>
     <string name="more_notification_settings_summary">เสียงเรียกเข้า การสั่นสะเทือน และอื่นๆ</string>
     <string name="more_settings">การตั้งค่าเพิ่มเติม</string>
     <string name="disable_battery_optimizations">ปิดใช้งานการเพิ่มประสิทธิภาพแบตเตอรี่</string>
@@ -126,8 +123,6 @@
     <string name="wearable_notifications">การแจ้งเตือนที่สวมใส่ได้</string>
     <string name="documentation">เอกสาร</string>
     <string name="preferences_advanced">ดึก</string>
-    <string name="etesync_account_description">ต้องการบัญชีผู้ใช้ที่มี EteSync.com หรือเซิร์ฟเวอร์ที่โฮสต์ด้วยตนเอง</string>
-    <string name="caldav_account_description">จําเป็นต้องมีบัญชีผู้ใช้กับผู้ให้บริการ CalDAV หรือเซิร์ฟเวอร์ที่โฮสต์ด้วยตนเอง ค้นหาผู้ให้บริการโดยไปที่ tasks.org/caldav</string>
     <string name="show_advanced_settings">แสดงการตั้งค่าขั้นสูง</string>
     <string name="davx5_selection_description">ซิงโครไนซ์งานของคุณกับแอป davx⁵ของคุณ</string>
     <string name="decsync_selection_description">การซิงโครไนส์ตามไฟล์</string>
@@ -217,7 +212,6 @@
     <string name="badges">ป้าย</string>
     <string name="bundle_notifications">การแจ้งเตือนบันเดิล</string>
     <string name="notification_disable_battery_optimizations_description">การเพิ่มประสิทธิภาพแบตเตอรี่อาจทําให้การแจ้งเตือนล่าช้า</string>
-    <string name="error_adding_account">ข้อผิดพลาด: %s</string>
     <string name="url">URL</string>
     <string name="password">รหัสผ่าน</string>
     <string name="user">ผู้ใช้</string>
@@ -258,10 +252,6 @@
     <string name="default_list">รายการเริ่มต้น</string>
     <string name="back_button_saves_task">ปุ่มย้อนกลับจะบันทึกงาน</string>
     <string name="no_title">(ไม่มีชื่อเรื่อง)</string>
-    <string name="url_invalid_scheme">ต้องเริ่มต้นด้วย http(s)://</string>
-    <string name="url_host_name_required">ต้องการชื่อโฮสต์</string>
-    <string name="url_required">URL ที่ต้องการ</string>
-    <string name="username_required">ต้องการชื่อผู้ใช้</string>
     <string name="name_cannot_be_empty">ชื่อไม่สามารถปล่อยให้ว่างได้</string>
     <string name="tag_already_exists">มีแท็กอยู่แล้ว</string>
     <string name="send_anonymous_statistics_summary">ส่งสถิติการใช้งานแบบไม่ระบุชื่อและรายงานข้อขัดข้องเพื่อช่วยปรับปรุงงาน จะไม่มีการเก็บรวบรวมข้อมูลส่วนบุคคล</string>

@@ -206,4 +206,16 @@
     <string name="error_create_link_failed">Nepodařilo se vytvořit propojení. Zkontrolujte prosím vaše připojení k internetu a zkuste to znovu.</string>
     <string name="error_confirmation_failed">Nepodařilo se potvrdit propojení. Kód je možná neplatný nebo vypršel.</string>
     <string name="error_network">Nepodařilo se připojit. Zkontrolujte prosím vaše připojení k internetu.</string>
+    <string name="caldav_server_other">Další</string>
+    <string name="caldav_server_type">Typ serveru</string>
+    <string name="caldav_server_unknown">Neznámý</string>
+    <string name="error_adding_account">Chyba: %s</string>
+    <string name="invalid_username_or_password">Neplatné uživatelské jméno nebo heslo</string>
+    <string name="network_error">Nepodařilo se připojit</string>
+    <string name="sign_in">Přihlásit se</string>
+    <string name="url_host_name_required">Zadejte adresu serveru</string>
+    <string name="url_invalid_scheme">Musí začínat na http(s)://</string>
+    <string name="url_required">Zadejte URL</string>
+    <string name="username_required">Zadejte uživatelské jméno</string>
+    <string name="etesync_account_description">Vyžaduje účet na EteSync.com nebo vlastní server</string>
 </resources>

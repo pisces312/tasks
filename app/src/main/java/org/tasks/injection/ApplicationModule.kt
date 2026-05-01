@@ -47,7 +47,10 @@ import org.tasks.analytics.CrashReporting
 import org.tasks.caldav.TasksAccountDataRepository
 import org.tasks.caldav.VtodoCache
 import org.tasks.compose.drawer.DrawerConfiguration
+import org.tasks.R
 import org.tasks.data.OpenTaskDao
+import org.tasks.opentasks.OpenTaskContentObserver
+import org.tasks.opentasks.OpenTasksSynchronizer
 import org.tasks.data.TaskSaver
 import org.tasks.data.dao.AlarmDao
 import org.tasks.data.dao.Astrid2ContentProviderDao
@@ -348,6 +351,45 @@ class ApplicationModule {
         encryption = encryption,
         caldavDao = caldavDao,
         httpClientFactory = httpClientFactory,
+    )
+
+    @Provides
+    fun providesOpenTaskDao(
+        @ApplicationContext context: Context,
+        caldavDao: CaldavDao,
+    ): OpenTaskDao = OpenTaskDao(
+        context = context,
+        caldavDao = caldavDao,
+    )
+
+    @Provides
+    fun providesOpenTasksSynchronizer(
+        caldavDao: CaldavDao,
+        taskDeleter: TaskDeleter,
+        refreshBroadcaster: RefreshBroadcaster,
+        taskDao: TaskDao,
+        reporting: Reporting,
+        iCal: org.tasks.caldav.iCalendar,
+        openTaskDao: OpenTaskDao,
+    ): OpenTasksSynchronizer = OpenTasksSynchronizer(
+        caldavDao = caldavDao,
+        taskDeleter = taskDeleter,
+        refreshBroadcaster = refreshBroadcaster,
+        taskDao = taskDao,
+        reporting = reporting,
+        iCalendar = iCal,
+        openTaskDao = openTaskDao,
+    )
+
+    @Provides
+    fun providesOpenTaskContentObserver(
+        @ApplicationContext context: Context,
+        syncAdapters: SyncAdapters,
+        tasksPreferences: TasksPreferences,
+    ): OpenTaskContentObserver = OpenTaskContentObserver(
+        context = context,
+        syncAdapters = syncAdapters,
+        tasksPreferences = tasksPreferences,
     )
 
     @Provides

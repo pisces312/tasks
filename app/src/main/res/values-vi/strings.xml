@@ -171,7 +171,6 @@
     <string name="upgrade_blurb_2">Tôi đã dành hàng nghìn tiếng cho việc hoàn thiện Tasks, và tôi xuất bản tất cả mã nguồn trên mạng miễn phí. Để hỗ trợ công sức của tôi, một số tính năng yêu cầu đăng ký</string>
     <string name="upgrade_blurb_1">Xin chào! Tên tôi là Alex. Tôi là nhà phát triển độc lập đứng sau Tasks</string>
     <string name="color_wheel">Bảng màu</string>
-    <string name="invalid_username_or_password">Tên người dùng hoặc mật khẩu không hợp lệ</string>
     <string name="more_notification_settings_summary">Nhạc chuông, rung, và nhiều hơn</string>
     <string name="more_settings">Nhiều cài đặt hơn</string>
     <string name="disable_battery_optimizations">Tắt tối ưu hoá pin</string>
@@ -218,7 +217,6 @@
     <string name="action_create_new_task">Tạo công việc mới</string>
     <string name="reinitialize_account">Khởi tạo lại</string>
     <string name="cannot_access_account">Không thể truy cập tài khoản</string>
-    <string name="logout_warning">Tất cả dữ liệu của tài khoản này sẽ bị xoá khỏi thiết bị của bạn</string>
     <string name="logout">Đăng xuất</string>
     <string name="this_feature_requires_a_subscription">Tính năng này yêu cầu đăng ký</string>
     <string name="requires_pro_subscription">Yêu cầu đăng ký pro</string>
@@ -228,7 +226,6 @@
     <string name="refresh_purchases">Làm mới các giao dịch</string>
     <string name="subscription">Đăng ký</string>
     <string name="upgrade_to_pro">Nâng cấp lên pro</string>
-    <string name="network_error">Không thể kết nối</string>
     <string name="help_and_feedback">Trợ giúp &amp; phản hồi</string>
     <string name="help">Trợ giúp</string>
     <string name="tasker_list_notification">Thông báo danh sách</string>
@@ -268,7 +265,6 @@
     <string name="badges">Huy hiệu</string>
     <string name="bundle_notifications">Gộp các thông báo</string>
     <string name="notification_disable_battery_optimizations_description">Tối ưu hoá pin có thể sẽ gây trì hoãn các thông báo</string>
-    <string name="error_adding_account">Lỗi: %s</string>
     <string name="url">URL</string>
     <string name="password">Mật khẩu</string>
     <string name="user">Người dùng</string>
@@ -309,10 +305,6 @@
     <string name="default_list">Danh sách mặc định</string>
     <string name="back_button_saves_task">Nút Quay lại sẽ lưu công việc</string>
     <string name="no_title">(Không có tiêu đề)</string>
-    <string name="url_invalid_scheme">Phải bắt đầu bằng http(s)://</string>
-    <string name="url_host_name_required">Yêu cầu tên miền máy chủ</string>
-    <string name="url_required">Yêu cầu URL</string>
-    <string name="username_required">Yêu cầu tên người dùng</string>
     <string name="name_cannot_be_empty">Tên không thể trống</string>
     <string name="tag_already_exists">Thẻ đã tồn tại</string>
     <string name="send_anonymous_statistics_summary">Gửi thống kê sử dụng và báo cáo crash nặc danh để giúp cải thiện Tasks. Không có dữ liệu cá nhân nào sẽ được thu thập.</string>
@@ -515,8 +507,6 @@
     <string name="default_location_reminder_on_arrival">Khi đến</string>
     <string name="no_reminders">Không có lời nhắc</string>
     <string name="preferences_advanced">Nâng cao</string>
-    <string name="etesync_account_description">Yêu cầu một tài khoản trên EteSync.com hoặc một máy chủ mà bạn vận hành</string>
-    <string name="caldav_account_description">Yêu cầu một tài khoản với một nhà cung cấp dịch vụ CalDAV hoặc một máy chủ mà bạn vận hành. Hãy tìm một nhà cung cấp dịch vụ bằng cách đi đến tasks.org/caldav</string>
     <string name="next_week">Tuần sau</string>
     <string name="day_after_tomorrow">Ngày kia</string>
     <string name="priority_low">Thấp</string>
@@ -579,9 +569,6 @@
         <item quantity="other">Tuần</item>
     </plurals>
     <string name="randomly_every">Ngẫu nhiên mỗi %s</string>
-    <string name="caldav_server_unknown">Không xác định</string>
-    <string name="caldav_server_type">Loại máy chủ</string>
-    <string name="caldav_server_other">Khác</string>
     <string name="customize_edit_screen_summary">Sắp xếp lại hoặc xóa các trường</string>
     <string name="dismiss">Bỏ qua</string>
     <string name="hint_customize_edit_title">Quá nhiều thông tin\?</string>
@@ -590,7 +577,6 @@
     <string name="enable_reminders_description">Lời nhắc bị tắt trong cài đặt Android</string>
     <string name="enable_reminders">Bật lời nhắc</string>
     <string name="TEA_creation_date">Ngày tạo</string>
-    <string name="sign_in">Đăng nhập</string>
     <plurals name="repeat_occurrence">
         <item quantity="other">lần xảy ra</item>
     </plurals>

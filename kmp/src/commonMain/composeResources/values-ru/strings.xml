@@ -163,4 +163,16 @@
     <string name="all_done">Всё готово!</string>
     <string name="returning_user_import_backup">Импорт резервной копии Tasks.org</string>
     <string name="legal_disclosure">%1$s, вы соглашаетесь с %2$s и %3$s. Tasks — это программное обеспечение с открытым исходным кодом, предоставляемое на условиях %4$s.</string>
+    <string name="caldav_server_other">Другой</string>
+    <string name="caldav_server_type">Тип сервера</string>
+    <string name="caldav_server_unknown">Неизвестный</string>
+    <string name="error_adding_account">Ошибка: %s</string>
+    <string name="invalid_username_or_password">Неверное имя пользователя или пароль</string>
+    <string name="network_error">Не удалось подключиться</string>
+    <string name="sign_in">Войти</string>
+    <string name="url_host_name_required">Требуется имя хоста</string>
+    <string name="url_invalid_scheme">Должно начинаться с http(s)://</string>
+    <string name="url_required">Требуется URL</string>
+    <string name="username_required">Требуется имя пользователя</string>
+    <string name="etesync_account_description">Требует аккаунта на EteSync.com или собственного сервера</string>
 </resources>

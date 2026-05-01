@@ -205,4 +205,16 @@
     <string name="error_create_link_failed">Échec de la création du lien. Vérifiez votre connexion Internet et réessayez.</string>
     <string name="error_confirmation_failed">Impossible de valider le lien. Le code est peut-être invalide ou a expiré.</string>
     <string name="error_network">Impossible de se connecter. Veuillez vérifier votre connexion Internet.</string>
+    <string name="caldav_server_other">Autre</string>
+    <string name="caldav_server_type">Type de serveur</string>
+    <string name="caldav_server_unknown">Inconnu</string>
+    <string name="error_adding_account">Erreur : %s</string>
+    <string name="invalid_username_or_password">Nom d\\'utilisateur ou mot de passe non valide</string>
+    <string name="network_error">Impossible de se connecter</string>
+    <string name="sign_in">Se connecter</string>
+    <string name="url_host_name_required">Nom d\\'hôte requis</string>
+    <string name="url_invalid_scheme">Doit commencer par http(s)://</string>
+    <string name="url_required">Adresse web requise</string>
+    <string name="username_required">Nom d\\'utilisateur requis</string>
+    <string name="etesync_account_description">Nécessite un compte « EteSync.com » ou un serveur auto-hébergé</string>
 </resources>

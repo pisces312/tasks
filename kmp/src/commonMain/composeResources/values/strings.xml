@@ -144,7 +144,9 @@
     <string name="app_password_created_at">Created: %1$s</string>
     <string name="app_password_last_access">Last used: %1$s</string>
     <string name="generate_new_password">Generate new password</string>
+    <string name="sign_in">Sign in</string>
     <string name="logout">Log out</string>
+    <string name="logout_confirmation">Log out of %1$s?</string>
     <string name="logout_warning">All data for this account will be removed from your device</string>
     <string name="remove">Remove</string>
     <string name="delete_tag_confirmation">Delete %1$s?</string>
@@ -177,6 +179,22 @@
     <string name="about">About</string>
     <string name="widget_settings">Widget settings</string>
     <string name="name_cannot_be_empty">Name cannot be empty</string>
+    <string name="url_required">URL required</string>
+    <string name="url_host_name_required">Hostname required</string>
+    <string name="url_invalid_scheme">Must begin with http(s)://</string>
+    <string name="username_required">Username required</string>
+    <string name="invalid_username_or_password">Invalid username or password</string>
+    <string name="network_error">Could not connect</string>
+    <string name="error_adding_account">Error: %1$s</string>
+    <string name="caldav_server_type">Server type</string>
+    <string name="caldav_server_unknown">Unknown</string>
+    <string name="caldav_server_owncloud">ownCloud</string>
+    <string name="caldav_server_sabredav">sabre/dav</string>
+    <string name="caldav_server_openxchange">Open-Xchange</string>
+    <string name="caldav_server_nextcloud">Nextcloud</string>
+    <string name="caldav_server_synology_calendar">Synology Calendar</string>
+    <string name="caldav_server_mailbox_org">Mailbox.org</string>
+    <string name="caldav_server_other">Other</string>
     <string name="discard_changes">Discard changes?</string>
     <string name="discard">Discard</string>
     <string name="delete">Delete</string>
@@ -189,6 +207,8 @@
         <item quantity="one">%1$d list</item>
         <item quantity="other">%1$d lists</item>
     </plurals>
+    <string name="etesync_account_description">Requires an account with EteSync.com or a self-hosted server</string>
+    <string name="show_advanced_settings">Show advanced settings</string>
     <string name="link_desktop">Link desktop app</string>
     <string name="link_desktop_description">Unlock the desktop app with your Google Play subscription</string>
     <string name="link_desktop_instructions">Open the Tasks.org desktop app and go to Add Account to see the QR code. Then tap the button below to scan it.</string>
@@ -203,4 +223,12 @@
     <string name="error_create_link_failed">Failed to create link. Please check your internet connection and try again.</string>
     <string name="error_confirmation_failed">Failed to confirm link. The code may be invalid or expired.</string>
     <string name="error_network">Unable to connect. Please check your internet connection.</string>
+    <string name="unlock_pro_with_github">Sign in with GitHub</string>
+    <string name="unlock_pro_github_instructions">Sponsor tasks.org at https://github.com/sponsors/abaker, then sign in with your GitHub account to unlock Pro.</string>
+    <string name="error_not_a_sponsor">Verification failed. Make sure you have an active sponsorship at https://github.com/sponsors/abaker. If you continue to have trouble, contact support@tasks.org</string>
+    <string name="sponsor_on_github">Sponsor on GitHub</string>
+    <string name="unlock_pro_opening_browser">Opening browser…</string>
+    <string name="unlock_pro_via_mobile">Via mobile app</string>
+    <string name="unlock_pro_via_github">Via GitHub Sponsor</string>
+    <string name="error_github_verification_failed">Verification failed. Please try again.</string>
 </resources>

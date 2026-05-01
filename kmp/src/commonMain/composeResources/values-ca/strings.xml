@@ -151,4 +151,16 @@
         <item quantity="many">%1$d llistes</item>
         <item quantity="other">%1$d llistes</item>
     </plurals>
+    <string name="caldav_server_other">Altres</string>
+    <string name="caldav_server_type">Tipus de servidor</string>
+    <string name="caldav_server_unknown">Desconegut</string>
+    <string name="error_adding_account">Error: %s</string>
+    <string name="invalid_username_or_password">Nom d\\'usuari o contrasenya no vàlids</string>
+    <string name="network_error">No s\\'ha pogut connectar</string>
+    <string name="sign_in">Inicieu la sessió</string>
+    <string name="url_host_name_required">El hostname és necessari</string>
+    <string name="url_invalid_scheme">Ha de començar amb http(s)://</string>
+    <string name="url_required">La URL és necessària</string>
+    <string name="username_required">El nom d\\'usuari és necessari</string>
+    <string name="etesync_account_description">Requereix un compte amb EteSync.com o un servidor allotjat</string>
 </resources>

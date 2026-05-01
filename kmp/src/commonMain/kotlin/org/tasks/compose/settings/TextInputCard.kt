@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -27,6 +28,10 @@ fun TextInputCard(
     placeholder: String? = null,
     error: String? = null,
     position: CardPosition = CardPosition.Only,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(
+        capitalization = KeyboardCapitalization.Sentences,
+    ),
+    visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
     SettingsItemCard(
         position = position,
@@ -67,9 +72,8 @@ fun TextInputCard(
                     ),
                     singleLine = true,
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                    ),
+                    keyboardOptions = keyboardOptions,
+                    visualTransformation = visualTransformation,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

@@ -184,4 +184,16 @@
     <string name="guests">Külalised (%1$d/%2$d)</string>
     <string name="debug">Silumine ja veaotsing</string>
     <string name="legal_disclosure_prefix_using">Tasks.org-i kasutamisel</string>
+    <string name="caldav_server_other">Muu</string>
+    <string name="caldav_server_type">Serveri liik</string>
+    <string name="caldav_server_unknown">Tundmatu</string>
+    <string name="error_adding_account">Viga: %s</string>
+    <string name="invalid_username_or_password">Vigane kasutajanimi või salasõna</string>
+    <string name="network_error">Ühenduse loomine ei õnnestunud</string>
+    <string name="sign_in">Logi sisse</string>
+    <string name="url_host_name_required">Hostinimi on nõutud</string>
+    <string name="url_invalid_scheme">Peab algama kujul http(s)://</string>
+    <string name="url_required">URL on nõutud</string>
+    <string name="username_required">Kasutajanimi on nõutud</string>
+    <string name="etesync_account_description">Eeldab, et sul on olemas kasutajakonto EteSync.com teenusepakkuja serveris või sinu omas vastavas serveris</string>
 </resources>

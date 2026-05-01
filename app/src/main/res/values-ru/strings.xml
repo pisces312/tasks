@@ -278,10 +278,6 @@
     <string name="send_anonymous_statistics_summary">Отправлять анонимную статистику и отчёты об ошибках для содействия улучшению программы. Персональная информация не собирается.</string>
     <string name="tag_already_exists">Тег уже существует</string>
     <string name="name_cannot_be_empty">Необходимо задать имя</string>
-    <string name="username_required">Требуется имя пользователя</string>
-    <string name="url_required">Требуется URL</string>
-    <string name="url_host_name_required">Требуется имя хоста</string>
-    <string name="url_invalid_scheme">Должно начинаться с http(s)://</string>
     <string name="no_title">(Без заголовка)</string>
     <string name="back_button_saves_task">Кнопка «Назад» сохраняет задачу</string>
     <string name="default_list">Список по умолчанию</string>
@@ -346,7 +342,6 @@
     <string name="tasker_create_task">Создать задачу</string>
     <string name="tasker_list_notification">Список уведомлений</string>
     <string name="help">Помощь</string>
-    <string name="network_error">Не удалось подключиться</string>
     <string name="upgrade_to_pro">Обновить до версии Про</string>
     <string name="refresh_purchases">Обновить покупки</string>
     <string name="button_subscribe">Подписаться</string>
@@ -354,7 +349,6 @@
     <string name="pro_dashclock_extension">Расширение для Dashclock</string>
     <string name="requires_pro_subscription">Требуется Pro‑подписка</string>
     <string name="logout">Отключиться</string>
-    <string name="logout_warning">Все данные учётной записи на этом устройстве будут удалены</string>
     <string name="cannot_access_account">Учётная запись недоступна</string>
     <string name="reinitialize_account">Инициализировать заново</string>
     <string name="action_create_new_task">Создать новую задачу</string>
@@ -379,7 +373,6 @@
     <string name="icon">Иконка</string>
     <string name="name_your_price">Назовите свою цену</string>
     <string name="url">URL</string>
-    <string name="error_adding_account">Ошибка: %s</string>
     <string name="list_separator_with_space">", "</string>
     <string name="building_notifications">Генерация уведомлений</string>
     <string name="SSD_sort_my_order">Мой порядок</string>
@@ -403,8 +396,6 @@
     <string name="caldav_selection_description">Синхронизация, основанная на открытых стандартах</string>
     <string name="etesync_selection_description">Синхронизация с использованием сквозного шифрования</string>
     <string name="show_advanced_settings">Показать расширенные настройки</string>
-    <string name="caldav_account_description">Требует аккаунта у провайдера CalDAV или собственного сервера. Список провайдеров можно найти на tasks.org/caldav</string>
-    <string name="etesync_account_description">Требует аккаунта на EteSync.com или собственного сервера</string>
     <string name="help_and_feedback">Помощь и обратная связь</string>
     <string name="documentation">Документация</string>
     <string name="preferences_advanced">Расширенные</string>
@@ -415,7 +406,6 @@
     <string name="disable_battery_optimizations">Выключить оптимизацию энергопотребления</string>
     <string name="more_settings">Прочие настройки</string>
     <string name="more_notification_settings_summary">Рингтон, вибрация и прочее</string>
-    <string name="invalid_username_or_password">Неверное имя пользователя или пароль</string>
     <string name="theme_system_default">Как в системе</string>
     <string name="color_wheel">Палитра</string>
     <string name="upgrade_blurb_1">Привет! Меня зовут Алекс. Я - независимый разработчик, стоящий за программой Tasks</string>
@@ -618,10 +608,7 @@
     <string name="alarm_before_due">%s до</string>
     <string name="alarm_after_due">%s после</string>
     <string name="alarm_after_start">%s после начала</string>
-    <string name="caldav_server_unknown">Неизвестный</string>
-    <string name="caldav_server_other">Другой</string>
     <string name="randomly_every">Случайно каждые %s</string>
-    <string name="caldav_server_type">Тип сервера</string>
     <string name="customize_edit_screen_summary">Переупорядочить или удалить поля</string>
     <string name="dismiss">Отклонить</string>
     <string name="hint_customize_edit_title">Слишком много информации\?</string>
@@ -630,7 +617,6 @@
     <string name="enable_reminders_description">Напоминания отключены в настройках Android</string>
     <string name="TEA_creation_date">Дата создания</string>
     <string name="sort_completion_group">Готовность %s</string>
-    <string name="sign_in">Войти</string>
     <string name="repeats_weekly_on">Повторять в</string>
     <string name="repeats_on">В</string>
     <string name="repeats_after">После</string>

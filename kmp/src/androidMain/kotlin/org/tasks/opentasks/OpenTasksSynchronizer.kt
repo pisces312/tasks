@@ -1,17 +1,13 @@
 package org.tasks.opentasks
 
-import android.content.Context
 import at.bitfire.ical4android.BatchOperation
-import org.tasks.data.dao.TaskDao
-import org.tasks.service.TaskDeleter
-import dagger.hilt.android.qualifiers.ApplicationContext
+import co.touchlab.kermit.Logger
 import org.dmfs.tasks.contract.TaskContract
 import org.dmfs.tasks.contract.TaskContract.Tasks
-import org.tasks.broadcast.RefreshBroadcaster
-import org.tasks.R
+import org.jetbrains.compose.resources.getString
 import org.tasks.analytics.Constants
-import org.tasks.analytics.Firebase
-import org.tasks.billing.Inventory
+import org.tasks.analytics.Reporting
+import org.tasks.broadcast.RefreshBroadcaster
 import org.tasks.caldav.Ical4androidTaskAdapter
 import org.tasks.caldav.iCalendar
 import org.tasks.data.MyAndroidTask
@@ -19,6 +15,7 @@ import org.tasks.data.OpenTaskDao
 import org.tasks.data.OpenTaskDao.Companion.filterActive
 import org.tasks.data.OpenTaskDao.Companion.toLocalCalendar
 import org.tasks.data.dao.CaldavDao
+import org.tasks.data.dao.TaskDao
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavAccount.Companion.isDavx5
 import org.tasks.data.entity.CaldavAccount.Companion.isDavx5Managed
@@ -28,25 +25,23 @@ import org.tasks.data.entity.CaldavCalendar
 import org.tasks.data.entity.CaldavTask
 import org.tasks.data.entity.Task
 import org.tasks.data.entity.Task.Companion.NO_ID
+import org.tasks.service.TaskDeleter
 import org.tasks.time.DateTimeUtils2.currentTimeMillis
-import timber.log.Timber
-import javax.inject.Inject
-import javax.inject.Singleton
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.requires_pro_subscription
 
-@Singleton
-class OpenTasksSynchronizer @Inject constructor(
-    @ApplicationContext private val context: Context,
+class OpenTasksSynchronizer(
     private val caldavDao: CaldavDao,
     private val taskDeleter: TaskDeleter,
     private val refreshBroadcaster: RefreshBroadcaster,
     private val taskDao: TaskDao,
-    private val firebase: Firebase,
+    private val reporting: Reporting,
     private val iCalendar: iCalendar,
     private val openTaskDao: OpenTaskDao,
-    private val inventory: Inventory) {
+) : OpenTasksSyncer {
 
-    suspend fun sync() {
-        Timber.d("Starting OpenTasks sync...")
+    override suspend fun sync(hasPro: Boolean) {
+        Logger.d("OpenTasksSynchronizer") { "Starting OpenTasks sync..." }
         val lists = openTaskDao.getListsByAccount().filterActive(caldavDao)
         lists.keys
             .filter { caldavDao.getAccountByUuid(it) == null }
@@ -59,9 +54,9 @@ class OpenTasksSynchronizer @Inject constructor(
             }
             .onEach { caldavDao.insert(it) }
             .forEach {
-                firebase.logEvent(
-                    R.string.event_sync_add_account,
-                    R.string.param_type to when {
+                reporting.logEvent(
+                    "sync_add_account",
+                    "type" to when {
                         it.uuid.isDavx5() -> Constants.SYNC_TYPE_DAVX5
                         it.uuid.isDavx5Managed() -> Constants.SYNC_TYPE_DAVX5_MANAGED
                         it.uuid.isEteSync() -> Constants.SYNC_TYPE_ETESYNC_OT
@@ -73,10 +68,10 @@ class OpenTasksSynchronizer @Inject constructor(
         caldavDao.getAccounts(CaldavAccount.TYPE_OPENTASKS).forEach { account ->
             val entries = lists[account.uuid!!]
             if (entries == null) {
-                Timber.d("Removing $account")
+                Logger.d("OpenTasksSynchronizer") { "Removing $account" }
                 taskDeleter.delete(account)
-            } else if (!inventory.hasPro) {
-                setError(account, context.getString(R.string.requires_pro_subscription))
+            } else if (!hasPro) {
+                setError(account, getString(Res.string.requires_pro_subscription))
             } else {
                 try {
                     sync(account, entries)
@@ -89,16 +84,16 @@ class OpenTasksSynchronizer @Inject constructor(
                             account.uuid.isDecSync() -> Constants.SYNC_TYPE_DECSYNC
                             else -> "opentasks"
                         }
-                        firebase.logEvent(
-                            R.string.event_initial_sync_complete,
-                            R.string.param_type to syncType,
-                            R.string.param_task_count to taskCount
+                        reporting.logEvent(
+                            "sync_initial_sync_complete",
+                            "type" to syncType,
+                            "task_count" to taskCount
                         )
                     }
                     account.lastSync = currentTimeMillis()
                     setError(account, null)
                 } catch (e: Exception) {
-                    firebase.reportException(e)
+                    reporting.reportException(e)
                     setError(account, e.message)
                 }
             }
@@ -106,12 +101,12 @@ class OpenTasksSynchronizer @Inject constructor(
     }
 
     private suspend fun sync(account: CaldavAccount, lists: List<CaldavCalendar>) {
-        Timber.d("Synchronizing $account")
+        Logger.d("OpenTasksSynchronizer") { "Synchronizing $account" }
         val uuid = account.uuid!!
         caldavDao
                 .findDeletedCalendars(uuid, lists.mapNotNull { it.url })
                 .forEach {
-                    Timber.d("Deleting $it")
+                    Logger.d("OpenTasksSynchronizer") { "Deleting $it" }
                     taskDeleter.delete(it)
                 }
         lists.forEach {
@@ -128,7 +123,7 @@ class OpenTasksSynchronizer @Inject constructor(
                 ?: remote.toLocalCalendar()
         if (local.id == NO_ID) {
             caldavDao.insert(local)
-            Timber.d("Created calendar: $local")
+            Logger.d("OpenTasksSynchronizer") { "Created calendar: $local" }
             refreshBroadcaster.broadcastRefresh()
         } else if (
             local.name != remote.name ||
@@ -139,7 +134,7 @@ class OpenTasksSynchronizer @Inject constructor(
             local.name = remote.name
             local.access = remote.access
             caldavDao.update(local)
-            Timber.d("Updated calendar: $local")
+            Logger.d("OpenTasksSynchronizer") { "Updated calendar: $local" }
             refreshBroadcaster.broadcastRefresh()
         }
         return local
@@ -157,14 +152,14 @@ class OpenTasksSynchronizer @Inject constructor(
         if (moved.isEmpty() && deleted.isEmpty() && updated.isEmpty()) {
             return
         }
-        Timber.d("Pushing changes: updated=${updated.size} moved=${moved.size} deleted=${deleted.size}")
+        Logger.d("OpenTasksSynchronizer") { "Pushing changes: updated=${updated.size} moved=${moved.size} deleted=${deleted.size}" }
         (moved + deleted.map(Task::id)
             .let { caldavDao.getTasks(it) })
             .mapNotNull { it.remoteId }
             .takeIf { it.isNotEmpty() }
             ?.map { openTaskDao.delete(listId, it) }
             ?.let {
-                Timber.d("Deleting ${it.size} from content provider")
+                Logger.d("OpenTasksSynchronizer") { "Deleting ${it.size} from content provider" }
                 openTaskDao.batch(it)
             }
         caldavDao.delete(moved)
@@ -182,10 +177,10 @@ class OpenTasksSynchronizer @Inject constructor(
         listId: Long
     ) {
         if (calendar.ctag?.equals(ctag) == true) {
-            Timber.d("UP TO DATE: $calendar")
+            Logger.d("OpenTasksSynchronizer") { "UP TO DATE: $calendar" }
             return
         }
-        Timber.d("SYNC $calendar")
+        Logger.d("OpenTasksSynchronizer") { "SYNC $calendar" }
 
         val etags = openTaskDao.getEtags(listId)
         etags.forEach { (uid, sync1, version) ->
@@ -198,9 +193,9 @@ class OpenTasksSynchronizer @Inject constructor(
         removeDeleted(calendar.uuid!!, etags.map { it.first })
 
         calendar.ctag = ctag
-        Timber.d("UPDATE $calendar")
+        Logger.d("OpenTasksSynchronizer") { "UPDATE $calendar" }
         caldavDao.update(calendar)
-        Timber.d("Updating parents for ${calendar.uuid}")
+        Logger.d("OpenTasksSynchronizer") { "Updating parents for ${calendar.uuid}" }
         caldavDao.updateParents(calendar.uuid!!)
         refreshBroadcaster.broadcastRefresh()
     }
@@ -211,7 +206,7 @@ class OpenTasksSynchronizer @Inject constructor(
                 .subtract(uids)
                 .takeIf { it.isNotEmpty() }
                 ?.let {
-                    Timber.d("DELETED $it")
+                    Logger.d("OpenTasksSynchronizer") { "DELETED $it" }
                     val tasks = caldavDao.getTasksByRemoteId(calendar, it.toList())
                     taskDeleter.delete(tasks.map { it.task })
                 }
@@ -222,7 +217,7 @@ class OpenTasksSynchronizer @Inject constructor(
         caldavDao.update(account)
         refreshBroadcaster.broadcastRefresh()
         if (!message.isNullOrBlank()) {
-            Timber.e(message)
+            Logger.e("OpenTasksSynchronizer") { message }
         }
     }
 
@@ -259,7 +254,7 @@ class OpenTasksSynchronizer @Inject constructor(
 
         caldavTask.lastSync = task.modificationDate
         caldavDao.update(caldavTask)
-        Timber.d("SENT $caldavTask")
+        Logger.d("OpenTasksSynchronizer") { "SENT $caldavTask" }
     }
 
     private suspend fun applyChanges(

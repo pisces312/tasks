@@ -88,14 +88,14 @@
     <string name="custom_filter_and">かつ</string>
     <string name="CFA_button_add">条件を追加</string>
     <string name="CFC_dueBefore_text">締切: \?</string>
-    <string name="CFC_dueBefore_name">…までに締切</string>
+    <string name="CFC_dueBefore_name">期限は…</string>
     <string name="no_due_date">締切日時なし</string>
     <string name="next_month">1 か月後</string>
     <string name="CFC_importance_text">優先度は少なくとも？</string>
     <string name="CFC_importance_name">優先度…</string>
     <string name="CFC_tag_text">タグ: ?</string>
     <string name="CFC_tag_name">タグ…</string>
-    <string name="CFC_tag_contains_name">…のタグ名を含む</string>
+    <string name="CFC_tag_contains_name">タグ名に含む:…</string>
     <string name="CFC_tag_contains_text">タグ名に含む: ?</string>
     <string name="CFC_title_contains_name">タイトルに含む…</string>
     <string name="CFC_title_contains_text">タイトルに含む: \?</string>
@@ -263,10 +263,6 @@
     <string name="send_anonymous_statistics_summary">Tasks を改善するために、匿名で使用状況データとクラッシュレポートを送信します。個人情報は収集されません。</string>
     <string name="tag_already_exists">タグは既に存在します</string>
     <string name="name_cannot_be_empty">名前は空にできません</string>
-    <string name="username_required">ユーザー名が必要です</string>
-    <string name="url_required">URL が必要です</string>
-    <string name="url_host_name_required">ホスト名が必要です</string>
-    <string name="url_invalid_scheme">http(s):// で始める必要があります</string>
     <string name="no_title">(タイトルなし)</string>
     <string name="back_button_saves_task">戻るボタンでタスクを保存</string>
     <string name="default_list">デフォルトリスト</string>
@@ -331,7 +327,6 @@
     <string name="tasker_create_task">タスクを作成</string>
     <string name="tasker_list_notification">通知のリスト</string>
     <string name="help">ヘルプ</string>
-    <string name="network_error">接続できません</string>
     <string name="upgrade_to_pro">プロ版にアップグレード</string>
     <string name="refresh_purchases">購入を更新</string>
     <string name="button_subscribe">購入</string>
@@ -339,7 +334,6 @@
     <string name="pro_dashclock_extension">Dashclock 拡張</string>
     <string name="requires_pro_subscription">プロサブスクリプションが必要</string>
     <string name="logout">ログアウト</string>
-    <string name="logout_warning">このアカウントのデータがお使いの端末からすべて削除されます</string>
     <string name="cannot_access_account">アカウントにアクセスできません</string>
     <string name="reinitialize_account">再初期化</string>
     <string name="action_create_new_task">新しいタスクを作成</string>
@@ -374,7 +368,6 @@
     <string name="add_tags">タグを追加</string>
     <string name="filter_no_tags">タグなし</string>
     <string name="hide_unused_tags">使われていないタグを隠す</string>
-    <string name="invalid_username_or_password">不正なユーザー名やパスワードです</string>
     <string name="enter_tag_name">タグの名前を入力</string>
     <string name="action_new_task">新しいタスク</string>
     <string name="this_feature_requires_a_subscription">この機能はサブスクリプションが必要です</string>
@@ -420,7 +413,6 @@
     <string name="TEA_add_subtask">サブタスクを追加</string>
     <string name="sort_created">作成日時</string>
     <string name="display_name">表示名</string>
-    <string name="error_adding_account">エラー：%s</string>
     <string name="copied_to_clipboard">%sをクリップボードにコピーしました</string>
     <string name="hide_unused_places">使われていない場所を隠す</string>
     <string name="place_settings">場所の設定</string>
@@ -435,7 +427,7 @@
     <string name="ok">OK</string>
     <string name="always_display_full_date">完全な日付を表示</string>
     <string name="astrid_sort_order_summary">「マイタスク」「今日」そしてタグにおいて Astrid の手動並べ替えモードを有効にします。この並べ替えモードは将来のアップデートで「マイ設定」に置き換えられる予定です</string>
-    <string name="CFC_startBefore_name">…までに着手</string>
+    <string name="CFC_startBefore_name">着手は…</string>
     <plurals name="reminder_minutes">
         <item quantity="other">分</item>
     </plurals>
@@ -476,7 +468,7 @@
     <string name="filter_overdue">遅延</string>
     <string name="filter_any_due_date">締切あり</string>
     <string name="filter_medium_priority">優先度 中</string>
-    <string name="support_development_subscribe">追加機能を解放し、オープンソースソフトウェアをサポートする</string>
+    <string name="support_development_subscribe">追加機能を利用可能にし、オープンソースソフトウェアを支援する</string>
     <string name="open_last_viewed_list">最後に表示したリストを開く</string>
     <string name="last_backup">最新のバックアップ: %s</string>
     <string name="reset_sort_order">並び順をリセット</string>
@@ -493,14 +485,12 @@
     <string name="snoozed_until">%s までスヌーズ</string>
     <string name="hint_customize_edit_title">情報量が多すぎる？</string>
     <string name="hint_customize_edit_body">この画面は、フィールドを並べ替えたり削除してカスタマイズすることができます</string>
-    <string name="sign_in">サインイン</string>
     <string name="davx5_selection_description">DAVx⁵ でタスクを同期する</string>
-    <string name="caldav_account_description">CalDAV サービスプロバイダまたはセルフホストサーバのアカウントが必要です。サービスプロバイダを探すには、tasks.org/caldav にアクセスしてください</string>
     <string name="chips">チップ</string>
     <string name="now">現在</string>
     <string name="choose_synchronization_service">プラットフォームを選択</string>
     <string name="upgrade_blurb_1">こんにちは！私は Alex です。Tasks のインディーディベロッパーです</string>
-    <string name="no_google_play_subscription">対象の Google Play の定期購入がありません</string>
+    <string name="no_google_play_subscription">Google Play で有効なサブスクリプションがありません</string>
     <string name="pro_free_trial">初回購入の方は、７日間の無料トライアルがあります。いつでも解約可能です</string>
     <string name="app_password">アプリパスワード</string>
     <string name="invite_declined">招待を辞退</string>
@@ -508,7 +498,6 @@
     <string name="customize_edit_screen_summary">フィールドの並び替えや削除</string>
     <string name="widget_due_date_below_title">タイトルの下</string>
     <string name="widget_due_date_after_title">タイトルの後ろ</string>
-    <string name="etesync_account_description">EteSync.com またはセルフホストサーバーのアカウントが必要です</string>
     <string name="documentation">ドキュメント</string>
     <string name="color_wheel">カラーホイール</string>
     <string name="more_notification_settings_summary">通知音、バイブレーションなど</string>
@@ -584,9 +573,6 @@
     <string name="filter_after_today">今日以降</string>
     <string name="foreground_location">フォアグラウンド時の位置情報</string>
     <string name="enable_reminders_description">Android の設定によりリマインダーは無効になっています</string>
-    <string name="caldav_server_unknown">不明</string>
-    <string name="caldav_server_type">サーバータイプ</string>
-    <string name="caldav_server_other">その他</string>
     <string name="select_all">すべて選択</string>
     <string name="last_backup_never">なし</string>
     <string name="filter_today_only">今日のみ</string>
@@ -641,9 +627,9 @@
     <string name="sync_warning_microsoft">すべてのタスクの詳細が Microsoft To Do と同期されるわけではありません。</string>
     <string name="button_learn_more">詳細を見る</string>
     <string name="enable_alarms">適切なタイミングで通知を受け取る</string>
-    <string name="sync_warning_microsoft_title">Microsoft To Do の同期について</string>
+    <string name="sync_warning_microsoft_title">Microsoft To Do との同期について</string>
     <string name="sync_warning_google_tasks">すべてのタスクの詳細が Google Tasks と同期されるわけではありません</string>
-    <string name="sync_warning_google_tasks_title">Google Tasks の同期について</string>
+    <string name="sync_warning_google_tasks_title">Google Tasks との同期について</string>
     <string name="enable_alarms_description">適切なタイミングで通知を受け取るために、設定でアラームとリマインダーを許可してください</string>
     <string name="yesterday">昨日</string>
     <string name="app_settings">アプリ設定</string>
@@ -656,7 +642,7 @@
     <string name="widget_view_more_tasks">ほかのタスクを表示</string>
     <string name="import_failed_message">バックアップファイルを読めません</string>
     <string name="import_failed">インポートできませんでした</string>
-    <string name="banner_subscription_required_title">購入が必要</string>
+    <string name="banner_subscription_required_title">サブスクリプションが必要です</string>
     <string name="banner_subscription_required_body">%sとの同期をするため、お好みの金額をお支払いください</string>
     <string name="sponsorship_required_fdroid">Tasks.orgと同期するには GitHubへの寄付が必要です。寄付をするには下をクリックしてください。</string>
     <string name="terms_of_service">サービス規約</string>
@@ -693,6 +679,18 @@
     <string name="guest_create_list_message">あなたは共有リストへのゲストアクセスがあります。自分の個人的なリストを作成してクラウドに同期するにはTasks.orgの購読が必要です。または、端末内に保存する無料のローカルリストを作成することができます。</string>
     <string name="upgrade_friends_and_family">家族・友人</string>
     <string name="upgrade_friends_and_family_description">共有リストに無料のゲスト5名。Apple Remindersで利用可能</string>
-    <string name="already_subscribed">すでに購読していますか？</string>
+    <string name="already_subscribed">すでにサブスクリプションを購入していますか？</string>
     <string name="sign_in_subtitle">すでに購読しているか、招待されたゲストですか？</string>
+    <string name="location_update_interval_title">バックグラウンドでの場所の更新</string>
+    <string name="location_update_interval_15_minutes">15分ごとに</string>
+    <string name="location_update_interval_30_minutes">30分ごとに</string>
+    <string name="location_update_interval_1_hour">1時間ごとに</string>
+    <string name="location_update_interval_2_hours">2時間ごとに</string>
+    <string name="upgrade_desktop_app">デスクトップ版Tasks.org</string>
+    <string name="upgrade_desktop_app_description">新しいデスクトップアプリの早期利用</string>
+    <string name="read_more">より詳しく</string>
+    <string name="blog_notifications">ブログ通知</string>
+    <string name="blog_feed_none">なし</string>
+    <string name="blog_feed_announcements">お知らせのみ</string>
+    <string name="blog_feed_all">すべての投稿</string>
 </resources>

@@ -186,4 +186,16 @@
         <item quantity="few">%1$d popisa</item>
         <item quantity="other">%1$d popisa</item>
     </plurals>
+    <string name="caldav_server_other">Drugi</string>
+    <string name="caldav_server_type">Vrsta poslužitelja</string>
+    <string name="caldav_server_unknown">Nepoznato</string>
+    <string name="error_adding_account">Greška: %s</string>
+    <string name="invalid_username_or_password">Neispravno korisničko ime ili lozinka</string>
+    <string name="network_error">Neuspjelo spajanje</string>
+    <string name="sign_in">Prijavi se</string>
+    <string name="url_host_name_required">Naziv računala je obavezno</string>
+    <string name="url_invalid_scheme">Mora početi s http(s)://</string>
+    <string name="url_required">URL-adresa je obavezna</string>
+    <string name="username_required">Korisničko ime je obavezno</string>
+    <string name="etesync_account_description">Zahtijeva račun na EteSync.com ili vlastiti poslužitelj</string>
 </resources>

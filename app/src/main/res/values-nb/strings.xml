@@ -292,10 +292,6 @@
     <string name="send_anonymous_statistics">Forbedre Tasks</string>
     <string name="send_anonymous_statistics_summary">Send anonym bruksstatistkk og krasjrapporter for å hjelpe til å forbedre Tasks. Ingen personlig data vil bli samlet inn.</string>
     <string name="name_cannot_be_empty">Navn kan ikke stå tomt</string>
-    <string name="username_required">Brukernavn kreves</string>
-    <string name="url_required">Nettadresse kreves</string>
-    <string name="url_host_name_required">Vertsnavn kreves</string>
-    <string name="url_invalid_scheme">Må begynne med http(s)://</string>
     <string name="no_title">(Ingen tittel)</string>
     <string name="back_button_saves_task">Tilbakeknapp lagrer gjøremål</string>
     <string name="default_list">Forvalgt liste</string>
@@ -338,7 +334,6 @@
     <string name="tasker_create_task">Opprett gjøremål</string>
     <string name="tasker_list_notification">Listemerknad</string>
     <string name="help">Hjelp</string>
-    <string name="network_error">Kunne ikke koble til</string>
     <string name="upgrade_to_pro">Oppgrader til pro</string>
     <string name="refresh_purchases">Gjenoppfrisk kjøp</string>
     <string name="button_subscribe">Abonner</string>
@@ -346,7 +341,6 @@
     <string name="pro_dashclock_extension">Dashclock-utvidelse</string>
     <string name="requires_pro_subscription">Krever pro-abonnement</string>
     <string name="logout">Logg ut</string>
-    <string name="logout_warning">All data tilknyttet denne kontoen vil bli fjernet fra enheten din</string>
     <string name="cannot_access_account">Får ikke tilgang til konto</string>
     <string name="reinitialize_account">Last inn på ny</string>
     <string name="action_create_new_task">Opprett nytt gjøremål</string>
@@ -373,7 +367,6 @@
     <string name="google_tasks_add_to_top">Nye gjøremål øverst</string>
     <string name="icon">Ikon</string>
     <string name="name_your_price">Betal det du vil</string>
-    <string name="error_adding_account">Feil: %s</string>
     <string name="SSD_sort_my_order">Min bestilling</string>
     <plurals name="subtask_count">
         <item quantity="one">%d gjøremålssteg</item>
@@ -389,12 +382,10 @@
     <string name="this_feature_requires_a_subscription">Denne funksjonen krever abonnement</string>
     <string name="choose_synchronization_service">Velg en plattform</string>
     <string name="show_advanced_settings">Vis avanserte innstillinger</string>
-    <string name="etesync_account_description">Krever en konto hos EteSync.com eller selvdrevet tjener</string>
     <string name="help_and_feedback">Hjelp og tilbakemelding</string>
     <string name="documentation">Dokumentasjon</string>
     <string name="preferences_advanced">Avansert</string>
     <string name="more_settings">Flere innstillinger</string>
-    <string name="invalid_username_or_password">Ugyldig brukernavn eller passord</string>
     <string name="theme_system_default">Systemforvalg</string>
     <string name="back">Tilbake</string>
     <string name="select_all">Velg alt</string>
@@ -443,7 +434,6 @@
     <string name="chips">Flis</string>
     <string name="upgrade_blurb_2">Jeg har brukt tusenvis av timer på å jobbe med Tasks, og jeg offentliggjør all kildekoden på nettet gratis. For å støtte mitt arbeid krever noen funksjoner et abonnement</string>
     <string name="upgrade_blurb_1">Hei, jeg heter Alex. Jeg er den uavhengige utvikleren bak Tasks</string>
-    <string name="caldav_account_description">Krever en konto med en CalDAV-tjenestetilbyder, eller en selvdrevet tjener. Finn en tjenestetilbyder ved å besøke tasks.org/caldav</string>
     <string name="wearable_notifications_summary">Vis merknader på din ikledbare</string>
     <string name="wearable_notifications">Ikledbare merknader</string>
     <string name="filter_eisenhower_box_4">Ikke viktig og haster ikke</string>
@@ -573,8 +563,6 @@
     <string name="when_started">Når startet</string>
     <string name="completion_sound">Spill fullførelseslyd</string>
     <string name="snackbar_task_completed">Gjøremål fullført</string>
-    <string name="caldav_server_other">Annet</string>
-    <string name="caldav_server_type">Tjenertype</string>
     <plurals name="reminder_minutes">
         <item quantity="one">Minutt</item>
         <item quantity="other">Minutter</item>
@@ -584,12 +572,10 @@
         <item quantity="other">Timer</item>
     </plurals>
     <string name="customize_edit_screen_summary">Endre rekkefølgen på eller fjern felter</string>
-    <string name="caldav_server_unknown">Ukjent</string>
     <string name="completed">Fullført</string>
     <string name="TEA_creation_date">Opprettelsesdato</string>
     <string name="sort_completion_group">Fullføring %s</string>
     <string name="snackbar_tasks_completed">%d gjøremål fullført</string>
-    <string name="sign_in">Logg inn</string>
     <string name="custom_filter_has_reminder">Har påminnelse</string>
     <plurals name="reminder_days">
         <item quantity="one">Dag</item>

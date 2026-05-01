@@ -261,10 +261,6 @@
     <string name="send_anonymous_statistics_summary">Anonim felhasználási statisztikák és hibajelentések küldése a Tasks fejlesztése érdekében. Személyes adatok gyűjtése nem történik.</string>
     <string name="tag_already_exists">A címke már létezik</string>
     <string name="name_cannot_be_empty">A cím nem lehet üres</string>
-    <string name="username_required">Felhasználónév szükséges</string>
-    <string name="url_required">Link szükséges</string>
-    <string name="url_host_name_required">Host név szükséges</string>
-    <string name="url_invalid_scheme">http(s)://-el kell kezdődnie</string>
     <string name="no_title">(Név nélkül)</string>
     <string name="back_button_saves_task">A vissza gomb elmenti a feladatot</string>
     <string name="default_list">Alapértelmezett lista</string>
@@ -330,7 +326,6 @@
     <string name="tasker_create_task">Feladat létrehozása</string>
     <string name="tasker_list_notification">Lista értesítés</string>
     <string name="help">Súgó</string>
-    <string name="network_error">Sikertelen kapcsolódás</string>
     <string name="upgrade_to_pro">Upgrade pro verzióra</string>
     <string name="refresh_purchases">Vásárlások frissítése</string>
     <string name="button_subscribe">Előfizetés</string>
@@ -338,7 +333,6 @@
     <string name="pro_dashclock_extension">Dashclock kiterjesztés</string>
     <string name="requires_pro_subscription">Előfizetés szükséges</string>
     <string name="logout">Kijelentkezés</string>
-    <string name="logout_warning">A fiókhoz tartozó összes adat törlésre kerül az eszközről</string>
     <string name="cannot_access_account">Fiók nem elérhető</string>
     <string name="reinitialize_account">Újrainicializálás</string>
     <string name="action_create_new_task">Új feladat létrehozása</string>
@@ -369,7 +363,6 @@
     <string name="icon">Ikon</string>
     <string name="name_your_price">Nevezd meg az árat</string>
     <string name="SSD_sort_my_order">Egyéni sorrend</string>
-    <string name="error_adding_account">Hiba: %s</string>
     <plurals name="subtask_count">
         <item quantity="one">%d részfeladat</item>
         <item quantity="other">%d részfeladat</item>
@@ -386,8 +379,6 @@
     <string name="caldav_selection_description">Nyílt Internetes szabványon alapuló szinkronizáció</string>
     <string name="etesync_selection_description">Végponttól végpontig titkosított szinkronizáció</string>
     <string name="show_advanced_settings">Haladó beállítások mutatása</string>
-    <string name="caldav_account_description">CalDAV szolgáltatással rendelkező accountot, vagy saját szervert igényel. A szolgáltatók listája a tasks.org/caldav oldalon található</string>
-    <string name="etesync_account_description">EteSync.com accountot, vagy saját szervert igényel</string>
     <string name="help_and_feedback">Segítség és visszajelzés</string>
     <string name="documentation">Dokumentáció</string>
     <string name="preferences_advanced">További lehetőségek</string>
@@ -398,7 +389,6 @@
     <string name="disable_battery_optimizations">Akkumulátor optimalizálás letiltása</string>
     <string name="more_settings">További beállítások</string>
     <string name="more_notification_settings_summary">Csengőhang, rezgés, stb.</string>
-    <string name="invalid_username_or_password">Hibás felhasználónév vagy jelszó</string>
     <string name="theme_system_default">Alapértelmezett</string>
     <string name="color_wheel">Színkör</string>
     <string name="upgrade_blurb_1">Szia! Alexnek hívnak. Én vagyok a Tasks mögött álló független fejlesztő</string>
@@ -594,17 +584,13 @@
         <item quantity="other">Hét</item>
     </plurals>
     <string name="randomly_every">Véletlenszerűen minden %s</string>
-    <string name="caldav_server_unknown">Ismeretlen</string>
-    <string name="caldav_server_other">Egyéb</string>
     <string name="dismiss">Nyugtáz</string>
-    <string name="caldav_server_type">Szerver típusa</string>
     <string name="customize_edit_screen_summary">Mezők átrendezése vagy törlése</string>
     <string name="hint_customize_edit_title">Túl sok információ\?</string>
     <string name="hint_customize_edit_body">Ez a képernyő a mezők átrendezésével vagy eltávolításával testre szabható</string>
     <string name="TEA_creation_date">Létrehozás dátuma</string>
     <string name="sort_completion_group">Elkészültség %s</string>
     <string name="enable_reminders_description">Az emlékeztetők az Android beállításaiban ki vannak kapcsolva</string>
-    <string name="sign_in">Bejelentkezés</string>
     <string name="enable_reminders">Emlékeztetők engedélyezése</string>
     <string name="sort_list">Lista szerint</string>
     <string name="change_priority">Sürgősség módosítása</string>
@@ -717,4 +703,6 @@
     <string name="blog_feed_none">Nincs</string>
     <string name="blog_feed_announcements">Csak a bejelentések</string>
     <string name="blog_feed_all">Minden bejegyzés</string>
+    <string name="upgrade_desktop_app">Tasks.org PC-re</string>
+    <string name="upgrade_desktop_app_description">Korai hozzáférés az új PC-s alkalmazáshoz</string>
 </resources>

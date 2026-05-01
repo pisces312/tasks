@@ -9,4 +9,8 @@
     <string name="SSD_sort_alpha">Ayon sa pamagat</string>
     <string name="SSD_sort_modified">Ayon sa huling pagbago</string>
     <string name="user">Gumagamit</string>
+    <string name="url_host_name_required">Pangalan ng host kailangan</string>
+    <string name="url_invalid_scheme">Kailangan magsimula na may http(s)://</string>
+    <string name="url_required">URL kailangan</string>
+    <string name="username_required">Pangalan ng gumagamit kailangan</string>
 </resources>

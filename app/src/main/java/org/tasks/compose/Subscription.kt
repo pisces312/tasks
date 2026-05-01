@@ -64,6 +64,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import tasks.kmp.generated.resources.sign_in
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -239,7 +240,7 @@ object PurchaseText {
                                 onDismissRequest = { expanded = false },
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.sign_in)) },
+                                    text = { Text(org.jetbrains.compose.resources.stringResource(Res.string.sign_in)) },
                                     onClick = {
                                         expanded = false
                                         onSignIn()
@@ -336,7 +337,7 @@ object PurchaseText {
                         )
                     ) {
                         Text(
-                            text = stringResource(R.string.sign_in),
+                            text = org.jetbrains.compose.resources.stringResource(Res.string.sign_in),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -506,7 +507,7 @@ object PurchaseText {
                     )
                 ) {
                     Text(
-                        text = stringResource(R.string.sign_in),
+                        text = org.jetbrains.compose.resources.stringResource(Res.string.sign_in),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
