@@ -112,10 +112,7 @@ fun HomeScreen(
         }
 
     LaunchedEffect(currentWindowInsets) {
-        Timber.d("insets: $currentWindowInsets")
-        if (currentWindowInsets.calculateTopPadding() != 0.dp || currentWindowInsets.calculateBottomPadding() != 0.dp) {
-            windowInsets.value = currentWindowInsets
-        }
+        windowInsets.value = currentWindowInsets
     }
     val isListVisible =
         navigator.scaffoldValue[ListDetailPaneScaffoldRole.List] == PaneAdaptedValue.Expanded

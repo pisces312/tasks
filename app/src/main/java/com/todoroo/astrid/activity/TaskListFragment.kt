@@ -360,6 +360,8 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             params.height = actionBarHeight + topInset
             layoutParams = params
             updatePadding(top = topInset)
+            // Force re-layout to apply padding immediately
+            requestLayout()
         }
         binding.taskListCoordinator.updatePadding(
             left = startInset,
