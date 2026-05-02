@@ -73,6 +73,28 @@ class Backups : Fragment() {
         viewModel.refreshDriveState(preferencesViewModel)
     }
 
+    private val importSettingsPickerLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.data?.let { uri ->
+                val extension = FileHelper.getExtension(requireContext(), uri)
+                if (!"json".equals(extension, ignoreCase = true)) {
+                    context?.toast(R.string.invalid_backup_file)
+                } else {
+                    viewModel.importSettings(uri)
+                }
+            }
+        }
+    }
+
+    private val exportSettingsDirLauncher = registerForActivityResult(StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.data?.let { uri ->
+                requireContext().takePersistableUriPermission(uri)
+                viewModel.exportSettings(preferencesViewModel, uri)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
         preferencesViewModel.lastBackup.observe(this) {
@@ -164,6 +186,19 @@ class Backups : Fragment() {
                         getString(R.string.git_sync_title)
                     )
                 },
+                onExportSettings = {
+                    exportSettingsDirLauncher.launch(
+                        FileHelper.newDirectoryPickerIntent(context, viewModel.backupDirectory),
+                    )
+                },
+                onImportSettings = {
+                    viewModel.logEvent("import_settings")
+                    importSettingsPickerLauncher.launch(
+                        FileHelper.newFilePickerIntent(activity, viewModel.backupDirectory),
+                    )
+                },
+                settingsExportResult = viewModel.settingsExportResult,
+                settingsImportResult = viewModel.settingsImportResult,
             )
         }
     }

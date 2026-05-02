@@ -72,6 +72,10 @@ class GitJsonExporter @Inject constructor(
         ignoreUnknownKeys = true
     }
 
+    private val compactJson = Json {
+        ignoreUnknownKeys = true
+    }
+
     private fun tag() = Timber.tag("GitJsonExporter")
 
     /**
@@ -97,18 +101,6 @@ class GitJsonExporter @Inject constructor(
             }
         }.sortedBy { it.uuid }
 
-        // Build task entries
-        val tasksArray = JsonArray(
-            allTasks.mapNotNull { task ->
-                try {
-                    buildTaskBackup(task)
-                } catch (e: Exception) {
-                    tag().e(e, "Failed to export task ${task.id}")
-                    null
-                }
-            }
-        )
-
         // Pre-fetch all data (suspend calls must happen outside buildJsonObject)
         val places = encodeList(locationDao.getPlaces(), Place.serializer())
         val tags = encodeList(tagDataDao.getAll().sortedBy { it.remoteId }, TagData.serializer())
@@ -118,10 +110,30 @@ class GitJsonExporter @Inject constructor(
         val taskListMetadata = encodeList(taskListMetadataDao.getAll(), TaskListMetadata.serializer())
         val taskAttachments = encodeList(taskAttachmentDao.getAttachments(), TaskAttachment.serializer())
 
-        // Assemble root JSON object (no suspend calls here)
-        val root = JsonObject(mapOf(
-            "version" to JsonPrimitive(BuildConfig.VERSION_CODE),
-            "tasks" to tasksArray,
+        // Build output with tasks on individual lines (git-diff friendly)
+        val sb = StringBuilder()
+        sb.append("{\n")
+        sb.append("  \"version\": ${BuildConfig.VERSION_CODE},\n")
+
+        // Tasks array: each task on its own compact line
+        sb.append("  \"tasks\": [\n")
+        allTasks.forEachIndexed { index, task ->
+            try {
+                val taskObj = buildTaskBackup(task)
+                val compactLine = compactJson.encodeToString(JsonObject.serializer(), taskObj)
+                if (index < allTasks.size - 1) {
+                    sb.append("    $compactLine,\n")
+                } else {
+                    sb.append("    $compactLine\n")
+                }
+            } catch (e: Exception) {
+                tag().e(e, "Failed to export task ${task.id}")
+            }
+        }
+        sb.append("  ],\n")
+
+        // Other sections as compact JSON arrays
+        val otherSections = listOf(
             "places" to places,
             "tags" to tags,
             "filters" to filters,
@@ -129,12 +141,19 @@ class GitJsonExporter @Inject constructor(
             "caldavCalendars" to caldavCalendars,
             "taskListMetadata" to taskListMetadata,
             "taskAttachments" to taskAttachments,
-        ))
-
-        val jsonContent = gitJson.encodeToString(JsonObject.serializer(), root)
+        )
+        otherSections.forEachIndexed { index, (key, value) ->
+            val compactValue = compactJson.encodeToString(JsonArray.serializer(), value)
+            if (index < otherSections.size - 1) {
+                sb.append("  \"$key\": $compactValue,\n")
+            } else {
+                sb.append("  \"$key\": $compactValue\n")
+            }
+        }
+        sb.append("}\n")
 
         val outputFile = File(repoDir, TASKS_JSON_FILENAME)
-        outputFile.writeText(jsonContent)
+        outputFile.writeText(sb.toString())
 
         tag().i("Exported ${allTasks.size} tasks to ${outputFile.absolutePath}")
         allTasks.size

@@ -49,6 +49,10 @@ fun BackupsScreen(
     onDeviceSettings: () -> Unit,
     onIgnoreWarnings: (Boolean) -> Unit,
     onGitSync: () -> Unit = {},
+    onExportSettings: () -> Unit = {},
+    onImportSettings: () -> Unit = {},
+    settingsExportResult: String? = null,
+    settingsImportResult: String? = null,
 ) {
     Column(
         modifier = Modifier
@@ -56,6 +60,16 @@ fun BackupsScreen(
             .background(MaterialTheme.colorScheme.surface)
             .verticalScroll(rememberScrollState())
     ) {
+        Spacer(modifier = Modifier.height(SettingsContentPadding))
+
+        // Git Sync section (first option)
+        SettingsItemCard(modifier = Modifier.padding(horizontal = SettingsContentPadding)) {
+            PreferenceRow(
+                title = stringResource(R.string.git_sync_title),
+                onClick = onGitSync,
+            )
+        }
+
         Spacer(modifier = Modifier.height(SettingsContentPadding))
 
         // Documentation
@@ -95,6 +109,20 @@ fun BackupsScreen(
                 PreferenceRow(
                     title = stringResource(R.string.backup_BAc_import),
                     onClick = onImportBackup,
+                )
+            }
+            SettingsItemCard(position = CardPosition.Middle) {
+                PreferenceRow(
+                    title = stringResource(R.string.export_settings),
+                    summary = settingsExportResult,
+                    onClick = onExportSettings,
+                )
+            }
+            SettingsItemCard(position = CardPosition.Middle) {
+                PreferenceRow(
+                    title = stringResource(R.string.import_settings),
+                    summary = settingsImportResult,
+                    onClick = onImportSettings,
                 )
             }
             SettingsItemCard(position = CardPosition.Last) {
@@ -180,19 +208,6 @@ fun BackupsScreen(
                 summary = stringResource(R.string.backups_ignore_warnings_summary),
                 checked = ignoreWarnings,
                 onCheckedChange = onIgnoreWarnings,
-            )
-        }
-
-        // Git Sync section
-        Spacer(modifier = Modifier.height(SettingsContentPadding))
-        SectionHeader(
-            R.string.git_sync_title,
-            modifier = Modifier.padding(horizontal = SettingsContentPadding),
-        )
-        SettingsItemCard(modifier = Modifier.padding(horizontal = SettingsContentPadding)) {
-            PreferenceRow(
-                title = stringResource(R.string.git_sync_title),
-                onClick = onGitSync,
             )
         }
 

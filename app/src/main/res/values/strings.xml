@@ -7,6 +7,13 @@
   <string name="display_name">Display name</string>
   <string name="backup_BAc_export">Backup now</string>
   <string name="backup_BAc_import">Import backup</string>
+  <string name="export_settings">Export settings</string>
+  <string name="import_settings">Import settings</string>
+  <string name="settings_exported">Settings exported successfully</string>
+  <string name="settings_imported">Settings imported successfully. Restart app for some changes to take effect.</string>
+  <string name="settings_export_error">Failed to export settings</string>
+  <string name="settings_import_error">Failed to import settings</string>
+  <string name="backup_directory_required">Backup folder required</string>
   <string name="export_toast">Backed up %1$s to %2$s.</string>
   <string name="import_summary_title">Restore summary</string>
   <string name="import_summary_message">
