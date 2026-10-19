@@ -19,12 +19,14 @@ fun HelpAndFeedbackContent(
     onContactDeveloper: (() -> Unit)? = null,
     onSendLogs: (() -> Unit)? = null,
     onThirdPartyLicenses: (() -> Unit)? = null,
+    showThirdPartyLicenses: Boolean? = null,
     onCollectStatisticsChanged: ((Boolean) -> Unit)? = null,
     bottomInsets: @Composable () -> Unit = {},
 ) {
     HelpAndFeedbackScreen(
         versionName = viewModel.versionName,
         isGooglePlay = viewModel.isGooglePlay,
+        showThirdPartyLicenses = showThirdPartyLicenses ?: viewModel.isGooglePlay,
         showTermsOfService = viewModel.showTermsOfService,
         showSendLogs = viewModel.showSendLogs,
         showCollectStatistics = viewModel.showCollectStatistics,

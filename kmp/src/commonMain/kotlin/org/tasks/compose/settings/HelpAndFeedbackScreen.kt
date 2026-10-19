@@ -56,6 +56,7 @@ import tasks.kmp.generated.resources.whats_new
 fun HelpAndFeedbackScreen(
     versionName: String,
     isGooglePlay: Boolean,
+    showThirdPartyLicenses: Boolean = isGooglePlay,
     showTermsOfService: Boolean,
     showSendLogs: Boolean,
     showCollectStatistics: Boolean,
@@ -195,7 +196,7 @@ fun HelpAndFeedbackScreen(
             verticalArrangement = Arrangement.spacedBy(SettingsCardGap),
         ) {
             SettingsItemCard(
-                position = if (isGooglePlay) CardPosition.First else CardPosition.Only,
+                position = if (showThirdPartyLicenses) CardPosition.First else CardPosition.Only,
             ) {
                 PreferenceRow(
                     title = stringResource(Res.string.source_code),
@@ -204,7 +205,7 @@ fun HelpAndFeedbackScreen(
                     onClick = onSourceCode,
                 )
             }
-            if (isGooglePlay) {
+            if (showThirdPartyLicenses) {
                 SettingsItemCard(position = CardPosition.Last) {
                     PreferenceRow(
                         title = stringResource(Res.string.third_party_licenses),

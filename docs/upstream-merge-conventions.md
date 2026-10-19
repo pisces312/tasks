@@ -106,8 +106,9 @@ comm -12 /tmp/fork.txt /tmp/up.txt
   下已实测兼容，`*OssLicensesTask` 正常生成 `raw/third_party_licenses`）。若上游再升 Gradle 导致
   strict task validation 报错，按上游版本决定是修还是临时注释，并在第 7 节记录。
   注意 `play-services-oss-licenses` 一直是 `googleplayImplementation`：**generic 包里没有
-  `OssLicensesMenuActivity`**，点"第三方许可证"会 `ActivityNotFoundException`（上游同样如此，
-  不是合并引入的）。
+  `OssLicensesMenuActivity`**。fork 已在 `HelpAndFeedback` 里按 `PackageManager` 可解析性隐藏该入口
+  （`canOpenThirdPartyLicenses()`），所以 generic 既不显示菜单项也不会崩。合并上游时要确认这段
+  判断没被覆盖掉（上游只用 `isGooglePlay` 这个 flavor/billing 判断，没有可解析性检查）。
 
 ### 5.4 google-services 双 client
 

@@ -88,9 +88,10 @@ class HelpAndFeedback : Fragment() {
                 },
                 onThirdPartyLicenses = {
                     val intent = Intent()
-                        .setClassName(requireContext(), "com.google.android.gms.oss.licenses.OssLicensesMenuActivity")
+                        .setClassName(requireContext(), LICENSES_ACTIVITY)
                     startActivity(intent)
                 },
+                showThirdPartyLicenses = canOpenThirdPartyLicenses(),
                 onCollectStatisticsChanged = { enabled ->
                     preferences.setBoolean(R.string.p_collect_statistics, enabled)
                 },
@@ -117,5 +118,20 @@ class HelpAndFeedback : Fragment() {
             toolbar.setBackgroundColor(defaultColor)
             (toolbar.parent as? View)?.setBackgroundColor(defaultColor)
         }
+    }
+
+    /**
+     * The OSS licenses entry point is only shown when the licenses activity is actually packaged.
+     * The `generic` flavor does not depend on play-services-oss-licenses, so starting it blindly
+     * would throw ActivityNotFoundException.
+     */
+    private fun canOpenThirdPartyLicenses(): Boolean {
+        val context = context ?: return false
+        val intent = Intent().setClassName(context, LICENSES_ACTIVITY)
+        return context.packageManager.queryIntentActivities(intent, 0).isNotEmpty()
+    }
+
+    companion object {
+        private const val LICENSES_ACTIVITY = "com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
     }
 }
