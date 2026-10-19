@@ -56,7 +56,9 @@ fi
 export GRADLE_OPTS="-Xmx4G -XX:+UseParallelGC -Dfile.encoding=UTF-8"
 
 # Detect Java
-if [ -d "/d/nili/dev/AndroidStudio/jbr" ]; then
+if [ -d "/d/dev/AndroidStudio/jbr" ]; then
+    export JAVA_HOME="/d/dev/AndroidStudio/jbr"
+elif [ -d "/d/nili/dev/AndroidStudio/jbr" ]; then
     export JAVA_HOME="/d/nili/dev/AndroidStudio/jbr"
 elif [ -d "/c/Program Files/Eclipse Adoptium/jdk-21" ]; then
     export JAVA_HOME="/c/Program Files/Eclipse Adoptium/jdk-21"

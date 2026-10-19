@@ -96,6 +96,14 @@ android {
             resValue("string", "mapbox_key", tasks_mapbox_key_debug ?: "")
             resValue("string", "google_key", tasks_google_key_debug ?: "")
             resValue("string", "posthog_key", "")
+            // defaultConfig derives this from the base applicationId, ignoring
+            // applicationIdSuffix; without this override the debug build resolves the
+            // release app's OpenTasks provider and throws SecurityException.
+            resValue(
+                "string",
+                "opentasks_authority",
+                "${libs.versions.applicationId.get()}.debug.opentasks",
+            )
             enableUnitTestCoverage = project.hasProperty("coverage")
             enableAndroidTestCoverage = project.hasProperty("coverage")
         }
