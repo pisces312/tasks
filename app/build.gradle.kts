@@ -9,8 +9,7 @@ plugins {
     id("com.google.firebase.crashlytics")
     kotlin("android")
     id("dagger.hilt.android.plugin")
-    // OSS licenses plugin disabled - incompatible with Gradle 9.4 strict task validation
-    // id("com.google.android.gms.oss-licenses-plugin")
+    id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
