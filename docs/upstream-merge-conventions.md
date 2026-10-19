@@ -105,6 +105,9 @@ comm -12 /tmp/fork.txt /tmp/up.txt
 - `com.google.android.gms.oss-licenses-plugin` 为**启用**状态（2026-10-19 起：Gradle 9.8.1 + AGP 9.4.1
   下已实测兼容，`*OssLicensesTask` 正常生成 `raw/third_party_licenses`）。若上游再升 Gradle 导致
   strict task validation 报错，按上游版本决定是修还是临时注释，并在第 7 节记录。
+  注意 `play-services-oss-licenses` 一直是 `googleplayImplementation`：**generic 包里没有
+  `OssLicensesMenuActivity`**，点"第三方许可证"会 `ActivityNotFoundException`（上游同样如此，
+  不是合并引入的）。
 
 ### 5.4 google-services 双 client
 
