@@ -175,3 +175,23 @@ caldavDao.insert(caldavTask.copy(
 | `apksigner verify --print-certs` | `CN=pisces312`（V2） |
 | R8 `mapping.txt` | `org.eclipse.jgit.*` 31655 条保留 |
 | 合并清单（debug） | `allowBackup=false`、红图标、无 `org.tasks.permission.*` |
+
+## 8. 合并后补记（同日）
+
+1. **OSS licenses 插件恢复启用**（`9c713c3dfa`）：Gradle 9.8.1 + AGP 9.4.1 下插件兼容，
+   `googleplayRelease` 能正常生成 `raw/third_party_licenses` 与 `OssLicensesMenuActivity`。
+2. **generic 的"第三方许可证"入口改为按可解析性隐藏**：
+   `play-services-oss-licenses` 只有 `googleplayImplementation`，generic 包里没有该 Activity。
+   现由 `HelpAndFeedback.canOpenThirdPartyLicenses()`（`PackageManager.queryIntentActivities`）
+   决定是否渲染菜单项：generic 不显示、点击也不会 `ActivityNotFoundException`；
+   googleplay 正常显示。上游只用 `isGooglePlay`（billing）判断，没有这层检查。
+   - 数据流：`HelpAndFeedback` → `HelpAndFeedbackContent(showThirdPartyLicenses:)`
+     → `HelpAndFeedbackScreen(showThirdPartyLicenses:)`（默认值回退到 `isGooglePlay`）。
+3. **交付形态固定**：正式版只出 `generic` + `arm64-v8a`（无 Google 服务），已写入 `AGENTS.md`。
+4. **本次构建验证**（`./build.sh` = `assembleGenericRelease -PbuildAbi=arm64-v8a`）：
+   - `BUILD SUCCESSFUL in 3m 18s`
+   - 产物 `app/build/outputs/apk/generic/release/app-generic-arm64-v8a-release.apk`，15,579,228 B
+   - `aapt2 dump badging`：`org.tasks` / `151306` / `15.13` / `native-code: 'arm64-v8a'`
+   - `apksigner verify --print-certs`：`CN=pisces312`，V2，SHA-256 `abadebd2fc9523628b5dacfa0fb40f652df0e161b71820c7a4b5a40653ee0b90`
+   - 清单内 `oss.licenses` 相关条目数 **0**（符合 generic 预期）
+   - 首轮构建曾因 `AAPT2 ... Daemon startup failed` 失败，`./gradlew --stop` 后重试即通过（环境偶发）

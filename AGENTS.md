@@ -12,12 +12,21 @@ ABI splits、环境变量签名。
 
 ## 常用命令
 
+**发布目标固定：`generic` flavor（无 Google 服务：不含 GMS / Play billing / Google Tasks 登录）
++ `arm64-v8a` 单 ABI。** 这是用户的默认交付形态，`./build.sh` 不带参数即是它：
+
+```bash
+./build.sh          # = ./build.sh release generic arm64-v8a  ← 正式版就用这个
+```
+
+不要"顺手"构建 `googleplay` 或其它 ABI；只有在用户明确要求时才构建。
+
 ```bash
 # build.sh（Windows + Git Bash 推荐）
-./build.sh                                    # generic release, arm64-v8a
+./build.sh                                    # generic release, arm64-v8a（默认）
 ./build.sh debug                              # generic debug
-./build.sh release googleplay                 # googleplay release
-./build.sh release generic all                # all ABIs
+./build.sh release googleplay                 # googleplay release（仅明确要求时）
+./build.sh release generic all                # all ABIs（仅明确要求时）
 
 # 或直接用 Gradle
 ./gradlew assembleGenericDebug
@@ -51,7 +60,13 @@ ABI splits、环境变量签名。
 | `wear/` | Android Wear 应用 |
 | `wear-datalayer/` | Wear 数据层（gRPC） |
 
-**构建 flavor：** `generic`、`googleplay`（默认）
+**构建 flavor：** `generic`（**交付默认**，无 Google 服务）、`googleplay`
+
+**交付约定（重要）：** 对外发布的正式版只出 `generic` + `arm64-v8a`。
+产物：`app/build/outputs/apk/generic/release/app-generic-arm64-v8a-release.apk`。
+`googleplay` flavor 仅用于对照验证编译链路是否被改坏，不作为交付物。
+`generic` 不含 `play-services-oss-licenses`，因此"第三方许可证"入口按 Activity 可解析性隐藏
+（见 `HelpAndFeedback.canOpenThirdPartyLicenses()`）。
 
 **关键技术：**
 - DI：Hilt/Dagger
@@ -107,3 +122,4 @@ tasks_google_key_debug="<key>"
 2. 破坏性操作（删除分支、`reset --hard`、批量改文件）先说明再执行。
 3. 合并上游后必须通过 `docs/upstream-merge-conventions.md` 第 6 节的验证，不能只跑 `compile*`。
 4. 合并完成后按第 8 节更新记录文档与 `.workbuddy/memory/`。
+5. 正式版只构建 `generic` + `arm64-v8a`（`./build.sh` 默认），不要构建其它 flavor / ABI。
