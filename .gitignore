@@ -22,3 +22,6 @@ xcuserdata/
 
 tasks-release.jks
 *.log
+
+# AI agent workspace (memory/logs), not part of the project
+.workbuddy/
