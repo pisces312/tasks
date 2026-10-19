@@ -92,7 +92,7 @@ tasks_google_key_debug="<key>"
 ## 合并上游（摘要，细节以约定文档为准）
 
 任何 `git merge upstream/main` 之前先读 [`docs/upstream-merge-conventions.md`](docs/upstream-merge-conventions.md)，
-其中包含：标准流程、冲突处理表、**合并后必查 6 项**、验证标准、历史踩坑清单。
+其中包含：标准流程、冲突处理表、**合并后必查 7 项**、验证标准、历史踩坑清单。
 
 最容易丢的一条：`app/build.gradle.kts` 的 `buildTypes.debug` 里必须保留
 `resValue("string", "opentasks_authority", "<applicationId>.debug.opentasks")`。

@@ -74,7 +74,7 @@ comm -12 /tmp/fork.txt /tmp/up.txt
 | `app/google-services.json` | 上游从 `app/src/debug/` 移到 `app/` 后，必须同时登记 `org.tasks` 与 `org.tasks.debug` 两个 client |
 | `app/src/androidTest/**` 符号链接 | Windows 不支持，接受上游删除，使用 `app/src/sharedTest/java` |
 
-## 5. 合并后必查清单（6 项）
+## 5. 合并后必查清单（7 项）
 
 ### 5.1 debug 变体的 `opentasks_authority`（最容易丢）
 
@@ -102,7 +102,9 @@ comm -12 /tmp/fork.txt /tmp/up.txt
 - `splits.abi` + `-PbuildAbi=<abi>` 生效；
 - `signingConfigs.release` 只读 `KEY_STORE_LOCATION` / `KEY_ALIAS` / `KEY_STORE_PASSWORD` / `KEY_PASSWORD`；
 - JGit 三件套依赖 + `app/proguard.pro` 的 `org.eclipse.jgit.**` / `com.jcraft.jsch.**` keep 规则在；
-- `com.google.android.gms.oss-licenses-plugin` 仍为注释状态（Gradle 严格校验不兼容）。
+- `com.google.android.gms.oss-licenses-plugin` 为**启用**状态（2026-10-19 起：Gradle 9.8.1 + AGP 9.4.1
+  下已实测兼容，`*OssLicensesTask` 正常生成 `raw/third_party_licenses`）。若上游再升 Gradle 导致
+  strict task validation 报错，按上游版本决定是修还是临时注释，并在第 7 节记录。
 
 ### 5.4 google-services 双 client
 
@@ -122,6 +124,21 @@ ls app/src/main/java/org/tasks/backup/Git*.kt
 grep -c 'name="git_sync\|name="export_settings\|name="import_settings' app/src/main/res/values/strings.xml
 grep -rn "GitSyncLogCollector" app/src/{debug,release}/java/org/tasks/BuildSetup.kt
 ```
+
+### 5.7 语言资源：不要留 symlink 残留
+
+上游在 `app/src/main/res/` 与 `kmp/src/commonMain/composeResources/` 里用符号链接
+`values-in → values-id`、`values-iw → values-he`（印尼语 / 希伯来语的旧语言码）。
+
+- Windows 无法创建 symlink，git 检出时会写成**内容为目标名的 9 字节文本文件**，既不是目录也不提供翻译。
+- 因此仓库只保留 `values-id` / `values-he`：`minSdk 26` 起系统已使用现代语言码，旧码不再需要。
+- 每次合并后检查并删除被 git 重新生成的残留：
+
+  ```bash
+  ls app/src/main/res | grep -E '^values-(in|iw)$'
+  ls kmp/src/commonMain/composeResources | grep -E '^values-(in|iw)$'
+  # 若有输出（且是文件不是目录）：git rm 掉
+  ```
 
 ## 6. 验证标准（缺一不可）
 
@@ -158,6 +175,7 @@ grep -rl '^<<<<<<< ' . --exclude-dir=build --exclude-dir=.git --exclude-dir=.gra
 | `getFullDateTime` / `material-icons` 找不到 | 上游删除 | 改用 `DateFormatter`（suspend）与项目自有 `TasksIcons` + `SymbolIcon` |
 | Git 同步 `tasks.json` 无法通过"导入备份"还原 | 导出器无 `"data"` 包裹，导入器只认 `version`/`timestamp`/`data`（合并前即存在） | 属已知限制；要支持需给导出器加包裹 |
 | `androidTest` 编译报符号链接错误 | Windows 不支持仓库内 symlink | 使用上游 `app/src/sharedTest/java` |
+| `values-in` / `values-iw` 变成 9 字节文本文件 | 同上，git 检出 symlink 失败 | 见 5.7，直接删除，靠 `values-id` / `values-he` |
 
 ## 8. 记录要求
 
