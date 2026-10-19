@@ -8,7 +8,7 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File
 import com.todoroo.astrid.gtasks.api.HttpCredentialsAdapter
-import com.todoroo.astrid.gtasks.api.HttpNotFoundException
+import org.tasks.googleapis.HttpNotFoundException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.tasks.backup.BackupConstants
 import org.tasks.files.FileHelper
@@ -41,9 +41,8 @@ class DriveInvoker(
     @Throws(IOException::class)
     suspend fun getFilesByPrefix(folderId: String?, vararg prefix: String?): List<File> {
         val namePredicate = prefix.joinToString(" or ") { "name contains '$it'" }
-        val query = String.format(
-                "'%s' in parents and ($namePredicate) and trashed = false and mimeType != '%s'",
-                folderId, prefix, MIME_FOLDER)
+        val query =
+                "'$folderId' in parents and ($namePredicate) and trashed = false and mimeType != '$MIME_FOLDER'"
         return execute(
                 service
                         .files()

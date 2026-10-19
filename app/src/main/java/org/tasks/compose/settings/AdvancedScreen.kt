@@ -12,15 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Attachment
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.stringResource as kmpStringResource
 import org.tasks.R
+import org.tasks.themes.TasksIcons
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.reset_trusted_certificates
+import tasks.kmp.generated.resources.reset_trusted_certificates_summary
 
 @Composable
 fun AdvancedScreen(
@@ -37,6 +38,7 @@ fun AdvancedScreen(
     onDeleteCompletedEvents: () -> Unit,
     onDeleteAllEvents: () -> Unit,
     onResetPreferences: () -> Unit,
+    onResetTrustedCertificates: () -> Unit,
     onDeleteTaskData: () -> Unit,
 ) {
     Column(
@@ -63,7 +65,7 @@ fun AdvancedScreen(
             SettingsItemCard(position = CardPosition.Last) {
                 PreferenceRow(
                     title = stringResource(R.string.attachment_directory),
-                    icon = Icons.Outlined.Attachment,
+                    icon = TasksIcons.ATTACHMENT,
                     summary = attachmentDirSummary,
                     onClick = onAttachmentDir,
                 )
@@ -80,7 +82,7 @@ fun AdvancedScreen(
             SettingsItemCard(position = CardPosition.First) {
                 SwitchPreferenceRow(
                     title = stringResource(R.string.EPr_cal_end_or_start_at_due_time),
-                    icon = Icons.Outlined.Event,
+                    icon = TasksIcons.EVENT,
                     summary = if (calendarEndAtDueTime)
                         stringResource(R.string.EPr_cal_start_at_due_time)
                     else
@@ -144,10 +146,17 @@ fun AdvancedScreen(
                     onClick = onResetPreferences,
                 )
             }
+            SettingsItemCard(position = CardPosition.Middle) {
+                PreferenceRow(
+                    title = kmpStringResource(Res.string.reset_trusted_certificates),
+                    summary = kmpStringResource(Res.string.reset_trusted_certificates_summary),
+                    onClick = onResetTrustedCertificates,
+                )
+            }
             SettingsItemCard(position = CardPosition.Last) {
                 PreferenceRow(
                     title = stringResource(R.string.EPr_delete_task_data),
-                    icon = Icons.Outlined.Delete,
+                    icon = TasksIcons.DELETE,
                     onClick = onDeleteTaskData,
                 )
             }

@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -27,7 +24,12 @@ import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource as kmpStringResource
 import org.tasks.R
+import org.tasks.themes.TasksIcons
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.add_shortcut_to_home_screen
+import tasks.kmp.generated.resources.add_widget_to_home_screen
 
 data class WidgetItem(
     val widgetId: Int,
@@ -93,8 +95,8 @@ fun WidgetsScreen(
                 if (showAddShortcut) {
                     SettingsItemCard(position = CardPosition.forIndex(i++, total)) {
                         PreferenceRow(
-                            title = stringResource(R.string.add_shortcut_to_home_screen),
-                            icon = Icons.Outlined.Home,
+                            title = kmpStringResource(Res.string.add_shortcut_to_home_screen),
+                            icon = TasksIcons.HOME,
                             onClick = onAddShortcut,
                         )
                     }
@@ -102,8 +104,8 @@ fun WidgetsScreen(
                 if (showAddWidget) {
                     SettingsItemCard(position = CardPosition.forIndex(i, total)) {
                         PreferenceRow(
-                            title = stringResource(R.string.add_widget_to_home_screen),
-                            icon = Icons.Outlined.Widgets,
+                            title = kmpStringResource(Res.string.add_widget_to_home_screen),
+                            icon = TasksIcons.WIDGETS,
                             onClick = onAddWidget,
                         )
                     }

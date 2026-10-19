@@ -1,26 +1,45 @@
 package org.tasks.extensions
 
 import co.touchlab.kermit.Logger
+import org.tasks.di.Platform
+import org.tasks.di.platform
 import java.awt.Desktop
 import java.net.URI
 
-private val logger = Logger.withTag("DesktopBrowse")
+private const val TAG = "DesktopBrowse"
 
-fun openInBrowser(url: String) {
+private val logger = Logger.withTag(TAG)
+
+fun openInBrowser(url: String): Boolean {
     try {
-        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            Desktop.getDesktop().browse(URI(url))
-            return
+        val uri = URI(url)
+        if (Desktop.isDesktopSupported()) {
+            val desktop = Desktop.getDesktop()
+            if (uri.scheme == "mailto" && desktop.isSupported(Desktop.Action.MAIL)) {
+                desktop.mail(uri)
+                return true
+            }
+            if (desktop.isSupported(Desktop.Action.BROWSE)) {
+                desktop.browse(uri)
+                return true
+            }
         }
-    } catch (e: Exception) {
-        logger.w(e) { "Desktop.browse() failed, falling back to command line" }
+    } catch (e: Throwable) {
+        logger.w(e) { "Desktop action failed, falling back to command line" }
     }
-    val os = System.getProperty("os.name").lowercase()
-    val command = when {
-        "linux" in os -> arrayOf("xdg-open", url)
-        "mac" in os || "darwin" in os -> arrayOf("open", url)
-        "win" in os -> arrayOf("cmd", "/c", "start", url)
-        else -> throw UnsupportedOperationException("Cannot open browser on $os")
+    val command = when (platform()) {
+        Platform.LINUX -> arrayOf("xdg-open", url)
+        Platform.MAC -> arrayOf("open", url)
+        Platform.WINDOWS -> arrayOf("rundll32", "url.dll,FileProtocolHandler", url)
     }
-    Runtime.getRuntime().exec(command)
+    return try {
+        ProcessBuilder(*command)
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start()
+        true
+    } catch (e: Throwable) {
+        logger.w(e) { "Failed to open $url with ${command.first()}" }
+        false
+    }
 }

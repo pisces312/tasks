@@ -1,5 +1,7 @@
 package org.tasks.compose.sort
 
+import org.tasks.themes.TasksIcons
+import org.tasks.compose.components.SymbolIcon
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,12 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDownward
-import androidx.compose.material.icons.outlined.ArrowUpward
-import androidx.compose.material.icons.outlined.ExpandCircleDown
-import androidx.compose.material.icons.outlined.SubdirectoryArrowRight
-import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.todoroo.astrid.core.SortHelper
@@ -54,7 +49,10 @@ import tasks.kmp.generated.resources.sort_descending
 import tasks.kmp.generated.resources.sort_grouping
 import tasks.kmp.generated.resources.sort_list
 import tasks.kmp.generated.resources.sort_not_available
+import tasks.kmp.generated.resources.show_completed_subtasks
 import tasks.kmp.generated.resources.sort_sorting
+import tasks.kmp.generated.resources.show_completed
+import tasks.kmp.generated.resources.show_unstarted
 import tasks.kmp.generated.resources.subtasks
 
 val sortOptions = linkedMapOf(
@@ -212,11 +210,19 @@ fun BottomSheetContent(
     manualSort: Boolean,
     astridSort: Boolean,
     completedAtBottom: Boolean,
+    showCompleted: Boolean,
+    showCompletedSubtasks: Boolean,
+    showHidden: Boolean,
+    showCompletedAndHiddenOptions: Boolean,
+    completedAndHiddenEnabled: Boolean,
     setSortAscending: (Boolean) -> Unit,
     setGroupAscending: (Boolean) -> Unit,
     setCompletedAscending: (Boolean) -> Unit,
     setSubtaskAscending: (Boolean) -> Unit,
     setCompletedAtBottom: (Boolean) -> Unit,
+    setShowCompleted: (Boolean) -> Unit,
+    setShowCompletedSubtasks: (Boolean) -> Unit,
+    setShowHidden: (Boolean) -> Unit,
     clickGroupMode: () -> Unit,
     clickSortMode: () -> Unit,
     clickCompletedMode: () -> Unit,
@@ -224,7 +230,7 @@ fun BottomSheetContent(
 ) {
     SortRow(
         title = Res.string.sort_grouping,
-        icon = Icons.Outlined.ExpandCircleDown,
+        icon = TasksIcons.EXPAND_CIRCLE_DOWN,
         ascending = groupAscending,
         sortMode = groupMode,
         showAscending = groupMode != SortHelper.GROUP_NONE,
@@ -250,7 +256,7 @@ fun BottomSheetContent(
         if (!manualSort) {
             SortRow(
                 title = Res.string.subtasks,
-                icon = Icons.Outlined.SubdirectoryArrowRight,
+                icon = TasksIcons.SUBTASK,
                 ascending = subtaskAscending,
                 sortMode = subtaskMode,
                 onClick = clickSubtaskMode,
@@ -258,39 +264,84 @@ fun BottomSheetContent(
                 showAscending = subtaskMode != SortHelper.SORT_MANUAL
             )
         }
-        HorizontalDivider()
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .clickable { setCompletedAtBottom(!completedAtBottom) },
-        ) {
-            Text(
-                text = stringResource(Res.string.completed_tasks_at_bottom),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f),
+        if (showCompletedAndHiddenOptions) {
+            HorizontalDivider()
+            SwitchRow(
+                title = Res.string.show_unstarted,
+                checked = showHidden || !completedAndHiddenEnabled,
+                enabled = completedAndHiddenEnabled,
+                onCheckedChange = setShowHidden,
             )
-            Switch(
-                checked = completedAtBottom,
-                onCheckedChange = { setCompletedAtBottom(it) }
+            SwitchRow(
+                title = Res.string.show_completed,
+                checked = showCompleted || !completedAndHiddenEnabled,
+                enabled = completedAndHiddenEnabled,
+                onCheckedChange = setShowCompleted,
             )
         }
-        if (completedAtBottom) {
+        val showCompletedSection =
+            !showCompletedAndHiddenOptions || !completedAndHiddenEnabled || showCompleted
+        if (showCompletedSection) {
             HorizontalDivider()
-            SortRow(
-                title = Res.string.completed,
-                ascending = completedAscending,
-                sortMode = completedMode,
-                onClick = clickCompletedMode,
-                setAscending = setCompletedAscending,
+            SwitchRow(
+                title = Res.string.show_completed_subtasks,
+                checked = showCompletedSubtasks,
+                onCheckedChange = setShowCompletedSubtasks,
             )
+            SwitchRow(
+                title = Res.string.completed_tasks_at_bottom,
+                checked = completedAtBottom,
+                onCheckedChange = setCompletedAtBottom,
+            )
+            if (completedAtBottom) {
+                HorizontalDivider()
+                SortRow(
+                    title = Res.string.completed,
+                    ascending = completedAscending,
+                    sortMode = completedMode,
+                    onClick = clickCompletedMode,
+                    setAscending = setCompletedAscending,
+                )
+            }
         }
     }
 }
 
 @Composable
+private fun SwitchRow(
+    title: StringResource,
+    checked: Boolean,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .clickable(enabled = enabled) { onCheckedChange(!checked) },
+    ) {
+        Text(
+            text = stringResource(title),
+            style = MaterialTheme.typography.bodyLarge.copy(
+                color = if (enabled) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                }
+            ),
+            modifier = Modifier.weight(1f),
+        )
+        Switch(
+            checked = checked,
+            enabled = enabled,
+            onCheckedChange = onCheckedChange,
+        )
+    }
+}
+
+@Composable
 fun SortRow(
-    icon: ImageVector = Icons.Outlined.SwapVert,
+    icon: String = TasksIcons.SWAP_VERT,
     title: StringResource,
     ascending: Boolean,
     sortMode: Int,
@@ -305,8 +356,8 @@ fun SortRow(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = icon,
+        SymbolIcon(
+            name = icon,
             contentDescription = null,
             modifier = Modifier
                 .padding(end = 16.dp)
@@ -344,8 +395,8 @@ fun OrderingButton(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         VerticalDivider()
-        Icon(
-            imageVector = if (ascending) Icons.Outlined.ArrowUpward else Icons.Outlined.ArrowDownward,
+        SymbolIcon(
+            name = if (ascending) TasksIcons.ARROW_UPWARD else TasksIcons.ARROW_DOWNWARD,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
                 .size(16.dp),

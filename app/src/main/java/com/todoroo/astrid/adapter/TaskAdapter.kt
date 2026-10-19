@@ -12,21 +12,25 @@ import com.todoroo.astrid.core.SortHelper.SORT_MANUAL
 import com.todoroo.astrid.core.SortHelper.SORT_START
 import org.tasks.data.dao.TaskDao
 import org.tasks.data.TaskSaver
-import com.todoroo.astrid.service.TaskMover
+import org.tasks.data.TaskMover
 import org.tasks.BuildConfig
 import org.tasks.broadcast.RefreshBroadcaster
 import org.tasks.data.TaskContainer
 import org.tasks.data.createDueDate
 import org.tasks.data.createHideUntil
+import org.tasks.data.deepestNestingUnder
+import org.tasks.data.findParentIndex
 import org.tasks.data.dao.CaldavDao
 import org.tasks.data.dao.CaldavDao.Companion.toAppleEpoch
+import org.tasks.data.dao.DirtyDao
 import org.tasks.data.dao.GoogleTaskDao
-import org.tasks.data.entity.CaldavAccount.Companion.TYPE_MICROSOFT
+import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavTask
 import org.tasks.data.entity.Task
 import org.tasks.data.entity.Task.Companion.HIDE_UNTIL_SPECIFIC_DAY
 import org.tasks.date.DateTimeUtils.toDateTime
 import org.tasks.time.millisOfDay
+import kotlin.math.min
 
 open class TaskAdapter(
     private val newTasksOnTop: Boolean,
@@ -34,6 +38,7 @@ open class TaskAdapter(
     private val caldavDao: CaldavDao,
     private val taskDao: TaskDao,
     private val taskSaver: TaskSaver,
+    private val dirtyDao: DirtyDao,
     private val refreshBroadcaster: RefreshBroadcaster,
     private val taskMover: TaskMover,
 ) {
@@ -85,11 +90,17 @@ open class TaskAdapter(
 
     open fun maxIndent(previousPosition: Int, task: TaskContainer): Int {
         val previous = getTask(previousPosition)
-        return if (previous.isSingleLevelSubtask) {
+        var indent = if (previous.isSingleLevelSubtask) {
             if (task.hasChildren()) 0 else 1
         } else {
-            previous.indent + 1
+            deepestNestingUnder(previous.indent)
         }
+        while (!task.isCompleted && indent > 0 &&
+            findParent(indent, previousPosition + 1)?.isCompleted == true
+        ) {
+            indent--
+        }
+        return indent
     }
 
     fun minIndent(nextPosition: Int, task: TaskContainer): Int {
@@ -107,6 +118,9 @@ open class TaskAdapter(
         }
         return 0
     }
+
+    fun minIndent(nextPosition: Int, task: TaskContainer, maxIndent: Int): Int =
+        min(minIndent(nextPosition, task), maxIndent)
 
     fun isSelected(task: TaskContainer): Boolean = selected.contains(task.id)
 
@@ -135,10 +149,10 @@ open class TaskAdapter(
                 }
             }
             return
-        } else if (newParent != null) {
-            if (task.caldav != newParent.caldav) {
-                caldavDao.markDeleted(listOf(task.id))
-            }
+        }
+        if (newParent?.caldav != null && task.caldav != newParent.caldav) {
+            taskMover.move(task = task.id, listUuid = newParent.caldav!!, newParent = newParent.id)
+            return
         }
         when {
             newParent == null -> {
@@ -178,25 +192,15 @@ open class TaskAdapter(
         return false
     }
 
-    private fun findParent(indent: Int, to: Int): TaskContainer? {
-        if (indent == 0 || to == 0) {
-            return null
-        }
-        for (i in to - 1 downTo 0) {
-            val previous = getTask(i)
-            if (indent > previous.indent) {
-                return previous
-            }
-        }
-        return null
-    }
+    private fun findParent(indent: Int, to: Int): TaskContainer? =
+        findParentIndex(indent, to) { getTask(it).indent }?.let { getTask(it) }
 
     private suspend fun changeSortGroup(task: TaskContainer, pos: Int) {
         when(dataSource.sortMode) {
             SORT_IMPORTANCE -> {
                 val newPriority = dataSource.nearestHeader(if (pos == 0) 1 else pos).toInt()
                 if (newPriority != task.priority) {
-                    taskSaver.save(task.task.copy(priority = newPriority))
+                    taskSaver.save(task.task.copy(priority = newPriority), task.task)
                 }
             }
             SORT_LIST -> taskMover.move(task.id, dataSource.nearestHeader(if (pos == 0) 1 else pos))
@@ -206,26 +210,26 @@ open class TaskAdapter(
     }
 
     private suspend fun applyDueDate(task: Task, date: Long) {
-        val original = task.dueDate
+        val original = task.copy()
         task.setDueDateAdjustingHideUntil(when {
             date == 0L -> 0L
-            task.hasDueTime() -> date.toDateTime().withMillisOfDay(original.millisOfDay).millis
+            task.hasDueTime() -> date.toDateTime().withMillisOfDay(original.dueDate.millisOfDay).millis
             else -> createDueDate(Task.URGENCY_SPECIFIC_DAY, date)
         })
-        if (original != task.dueDate) {
-            taskSaver.save(task)
+        if (original.dueDate != task.dueDate) {
+            taskSaver.save(task, original)
         }
     }
 
     private suspend fun applyStartDate(task: Task, date: Long) {
-        val original = task.hideUntil
+        val original = task.copy()
         task.hideUntil = when {
             date == 0L -> 0L
-            task.hasStartDate() -> date.toDateTime().withMillisOfDay(original.millisOfDay).millis
+            task.hasStartDate() -> date.toDateTime().withMillisOfDay(original.hideUntil.millisOfDay).millis
             else -> task.createHideUntil(HIDE_UNTIL_SPECIFIC_DAY, date)
         }
-        if (original != task.hideUntil) {
-            taskSaver.save(task)
+        if (original.hideUntil != task.hideUntil) {
+            taskSaver.save(task, original)
         }
     }
 
@@ -257,7 +261,6 @@ open class TaskAdapter(
                 top = newTasksOnTop
             )
         }
-        taskSaver.touch(listOf(task.id))
         if (BuildConfig.DEBUG) {
             googleTaskDao.validateSorting(list)
         }
@@ -270,10 +273,7 @@ open class TaskAdapter(
             calendar = list,
         )
         val newParentId = newParent?.id ?: 0
-        // Don't update remoteParent for Microsoft tasks — the sync code
-        // compares task.parent with remoteParent to detect hierarchy changes
-        // between Task and ChecklistItem API objects
-        if (task.accountType != TYPE_MICROSOFT) {
+        if (CaldavAccount.pushesRemoteParent(task.accountType)) {
             if (newParentId == 0L) {
                 caldavTask.remoteParent = ""
             } else {
@@ -290,20 +290,22 @@ open class TaskAdapter(
                     ?.takeIf { task.creationDate.toAppleEpoch() <= it }
                     ?.plus(1)
         }
-        if (caldavTask.id == 0L) {
-            caldavDao.insert(
-                CaldavTask(
-                    task = task.id,
-                    calendar = list,
-                    remoteParent = caldavTask.remoteParent,
+        taskDao.inTransaction {
+            if (caldavTask.id == 0L) {
+                caldavDao.insert(
+                    CaldavTask(
+                        task = task.id,
+                        calendar = list,
+                        remoteParent = caldavTask.remoteParent,
+                    )
                 )
-            )
-        } else {
-            caldavDao.update(caldavTask)
+            } else {
+                caldavDao.update(caldavTask)
+            }
+            taskDao.setOrder(task.id, task.task.order)
+            taskDao.setParent(newParentId, listOf(task.id))
+            dirtyDao.setDirty(listOf(task.id))
         }
-        taskDao.setOrder(task.id, task.task.order)
-        taskDao.setParent(newParentId, listOf(task.id))
-        taskSaver.touch(listOf(task.id))
         refreshBroadcaster.broadcastRefresh()
     }
 
@@ -382,7 +384,6 @@ open class TaskAdapter(
                     )
             }
         }
-        taskSaver.touch(listOf(task.id))
         refreshBroadcaster.broadcastRefresh()
         if (BuildConfig.DEBUG) {
             googleTaskDao.validateSorting(task.caldav!!)
@@ -414,7 +415,6 @@ open class TaskAdapter(
             newParent = newParent,
             newPosition = newPosition,
         )
-        taskSaver.touch(listOf(task.id))
         refreshBroadcaster.broadcastRefresh()
     }
 
@@ -428,9 +428,7 @@ open class TaskAdapter(
 
     private suspend fun changeCaldavParent(task: TaskContainer, newParent: Long) {
         val caldavTask = task.caldavTask ?: return
-        // Don't update remoteParent for Microsoft tasks — the sync code
-        // compares task.parent with remoteParent to detect hierarchy changes
-        val skipRemoteParentUpdate = task.accountType == TYPE_MICROSOFT
+        val skipRemoteParentUpdate = !CaldavAccount.pushesRemoteParent(task.accountType)
         if (newParent == 0L) {
             if (!skipRemoteParentUpdate) {
                 caldavTask.remoteParent = ""
@@ -444,14 +442,8 @@ open class TaskAdapter(
                     caldavDao.update(caldavTask.id, caldavTask.remoteParent)
                 }
             } else {
-                caldavDao.markDeleted(listOf(task.id))
-                caldavDao.insert(
-                    CaldavTask(
-                        task = task.id,
-                        calendar = parentTask.calendar,
-                        remoteParent = parentTask.remoteId,
-                    )
-                )
+                taskMover.move(task = task.id, listUuid = parentTask.calendar!!, newParent = newParent)
+                return
             }
         }
         task.parent = newParent

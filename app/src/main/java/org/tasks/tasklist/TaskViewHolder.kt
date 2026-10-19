@@ -19,12 +19,12 @@ import com.todoroo.astrid.core.SortHelper.SORT_START
 import com.todoroo.astrid.ui.CheckableImageView
 import androidx.core.graphics.ColorUtils
 import com.google.android.material.color.MaterialColors
-import kotlinx.coroutines.runBlocking
 import org.tasks.R
 import org.tasks.compose.chips.ChipGroup
 import org.tasks.compose.chips.FilterChip
 import org.tasks.compose.StartDateChip
 import org.tasks.compose.chips.SubtaskChip
+import org.tasks.data.INDENT_STEP_DP
 import org.tasks.data.TaskContainer
 import org.tasks.data.hasNotes
 import org.tasks.data.isHidden
@@ -36,7 +36,7 @@ import org.tasks.filters.CaldavFilter
 import org.tasks.filters.Filter
 import org.tasks.filters.PlaceFilter
 import org.tasks.filters.TagFilter
-import org.tasks.kmp.org.tasks.time.getRelativeDateTime
+import org.tasks.kmp.org.tasks.time.DateFormatter
 import org.tasks.kmp.formatTime
 import org.tasks.markdown.Markdown
 import org.tasks.preferences.Preferences
@@ -67,6 +67,7 @@ class TaskViewHolder internal constructor(
     private val linkify: Linkify,
     private val markdown: Markdown,
     private val theme: Theme,
+    private val dateFormatter: DateFormatter,
 ) : RecyclerView.ViewHolder(binding.root) {
     private val row: ViewGroup = binding.row
     private val dueDate: TextView = binding.dueDate.apply {
@@ -82,6 +83,7 @@ class TaskViewHolder internal constructor(
         setOnClickListener { onCompleteBoxClick() }
     }
     private val chipGroup: ComposeView = binding.chipGroup
+    private val debugDirty: View = binding.debugDirty
     private val alwaysDisplayFullDate: Boolean = preferences.alwaysDisplayFullDate
 
     lateinit var task: TaskContainer
@@ -145,12 +147,18 @@ class TaskViewHolder internal constructor(
     }
 
     val shiftSize: Float
-        get() = 20 * metrics.density
+        get() = INDENT_STEP_DP * metrics.density
 
     private fun getIndentSize(indent: Int) = (indent * shiftSize).roundToInt()
 
-    fun bindView(task: TaskContainer, filter: Filter, sortMode: Int) {
+    fun bindView(task: TaskContainer, filter: Filter, sortMode: Int, isDirty: Boolean = false, dirtyColor: Int = 0) {
         this.task = task
+        if (isDirty) {
+            debugDirty.setBackgroundColor(dirtyColor)
+            debugDirty.visibility = View.VISIBLE
+        } else {
+            debugDirty.visibility = View.GONE
+        }
         indent = task.indent
         markdown.setMarkdown(nameView, task.title)
         setupTitleAndCheckbox()
@@ -165,6 +173,10 @@ class TaskViewHolder internal constructor(
             description.visibility = if (task.task.hasNotes()) View.VISIBLE else View.GONE
         }
         if (markdown.enabled || preferences.getBoolean(R.string.p_linkify_task_list, false)) {
+            if (!markdown.enabled) {
+                Linkify.safeLinkify(nameView)
+                Linkify.safeLinkify(description)
+            }
             linkify.setMovementMethod(
                 nameView,
                 linkClickHandler = { url -> callback.onLinkClicked(this, url) },
@@ -175,10 +187,6 @@ class TaskViewHolder internal constructor(
                 linkClickHandler = { url -> callback.onLinkClicked(this, url) },
                 rowClickHandler = { callback.onClick(this) }
             )
-            if (!markdown.enabled) {
-                Linkify.safeLinkify(nameView)
-                Linkify.safeLinkify(description)
-            }
             nameView.setOnLongClickListener { callback.onLongPress(this) }
             description.setOnLongClickListener { callback.onLongPress(this) }
         }
@@ -222,16 +230,13 @@ class TaskViewHolder internal constructor(
                     && (task.sortGroup ?: 0) >= currentTimeMillis().startOfDay()
             ) {
                 task.takeIf { it.hasDueTime() }?.let {
-                    formatTime(task.dueDate, context.is24HourFormat)
+                    dateFormatter.time(task.dueDate)
                 }
             } else {
-                runBlocking {
-                    getRelativeDateTime(
-                        task.dueDate,
-                        context.is24HourFormat,
-                        alwaysDisplayFullDate = alwaysDisplayFullDate
-                    )
-                }
+                dateFormatter.relativeDateTime(
+                    task.dueDate,
+                    alwaysDisplayFullDate = alwaysDisplayFullDate
+                )
             }
             dueDate.text = dateValue
             dueDate.visibility = View.VISIBLE
@@ -243,6 +248,7 @@ class TaskViewHolder internal constructor(
     private fun setupChips(filter: Filter, sortByStartDate: Boolean, sortByList: Boolean) {
         val id = task.id
         val children = task.children
+        val chipCount = task.chipCount
         val collapsed = task.isCollapsed
         val isHidden = task.task.isHidden
         val sortGroup = task.sortGroup
@@ -269,8 +275,7 @@ class TaskViewHolder internal constructor(
                     if (children > 0 && remember { preferences.showSubtaskChip }) {
                         SubtaskChip(
                             collapsed = collapsed,
-                            children = children,
-                            compact = !showText,
+                            children = chipCount,
                             onClick = { toggleSubtasks(id, !collapsed) }
                         )
                     }
@@ -286,6 +291,7 @@ class TaskViewHolder internal constructor(
                             compact = !showText,
                             timeOnly = sortByStartDate,
                             colorProvider = { chipProvider.getColor(it) },
+                            dateFormatter = dateFormatter,
                         )
                     }
                     if (place != null && filter !is PlaceFilter && remember { preferences.showPlaceChip }) {
@@ -319,7 +325,7 @@ class TaskViewHolder internal constructor(
                         }
                     }
                     if (!tagsString.isNullOrBlank() && remember { preferences.showTagChip }) {
-                        remember(tagsString, filter) {
+                        remember(tagsString, filter, chipProvider.lists.tagsVersion) {
                             val tags = tagsString.split(",").toHashSet()
                             if (filter is TagFilter) {
                                 tags.remove(filter.uuid)

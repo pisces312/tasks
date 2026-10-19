@@ -1,10 +1,10 @@
 package org.tasks.data.entity
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import androidx.room3.ColumnInfo
+import androidx.room3.Entity
+import androidx.room3.ForeignKey
+import androidx.room3.Index
+import androidx.room3.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -45,11 +45,9 @@ data class CaldavTask(
     var remoteId: String? = UUIDHelper.newUUID(),
     @ColumnInfo(name = "cd_object")
     @SerialName("object")
-    var obj: String? = remoteId?.let { "$it.ics" },
+    var obj: String? = remoteId?.let { objectName(it) },
     @ColumnInfo(name = "cd_etag")
     var etag: String? = null,
-    @ColumnInfo(name = "cd_last_sync")
-    var lastSync: Long = 0,
     @ColumnInfo(name = "cd_deleted")
     var deleted: Long = 0,
     @ColumnInfo(name = "cd_remote_parent")
@@ -68,5 +66,7 @@ data class CaldavTask(
         val TASK = TABLE.column("cd_task")
         val DELETED = TABLE.column("cd_deleted")
         val CALENDAR = TABLE.column("cd_calendar")
+
+        fun objectName(uid: String) = "$uid.ics"
     }
 }

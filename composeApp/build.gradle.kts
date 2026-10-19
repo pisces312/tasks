@@ -2,10 +2,6 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-version = libs.versions.versionName.get().let {
-    if (it.count { c -> c == '.' } < 2) "$it.0" else it
-}
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.application)
@@ -15,6 +11,10 @@ plugins {
     id("com.google.gms.google-services")
     id("dev.hydraulic.conveyor") version "2.0"
 }
+
+val appVersionCode: Int by extra
+val appVersionName: String by extra
+version = appVersionName.let { if (it.count { c -> c == '.' } < 2) "$it.0" else it }
 
 kotlin {
     applyDefaultHierarchyTemplate()
@@ -26,40 +26,52 @@ kotlin {
         }
     }
 
-    jvm("desktop")
+    jvm("desktop") {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.fromTarget(libs.versions.jdk.get()))
+        }
+    }
 
-    // iOS requires adding iOS targets to data and kmp modules first
-    // listOf(
-    //     iosX64(),
-    //     iosArm64(),
-    //     iosSimulatorArm64(),
-    // ).forEach { iosTarget ->
-    //     iosTarget.binaries.framework {
-    //         baseName = "ComposeApp"
-    //         isStatic = true
-    //     }
-    // }
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64(),
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
 
     sourceSets {
         val desktopMain by getting
         val desktopTest by getting
+        val jvmCommonMain by creating {
+            dependsOn(commonMain.get())
+        }
+        androidMain.get().dependsOn(jvmCommonMain)
+        desktopMain.dependsOn(jvmCommonMain)
 
         desktopTest.dependencies {
             implementation(libs.junit)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
             implementation(libs.mockito.kotlin)
+            implementation(libs.okhttp.mockwebserver)
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
+            implementation(compose.desktop.currentOs)
+            implementation(project(path = ":kmp", configuration = "jvmTestOutput"))
         }
 
         commonMain.dependencies {
             implementation(projects.data)
             implementation(projects.kmp)
-            implementation(libs.androidx.room)
+            implementation(libs.androidx.room3)
             implementation(libs.androidx.sqlite)
             implementation(libs.androidx.datastore)
             implementation(compose.components.resources)
             implementation(compose.foundation)
-            implementation("androidx.compose.material3:material3:1.5.0-alpha15")
-            implementation(compose.materialIconsExtended)
+            implementation(libs.jetbrains.material3)
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -73,9 +85,11 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.markdown.renderer.m3)
-            implementation("org.jetbrains.compose.material3.adaptive:adaptive:1.1.2")
-            implementation("org.jetbrains.compose.material3.adaptive:adaptive-layout:1.1.2")
-            implementation("org.jetbrains.compose.material3.adaptive:adaptive-navigation:1.1.2")
+            implementation(libs.reorderable)
+            implementation(libs.jetbrains.adaptive)
+            implementation(libs.jetbrains.adaptive.layout)
+            implementation(libs.jetbrains.adaptive.navigation)
+            implementation(libs.jetbrains.adaptive.navigation3)
         }
         androidMain.dependencies {
             implementation(compose.preview)
@@ -83,11 +97,22 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.androidx.browser)
         }
+        iosMain.dependencies {
+            implementation(libs.crashkios.crashlytics)
+            implementation(libs.kermit.crashlytics)
+        }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.mcp.kotlin.sdk)
+            implementation(libs.ktor.server.core)
+            implementation(libs.ktor.server.cio)
+            implementation(libs.ktor.server.sse)
             implementation(libs.java.keyring)
             implementation(libs.posthog)
+            implementation(libs.nucleus.notification.linux)
+            implementation(libs.nucleus.notification.macos)
+            implementation(libs.nucleus.notification.windows)
         }
     }
 }
@@ -102,12 +127,13 @@ android {
         applicationId = "org.tasks"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = libs.versions.versionCode.get().toInt()
-        versionName = libs.versions.versionName.get()
+        versionCode = appVersionCode
+        versionName = appVersionName
+        resValue("string", "opentasks_authority", "$applicationId.opentasks")
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "META-INF/INDEX.LIST", "META-INF/DEPENDENCIES")
         }
     }
     flavorDimensions += "store"
@@ -133,6 +159,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        resValues = true
     }
     dependencies {
         coreLibraryDesugaring(libs.desugar.jdk.libs)
@@ -150,8 +177,42 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "tasks-org"
-            packageVersion = libs.versions.versionName.get().let {
-                if (it.count { c -> c == '.' } < 2) "$it.0" else it
+            packageVersion = version.toString()
+
+            modules(
+                "java.compiler",
+                "java.management",
+                "java.naming",
+                "java.security.jgss",
+                "java.sql",
+                "jdk.accessibility",
+                "jdk.httpserver",
+                "jdk.localedata",
+                "jdk.net",
+                "jdk.security.auth",
+                "jdk.unsupported",
+                "jdk.zipfs",
+            )
+        }
+    }
+}
+
+val sqliteNatives = providers.gradleProperty("sqliteNatives")
+    .map { layout.projectDirectory.dir(it) }
+
+kotlin.sourceSets.named("desktopMain") {
+    sqliteNatives.orNull?.let { resources.srcDir(it) }
+}
+
+if (providers.gradleProperty("release").isPresent) {
+    val libs = sqliteNatives.map { dir ->
+        listOf("windows_arm64/sqliteJni.dll", "osx_x64/libsqliteJni.dylib")
+            .map { dir.file("natives/$it").asFile }
+    }
+    tasks.named("desktopProcessResources") {
+        doFirst {
+            check(libs.orNull?.all { it.isFile } == true) {
+                "Release builds need -PsqliteNatives=<dir from build-sqlite-natives.sh>"
             }
         }
     }
@@ -160,7 +221,9 @@ compose.desktop {
 // Conveyor platform-specific Compose runtime dependencies
 dependencies {
     "linuxAmd64"(compose.desktop.linux_x64)
+    "linuxAarch64"(compose.desktop.linux_arm64)
     "macAmd64"(compose.desktop.macos_x64)
     "macAarch64"(compose.desktop.macos_arm64)
     "windowsAmd64"(compose.desktop.windows_x64)
+    "windowsAarch64"(compose.desktop.windows_arm64)
 }

@@ -9,6 +9,7 @@ import android.net.Uri
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.dmfs.provider.tasks.AuthorityUtil
 import org.dmfs.tasks.contract.TaskContract.CommonSyncColumns
 import org.dmfs.tasks.contract.TaskContract.LOAD_PROPERTIES
 import org.dmfs.tasks.contract.TaskContract.Properties
@@ -21,6 +22,7 @@ import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_OPENTASKS
 import org.tasks.data.entity.CaldavAccount.Companion.openTaskType
 import org.tasks.data.entity.CaldavCalendar
+import org.tasks.data.entity.OpenTaskProvider
 import java.util.UUID
 
 open class OpenTaskDao(
@@ -28,14 +30,15 @@ open class OpenTaskDao(
         private val caldavDao: CaldavDao,
 ) {
     protected val cr: ContentResolver = context.contentResolver
-    val authority: String = context.getString(org.tasks.kmp.R.string.opentasks_authority)
+    val authority: String = AuthorityUtil.taskAuthority(context)
     val tasks: Uri = Tasks.getContentUri(authority)
     val taskLists: Uri = TaskLists.getContentUri(authority)
     val properties: Uri = Properties.getContentUri(authority)
 
     suspend fun shouldSync() =
-        caldavDao.getAccounts(TYPE_OPENTASKS).isNotEmpty() ||
-                getListsByAccount().filterActive(caldavDao).isNotEmpty()
+        caldavDao.getAccounts(TYPE_OPENTASKS).isNotEmpty() || hasActiveLists()
+
+    suspend fun hasActiveLists() = getListsByAccount().filterActive(caldavDao).isNotEmpty()
 
     suspend fun getListsByAccount(): Map<String, List<CaldavCalendar>> =
             getLists().groupBy { it.account!! }
@@ -45,7 +48,7 @@ open class OpenTaskDao(
         cr.query(
                 taskLists,
                 null,
-                "${TaskListColumns.SYNC_ENABLED}=1 AND ($SUPPORTED_TYPE_FILTER)",
+                "${TaskListColumns.SYNC_ENABLED}=1 AND (${OpenTaskProvider.SUPPORTED_TYPE_FILTER})",
                 null,
                 null)?.use {
             while (it.moveToNext()) {
@@ -79,13 +82,19 @@ open class OpenTaskDao(
         val items = ArrayList<Triple<String, String?, String>>()
         cr.query(
                 tasks,
-                arrayOf(Tasks._UID, Tasks.SYNC1, "version"),
+                arrayOf(Tasks._ID, Tasks._UID, Tasks.SYNC1, "version"),
                 "${Tasks.LIST_ID} = $listId",
                 null,
                 null)?.use {
             while (it.moveToNext()) {
+                val uid = it.getString(Tasks._UID)
+                if (uid.isNullOrBlank()) {
+                    val id = it.getLong(Tasks._ID)
+                    Logger.w("OpenTaskDao") { "Skipping task $id in list $listId: no ${Tasks._UID}" }
+                    continue
+                }
                 items.add(Triple(
-                        it.getString(Tasks._UID)!!,
+                        uid,
                         it.getString(Tasks.SYNC1),
                         it.getLong("version").toString()))
             }
@@ -95,9 +104,7 @@ open class OpenTaskDao(
 
     fun delete(listId: Long, uid: String): ContentProviderOperation =
             newDelete(tasks)
-                    .withSelection(
-                            "${Tasks.LIST_ID} = $listId AND ${Tasks._UID} = '$uid'",
-                            null)
+                    .withSelection(TASK_BY_UID, taskByUidArgs(listId, uid))
                     .build()
 
 
@@ -111,8 +118,8 @@ open class OpenTaskDao(
         cr.query(
                 tasks.buildUpon().appendQueryParameter(LOAD_PROPERTIES, "1").build(),
                 null,
-                "${Tasks.LIST_ID} = $listId AND ${Tasks._UID} = '$uid'",
-                null,
+                TASK_BY_UID,
+                taskByUidArgs(listId, uid),
                 null)?.use {
             if (it.moveToFirst()) {
                 MyAndroidTask(it)
@@ -124,13 +131,11 @@ open class OpenTaskDao(
 
     companion object {
         private const val OPENTASK_BATCH_LIMIT = 499
-        val SUPPORTED_TYPES = setOf(
-                CaldavAccount.ACCOUNT_TYPE_DAVX5,
-                CaldavAccount.ACCOUNT_TYPE_DAVX5_MANAGED,
-                CaldavAccount.ACCOUNT_TYPE_ETESYNC,
-                CaldavAccount.ACCOUNT_TYPE_DECSYNC
-        )
-        val SUPPORTED_TYPE_FILTER = SUPPORTED_TYPES.joinToString(" OR ") { "ACCOUNT_TYPE = '$it'" }
+        private val TASK_BY_UID = "${Tasks.LIST_ID} = ? AND ${Tasks._UID} = ?"
+
+        private fun taskByUidArgs(listId: Long, uid: String) =
+                arrayOf(listId.toString(), uid)
+        val SUPPORTED_TYPES = OpenTaskProvider.SUPPORTED_TYPES
 
         suspend fun Map<String, List<CaldavCalendar>>.filterActive(caldavDao: CaldavDao) =
                 filterNot { (_, lists) -> caldavDao.anyExist(lists.map { it.url!! }) }

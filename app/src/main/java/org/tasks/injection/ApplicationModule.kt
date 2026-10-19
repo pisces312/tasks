@@ -16,13 +16,13 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.runBlocking
 import org.tasks.LocalBroadcastManager
 import com.todoroo.astrid.gcal.GCalHelper
 import com.todoroo.astrid.repeats.RepeatTaskHelper
 import org.tasks.analytics.Firebase
 import org.tasks.audio.SoundPlayer
 import org.tasks.calendars.CalendarHelper
+import org.tasks.filters.CaldavListCache
 import org.tasks.service.TaskCompleter
 import org.tasks.billing.PurchaseState
 import org.tasks.viewmodel.DrawerViewModel
@@ -41,11 +41,13 @@ import org.tasks.etebase.EtebaseSynchronizer
 import org.tasks.caldav.TasksBasicAuth
 import org.tasks.feed.BlogFeedChecker
 import org.tasks.http.HttpClientFactory
+import org.tasks.http.OkHttpKtorClientFactory
 import org.tasks.caldav.FileStorage
 import org.tasks.analytics.Analytics
 import org.tasks.analytics.CrashReporting
 import org.tasks.caldav.TasksAccountDataRepository
 import org.tasks.caldav.VtodoCache
+import org.tasks.caldav.metadata.TagMetadataSync
 import org.tasks.compose.drawer.DrawerConfiguration
 import org.tasks.R
 import org.tasks.data.OpenTaskDao
@@ -57,6 +59,7 @@ import org.tasks.data.dao.Astrid2ContentProviderDao
 import org.tasks.data.dao.CaldavDao
 import org.tasks.data.dao.CompletionDao
 import org.tasks.data.dao.DeletionDao
+import org.tasks.data.dao.DirtyDao
 import org.tasks.data.dao.FilterDao
 import org.tasks.data.dao.GoogleTaskDao
 import org.tasks.data.dao.LocationDao
@@ -68,6 +71,7 @@ import org.tasks.data.dao.TaskDao
 import org.tasks.data.dao.TaskListMetadataDao
 import org.tasks.data.dao.UserActivityDao
 import org.tasks.data.db.Database
+import org.tasks.filters.FilterPreferenceCodec
 import org.tasks.filters.FilterProvider
 import org.tasks.filters.PreferenceDrawerConfiguration
 import org.tasks.jobs.BackgroundWork
@@ -82,6 +86,7 @@ import org.tasks.preferences.AppPreferences
 import org.tasks.preferences.Preferences
 import org.tasks.preferences.TasksPreferences
 import org.tasks.reminders.Random
+import org.tasks.repeats.RepeatRuleToString
 import org.tasks.security.AndroidKeyStoreEncryption
 import org.tasks.security.KeyStoreEncryption
 import org.tasks.service.TaskCleanup
@@ -93,6 +98,8 @@ import org.tasks.compose.chips.ChipDataProvider
 import org.tasks.tasklist.HeaderFormatter
 import org.tasks.watch.WatchServiceLogic
 import com.todoroo.astrid.service.TaskCreator
+import org.tasks.sync.microsoft.MicrosoftClientProvider
+import org.tasks.sync.microsoft.MicrosoftSynchronizer
 import kotlinx.serialization.json.Json
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -126,6 +133,13 @@ class ApplicationModule {
     @Provides
     @Singleton
     fun getCrashReporting(reporting: Reporting): CrashReporting = reporting
+
+    @Provides
+    fun getRepeatRuleToString(locale: Locale, crashReporting: CrashReporting) =
+        RepeatRuleToString(
+            crashReporting = crashReporting,
+            languageTag = locale.toLanguageTag(),
+        )
 
     @Provides
     @Singleton
@@ -177,11 +191,19 @@ class ApplicationModule {
 
     @Provides
     @Singleton
+    fun getDirtyDao(db: Database): DirtyDao = db.dirtyDao()
+
+    @Provides
+    @Singleton
     fun getDeletionDao(db: Database): DeletionDao = db.deletionDao()
 
     @Provides
     @Singleton
     fun getContentProviderDao(db: Database): Astrid2ContentProviderDao = db.contentProviderDao()
+
+    @Provides
+    @Singleton
+    fun getApiDao(db: Database): org.tasks.data.dao.ApiDao = db.apiDao()
 
     @Provides
     @Singleton
@@ -235,6 +257,7 @@ class ApplicationModule {
         locationDao: LocationDao,
         taskDao: TaskDao,
         tasksPreferences: TasksPreferences,
+        purchaseState: PurchaseState,
     ) = FilterProvider(
         filterDao = filterDao,
         tagDataDao = tagDataDao,
@@ -243,6 +266,7 @@ class ApplicationModule {
         locationDao = locationDao,
         taskDao = taskDao,
         tasksPreferences = tasksPreferences,
+        purchaseState = purchaseState,
     )
 
     @Provides
@@ -257,6 +281,16 @@ class ApplicationModule {
 
     @Provides
     @Singleton
+    fun providesTagMetadataSync(
+        caldavDao: CaldavDao,
+        tagDataDao: org.tasks.data.dao.TagDataDao,
+        provider: org.tasks.caldav.CaldavClientProvider,
+        vtodoCache: VtodoCache,
+        tasksPreferences: TasksPreferences,
+    ) = TagMetadataSync(caldavDao, tagDataDao, provider, vtodoCache, tasksPreferences)
+
+    @Provides
+    @Singleton
     fun providesKeyStoreEncryption(): KeyStoreEncryption = AndroidKeyStoreEncryption()
 
     @Provides
@@ -266,6 +300,20 @@ class ApplicationModule {
     @Provides
     @Singleton
     fun providesComposeRefreshBroadcaster() = ComposeRefreshBroadcaster()
+
+    @Provides
+    @Singleton
+    fun providesFilterPreferenceCodec(
+        filterDao: FilterDao,
+        tagDataDao: TagDataDao,
+        caldavDao: CaldavDao,
+        locationDao: LocationDao,
+    ) = FilterPreferenceCodec(
+        filterDao = filterDao,
+        tagDataDao = tagDataDao,
+        caldavDao = caldavDao,
+        locationDao = locationDao,
+    )
 
     @Provides
     fun providesPurchaseState(inventory: Inventory): PurchaseState = inventory
@@ -324,6 +372,7 @@ class ApplicationModule {
     @Provides
     fun providesEtebaseSynchronizer(
         caldavDao: CaldavDao,
+        dirtyDao: DirtyDao,
         refreshBroadcaster: RefreshBroadcaster,
         taskDeleter: TaskDeleter,
         clientProvider: EtebaseClientProvider,
@@ -332,6 +381,7 @@ class ApplicationModule {
         reporting: Reporting,
     ): EtebaseSynchronizer = EtebaseSynchronizer(
         caldavDao = caldavDao,
+        dirtyDao = dirtyDao,
         refreshBroadcaster = refreshBroadcaster,
         taskDeleter = taskDeleter,
         clientProvider = clientProvider,
@@ -367,7 +417,7 @@ class ApplicationModule {
         caldavDao: CaldavDao,
         taskDeleter: TaskDeleter,
         refreshBroadcaster: RefreshBroadcaster,
-        taskDao: TaskDao,
+        dirtyDao: DirtyDao,
         reporting: Reporting,
         iCal: org.tasks.caldav.iCalendar,
         openTaskDao: OpenTaskDao,
@@ -375,7 +425,7 @@ class ApplicationModule {
         caldavDao = caldavDao,
         taskDeleter = taskDeleter,
         refreshBroadcaster = refreshBroadcaster,
-        taskDao = taskDao,
+        dirtyDao = dirtyDao,
         reporting = reporting,
         iCalendar = iCal,
         openTaskDao = openTaskDao,
@@ -404,7 +454,7 @@ class ApplicationModule {
         encryption = encryption,
         tasksPreferences = tasksPreferences,
         environment = environment,
-        httpClientFactory = httpClientFactory,
+        httpClientFactory = OkHttpKtorClientFactory(httpClientFactory),
         tokenProvider = tokenProvider,
         subscriptionProvider = {
             inventory.subscription.value?.let {
@@ -424,19 +474,20 @@ class ApplicationModule {
         preferences
 
     @Provides
-    fun providesAlarmCalculator(preferences: AppPreferences): AlarmCalculator =
-        AlarmCalculator(Random(), runBlocking { preferences.defaultDueTime() })
+    fun providesAlarmCalculator(): AlarmCalculator =
+        AlarmCalculator(Random())
 
     @Provides
     fun providesAlarmService(
         alarmDao: AlarmDao,
         taskDao: TaskDao,
+        dirtyDao: DirtyDao,
         refreshBroadcaster: RefreshBroadcaster,
         notifier: Notifier,
         alarmCalculator: AlarmCalculator,
         preferences: AppPreferences,
     ): AlarmService =
-        AlarmService(alarmDao, taskDao, refreshBroadcaster, notifier, alarmCalculator, preferences)
+        AlarmService(alarmDao, taskDao, dirtyDao, refreshBroadcaster, notifier, alarmCalculator, preferences)
 
     @Provides
     @Singleton
@@ -452,6 +503,25 @@ class ApplicationModule {
     ) = BlogFeedChecker(httpClientFactory, tasksPreferences, appPreferences, crashReporting)
 
     @Provides
+    fun providesTaskMover(
+        taskDao: TaskDao,
+        caldavDao: CaldavDao,
+        googleTaskDao: GoogleTaskDao,
+        dirtyDao: DirtyDao,
+        preferences: Preferences,
+        refreshBroadcaster: RefreshBroadcaster,
+        taskDeleter: TaskDeleter,
+    ) = org.tasks.data.TaskMover(
+        taskDao = taskDao,
+        caldavDao = caldavDao,
+        googleTaskDao = googleTaskDao,
+        dirtyDao = dirtyDao,
+        appPreferences = preferences,
+        refreshBroadcaster = refreshBroadcaster,
+        taskDeleter = taskDeleter,
+    )
+
+    @Provides
     @Singleton
     fun providesTaskSaver(
         taskDao: TaskDao,
@@ -459,9 +529,9 @@ class ApplicationModule {
         notifier: Notifier,
         locationService: LocationService,
         timerPlugin: TimerPlugin,
-        syncAdapters: SyncAdapters,
         backgroundWork: BackgroundWork,
-    ) = TaskSaver(taskDao, refreshBroadcaster, notifier, locationService, timerPlugin, syncAdapters, backgroundWork)
+        caldavDao: CaldavDao,
+    ) = TaskSaver(taskDao, refreshBroadcaster, notifier, locationService, timerPlugin, backgroundWork, caldavDao)
 
     @Provides
     fun providesTimerPlugin(
@@ -472,7 +542,7 @@ class ApplicationModule {
     @Provides
     fun providesCaldavSynchronizer(
         caldavDao: CaldavDao,
-        taskDao: TaskDao,
+        dirtyDao: DirtyDao,
         refreshBroadcaster: RefreshBroadcaster,
         taskDeleter: org.tasks.service.TaskDeleter,
         reporting: org.tasks.analytics.Reporting,
@@ -481,9 +551,48 @@ class ApplicationModule {
         principalDao: org.tasks.data.dao.PrincipalDao,
         vtodoCache: VtodoCache,
         accountDataRepository: org.tasks.caldav.TasksAccountDataRepository,
+        tagMetadataSync: TagMetadataSync,
     ) = org.tasks.caldav.CaldavSynchronizer(
-        caldavDao, taskDao, refreshBroadcaster, taskDeleter, reporting,
-        provider, iCal, principalDao, vtodoCache, accountDataRepository,
+        caldavDao, dirtyDao, refreshBroadcaster, taskDeleter, reporting,
+        provider, iCal, principalDao, vtodoCache, accountDataRepository, tagMetadataSync,
+    )
+
+    @Provides
+    fun providesMicrosoftClientProvider(
+        httpClientFactory: HttpClientFactory,
+    ): MicrosoftClientProvider = httpClientFactory
+
+    @Provides
+    fun providesMicrosoftSynchronizer(
+        caldavDao: CaldavDao,
+        taskDao: TaskDao,
+        dirtyDao: DirtyDao,
+        taskSaver: TaskSaver,
+        refreshBroadcaster: RefreshBroadcaster,
+        taskDeleter: TaskDeleter,
+        reporting: Reporting,
+        clientProvider: MicrosoftClientProvider,
+        tagDao: TagDao,
+        tagDataDao: TagDataDao,
+        appPreferences: AppPreferences,
+        vtodoCache: VtodoCache,
+        taskCreator: TaskCreator,
+        defaultFilterProvider: DefaultFilterProvider,
+    ): MicrosoftSynchronizer = MicrosoftSynchronizer(
+        caldavDao = caldavDao,
+        taskDao = taskDao,
+        dirtyDao = dirtyDao,
+        taskSaver = taskSaver,
+        refreshBroadcaster = refreshBroadcaster,
+        taskDeleter = taskDeleter,
+        reporting = reporting,
+        clientProvider = clientProvider,
+        tagDao = tagDao,
+        tagDataDao = tagDataDao,
+        appPreferences = appPreferences,
+        vtodoCache = vtodoCache,
+        createTask = { taskCreator.createWithValues("") },
+        setDefaultList = { defaultFilterProvider.defaultList = it },
     )
 
     @Provides
@@ -495,6 +604,7 @@ class ApplicationModule {
         locationService: LocationService,
         tagDao: TagDao,
         taskDao: TaskDao,
+        dirtyDao: DirtyDao,
         taskSaver: TaskSaver,
         caldavDao: CaldavDao,
         alarmDao: AlarmDao,
@@ -503,7 +613,7 @@ class ApplicationModule {
         notifier: Notifier,
     ) = org.tasks.caldav.iCalendar(
         tagDataDao, preferences, locationDao, geocoder, locationService,
-        tagDao, taskDao, taskSaver, caldavDao, alarmDao, alarmService, vtodoCache, notifier,
+        tagDao, taskDao, dirtyDao, taskSaver, caldavDao, alarmDao, alarmService, vtodoCache, notifier,
     )
 
     @Provides
@@ -511,15 +621,15 @@ class ApplicationModule {
     fun providesSyncAdapters(
         backgroundWork: BackgroundWork,
         caldavDao: CaldavDao,
-        googleTaskDao: GoogleTaskDao,
+        dirtyDao: DirtyDao,
         openTaskDao: OpenTaskDao,
         tasksPreferences: TasksPreferences,
         refreshBroadcaster: RefreshBroadcaster,
     ) = SyncAdapters(
         backgroundWork = backgroundWork,
         caldavDao = caldavDao,
-        googleTaskDao = googleTaskDao,
-        openTaskSyncCheck = { openTaskDao.shouldSync() },
+        dirtyDao = dirtyDao,
+        openTaskListsActive = { openTaskDao.hasActiveLists() },
         tasksPreferences = tasksPreferences,
         refreshBroadcaster = refreshBroadcaster,
         coroutineContext = Executors.newSingleThreadExecutor().asCoroutineDispatcher(),
@@ -538,17 +648,81 @@ class ApplicationModule {
     ) = PushTokenManager(tokenProvider, caldavDao, caldavClientProvider, scope)
 
     @Provides
+    fun providesApiTaskFactory(impl: org.tasks.api.AppApiTaskFactory): org.tasks.api.ApiTaskFactory = impl
+
+    @Provides
+    @Singleton
+    fun providesApiQueryEngine(database: Database) = org.tasks.api.ApiQueryEngine(database)
+
+    @Provides
+    @Singleton
+    fun providesApiListManager(
+        caldavDao: CaldavDao,
+        taskDeleter: TaskDeleter,
+        caldavClientProvider: CaldavClientProvider,
+        etebaseClientProvider: EtebaseClientProvider,
+        microsoftClientProvider: MicrosoftClientProvider,
+        invokerFactory: org.tasks.googleapis.InvokerFactory,
+    ) = org.tasks.api.ApiListManager(
+        caldavDao = caldavDao,
+        taskDeleter = taskDeleter,
+        caldavClientProvider = caldavClientProvider,
+        etebaseClientProvider = etebaseClientProvider,
+        microsoftClientProvider = microsoftClientProvider,
+        gtasksInvoker = { invokerFactory.getGtasksInvoker(it.username!!) },
+    )
+
+    @Provides
+    @Singleton
+    fun providesApiWriter(
+        apiDao: org.tasks.data.dao.ApiDao,
+        taskDao: TaskDao,
+        caldavDao: CaldavDao,
+        tagDao: TagDao,
+        tagDataDao: TagDataDao,
+        alarmDao: AlarmDao,
+        locationDao: LocationDao,
+        taskFactory: org.tasks.api.ApiTaskFactory,
+        taskSaver: TaskSaver,
+        taskCompleter: TaskCompleter,
+        taskMover: org.tasks.data.TaskMover,
+        taskDeleter: TaskDeleter,
+        alarmService: AlarmService,
+        locationService: LocationService,
+        listManager: org.tasks.api.ApiListManager,
+        tagMetadataSync: TagMetadataSync,
+    ) = org.tasks.api.ApiWriter(
+        apiDao = apiDao,
+        taskDao = taskDao,
+        caldavDao = caldavDao,
+        tagDao = tagDao,
+        tagDataDao = tagDataDao,
+        alarmDao = alarmDao,
+        locationDao = locationDao,
+        taskFactory = taskFactory,
+        taskSaver = taskSaver,
+        taskCompleter = taskCompleter,
+        taskMover = taskMover,
+        taskDeleter = taskDeleter,
+        alarmService = alarmService,
+        locationService = locationService,
+        listManager = listManager,
+        tagMetadataEditor = tagMetadataSync,
+    )
+
+    @Provides
     fun providesTaskCleanup(impl: AndroidCleanup): TaskCleanup = impl
 
     @Provides
     fun providesTaskDeleter(
         deletionDao: DeletionDao,
         taskDao: TaskDao,
+        caldavDao: CaldavDao,
         refreshBroadcaster: RefreshBroadcaster,
         vtodoCache: VtodoCache,
         tasksPreferences: TasksPreferences,
         taskCleanup: TaskCleanup,
-    ) = TaskDeleter(deletionDao, taskDao, refreshBroadcaster, vtodoCache, tasksPreferences, taskCleanup)
+    ) = TaskDeleter(deletionDao, taskDao, caldavDao, refreshBroadcaster, vtodoCache, tasksPreferences, taskCleanup)
 
     @Provides
     fun providesTaskMigrator(
@@ -581,15 +755,19 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun providesHeaderFormatter(caldavDao: CaldavDao) = HeaderFormatter(caldavDao)
+    fun providesCaldavListCache(caldavDao: CaldavDao) = CaldavListCache(caldavDao)
+
+    @Provides
+    @Singleton
+    fun providesHeaderFormatter(caldavLists: CaldavListCache) = HeaderFormatter(caldavLists)
 
     @Provides
     @Singleton
     fun providesChipDataProvider(
-        caldavDao: CaldavDao,
+        caldavLists: CaldavListCache,
         tagDataDao: TagDataDao,
         refreshBroadcaster: RefreshBroadcaster,
-    ) = ChipDataProvider(caldavDao, tagDataDao, refreshBroadcaster)
+    ) = ChipDataProvider(caldavLists, tagDataDao, refreshBroadcaster)
 
     @Provides
     fun providesWatchServiceLogic(

@@ -20,7 +20,7 @@ import org.tasks.extensions.Context.is24HourFormat
 import org.tasks.extensions.jsonString
 import org.tasks.extensions.lenientJson
 import org.tasks.files.FileHelper
-import org.tasks.kmp.org.tasks.time.getFullDateTime
+import org.tasks.kmp.org.tasks.time.DateFormatter
 import org.tasks.preferences.Preferences
 import org.tasks.preferences.PreferencesViewModel
 import org.tasks.time.DateTimeUtils2.currentTimeMillis
@@ -142,17 +142,17 @@ class BackupsViewModel @Inject constructor(
     }
 
     fun refreshLocalBackupSummary(timestamp: Long?, preferencesViewModel: PreferencesViewModel) {
-        lastBackupSummary = formatLastBackup(timestamp)
+        viewModelScope.launch { lastBackupSummary = formatLastBackup(timestamp) }
         showLocalBackupWarning = preferences.showBackupWarnings() && preferencesViewModel.staleLocalBackup
     }
 
     fun refreshDriveBackupSummary(timestamp: Long?, preferencesViewModel: PreferencesViewModel) {
-        lastDriveBackupSummary = formatLastBackup(timestamp)
+        viewModelScope.launch { lastDriveBackupSummary = formatLastBackup(timestamp) }
         showDriveBackupWarning = preferences.showBackupWarnings() && preferencesViewModel.staleRemoteBackup
     }
 
     fun refreshAndroidBackupSummary(timestamp: Long? = null, preferencesViewModel: PreferencesViewModel) {
-        lastAndroidBackupSummary = formatLastBackup(timestamp)
+        viewModelScope.launch { lastAndroidBackupSummary = formatLastBackup(timestamp) }
         showAndroidBackupWarning = preferences.showBackupWarnings() && preferencesViewModel.staleRemoteBackup
     }
 
@@ -312,10 +312,10 @@ class BackupsViewModel @Inject constructor(
         return dt.toString("yyyyMMdd'T'HHmm")
     }
 
-    private fun formatLastBackup(timestamp: Long?): String {
+    private suspend fun formatLastBackup(timestamp: Long?): String {
         val time = timestamp
             ?.takeIf { it >= 0 }
-            ?.let { getFullDateTime(it, context.is24HourFormat) }
+            ?.let { DateFormatter.create(context.is24HourFormat).fullDateTime(it) }
             ?: context.getString(R.string.last_backup_never)
         return context.getString(R.string.last_backup, time)
     }
@@ -336,7 +336,6 @@ class BackupsViewModel @Inject constructor(
             R.string.p_git_sync_last,
             R.string.p_last_viewed_list,
             R.string.p_debug_pro,
-            R.string.p_leakcanary,
             R.string.p_strict_mode_thread,
             R.string.p_strict_mode_vm,
             R.string.p_crash_main_queries,

@@ -5,9 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Help
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -37,6 +34,7 @@ import org.tasks.compose.FilterCondition.InputTextOption
 import org.tasks.compose.FilterCondition.NewCriterionFAB
 import org.tasks.compose.FilterCondition.SelectCriterionType
 import org.tasks.compose.FilterCondition.SelectFromList
+import org.tasks.compose.components.SymbolIcon
 import org.tasks.data.NO_ORDER
 import org.tasks.data.dao.FilterDao
 import org.tasks.data.dao.TaskDao.TaskCriteria.activeAndVisible
@@ -49,7 +47,7 @@ import org.tasks.filters.FilterCriteriaProvider
 import org.tasks.filters.mapToSerializedString
 import org.tasks.themes.TasksIcons
 import org.tasks.themes.TasksTheme
-import java.util.Locale
+import androidx.compose.ui.text.intl.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -177,13 +175,13 @@ class FilterSettingsActivity : BaseListSettingsActivity() {
                         IconButton(onClick = { help() }) {
                             // Cancel the mirroring of the help icon when the locale is Hebrew.
                             val modifier =
-                                if (Locale.getDefault().language == Locale.forLanguageTag("he").language) {
+                                if (Locale.current.language == "he") {
                                     Modifier.scale(scaleX = -1f, scaleY = 1f)
                                 } else {
                                     Modifier
                                 }
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.Help,
+                            SymbolIcon(
+                                name = TasksIcons.HELP,
                                 contentDescription = "",
                                 modifier = modifier,
                             )

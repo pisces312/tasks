@@ -8,6 +8,7 @@ import org.tasks.data.dao.TaskDao
 import org.tasks.data.fetchTasks
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.tasks.BuildConfig
+import org.tasks.caldav.metadata.TagMetadataSync
 import org.tasks.data.dao.CaldavDao
 import org.tasks.data.dao.FilterDao
 import org.tasks.data.dao.LocationDao
@@ -17,6 +18,7 @@ import org.tasks.filters.CustomFilter
 import org.tasks.filters.Filter
 import org.tasks.filters.PlaceFilter
 import org.tasks.filters.TagFilter
+import org.tasks.kmp.org.tasks.time.timePatternDiagnostics
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -30,6 +32,7 @@ class DiagnosticInfo @Inject constructor(
     private val tagDataDao: TagDataDao,
     private val locationDao: LocationDao,
     private val taskDao: TaskDao,
+    private val tagMetadataSync: TagMetadataSync,
 ) {
     private fun isDontKeepActivitiesEnabled(): Boolean? {
         return try {
@@ -52,6 +55,7 @@ class DiagnosticInfo @Inject constructor(
             Android: ${Build.VERSION.RELEASE} (${Build.DISPLAY})
             Locale: ${Locale.getDefault()}
             Timezone: ${java.util.TimeZone.getDefault().id}
+            Time pattern: ${timePatternDiagnostics()}
             Model: ${Build.MANUFACTURER} ${Build.MODEL}
             Product: ${Build.PRODUCT} (${Build.DEVICE})
             Kernel: ${System.getProperty("os.version")} (${Build.VERSION.INCREMENTAL})
@@ -88,6 +92,14 @@ class DiagnosticInfo @Inject constructor(
             val filter = TagFilter(tag)
             appendLine("$tag: ${getStats(filter)}")
         }
+
+        appendLine()
+        appendLine("=== Tag metadata ===")
+        append(try {
+            tagMetadataSync.diagnostics()
+        } catch (e: Exception) {
+            "$e\n"
+        })
 
         appendLine()
         appendLine("=== Places ===")

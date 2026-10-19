@@ -3,6 +3,8 @@ package org.tasks.compose
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource as composeStringResource
 import androidx.compose.ui.tooling.preview.Preview
 import org.tasks.BuildConfig
 import org.tasks.R
@@ -10,6 +12,13 @@ import org.tasks.TasksApplication
 import org.tasks.compose.components.AnimatedBanner
 import org.tasks.compose.components.Banner
 import org.tasks.themes.TasksTheme
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.davx5
+import tasks.kmp.generated.resources.enable_reminders
+import tasks.kmp.generated.resources.enable_reminders_description
+import tasks.kmp.generated.resources.subscription_required
+import tasks.kmp.generated.resources.tasks_org
+import tasks.kmp.generated.resources.upgrade
 
 @Composable
 fun NotificationsDisabledBanner(
@@ -17,8 +26,8 @@ fun NotificationsDisabledBanner(
     dismiss: () -> Unit,
 ) {
     Banner(
-        title = stringResource(id = R.string.enable_reminders),
-        body = stringResource(id = R.string.enable_reminders_description),
+        title = composeStringResource(Res.string.enable_reminders),
+        body = composeStringResource(Res.string.enable_reminders_description),
         dismissText = stringResource(id = R.string.dismiss),
         onDismiss = dismiss,
         action = stringResource(id = R.string.TLA_menu_settings),
@@ -44,21 +53,21 @@ fun AlarmsDisabledBanner(
 
 @Composable
 fun SubscriptionRequiredBanner(
-    nameRes: Int,
+    nameRes: StringResource,
     isTasksOrg: Boolean,
     subscribe: () -> Unit,
     dismiss: () -> Unit,
 ) {
     Banner(
-        title = stringResource(id = R.string.banner_subscription_required_title),
+        title = composeStringResource(Res.string.subscription_required),
         body = if (isTasksOrg) {
             stringResource(id = R.string.your_subscription_expired)
         } else {
-            stringResource(id = R.string.banner_subscription_required_body, stringResource(nameRes))
+            stringResource(id = R.string.banner_subscription_required_body, composeStringResource(nameRes))
         },
         dismissText = stringResource(id = R.string.dismiss),
         onDismiss = dismiss,
-        action = stringResource(id = R.string.button_subscribe),
+        action = composeStringResource(Res.string.upgrade),
         onAction = subscribe,
     )
 }
@@ -77,11 +86,11 @@ fun SubscriptionNagBanner(
         }),
         dismissText = stringResource(id = R.string.donate_maybe_later),
         onDismiss = dismiss,
-        action = stringResource(id = if (TasksApplication.IS_GENERIC) {
-            R.string.donate_today
+        action = if (TasksApplication.IS_GENERIC) {
+            stringResource(id = R.string.donate_today)
         } else {
-            R.string.button_subscribe
-        }),
+            composeStringResource(Res.string.upgrade)
+        },
         onAction = subscribe
     )
 }
@@ -188,7 +197,7 @@ private fun GoogleTasksWarningPreview() = TasksTheme {
 @Composable
 private fun SubscriptionRequiredDavx5Preview() = TasksTheme {
     SubscriptionRequiredBanner(
-        nameRes = R.string.davx5,
+        nameRes = Res.string.davx5,
         isTasksOrg = false,
         subscribe = {},
         dismiss = {},
@@ -200,7 +209,7 @@ private fun SubscriptionRequiredDavx5Preview() = TasksTheme {
 @Composable
 private fun SubscriptionRequiredTasksOrgPreview() = TasksTheme {
     SubscriptionRequiredBanner(
-        nameRes = R.string.tasks_org,
+        nameRes = Res.string.tasks_org,
         isTasksOrg = true,
         subscribe = {},
         dismiss = {},

@@ -12,6 +12,7 @@ import com.android.billingclient.api.BillingFlowParams.ProductDetailsParams
 import com.android.billingclient.api.BillingFlowParams.SubscriptionUpdateParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ConsumeParams
+import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.Purchase.PurchaseState
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
@@ -39,7 +40,11 @@ class BillingClientImpl(
     private val billingClient =
         newBuilder(context!!)
             .setListener(this)
-            .enablePendingPurchases()
+            .enablePendingPurchases(
+                PendingPurchasesParams.newBuilder()
+                    .enableOneTimeProducts()
+                    .build()
+            )
             .build()
     private var connected = false
     private var onPurchased: (() -> Unit)? = null
@@ -58,19 +63,19 @@ class BillingClientImpl(
 
             val productDetailsResult = withContext(Dispatchers.IO) {
                 suspendCoroutine { cont ->
-                    billingClient.queryProductDetailsAsync(params) { billingResult, productDetailsList ->
-                        cont.resume(billingResult to productDetailsList)
+                    billingClient.queryProductDetailsAsync(params) { billingResult, result ->
+                        cont.resume(billingResult to result)
                     }
                 }
             }
 
             productDetailsResult.first.let {
                 if (!it.success) {
-                    throw IllegalStateException(it.responseCodeString)
+                    throw it.asException
                 }
             }
 
-            productDetailsResult.second?.map { productDetails ->
+            productDetailsResult.second.productDetailsList.map { productDetails ->
                 Sku(
                     productId = productDetails.productId,
                     price = productDetails.subscriptionOfferDetails?.firstOrNull()?.pricingPhases?.pricingPhaseList?.maxByOrNull { it.priceAmountMicros }?.formattedPrice
@@ -78,7 +83,7 @@ class BillingClientImpl(
                         ?: productDetails.oneTimePurchaseOfferDetails?.formattedPrice
                         ?: ""
                 )
-            } ?: emptyList()
+            }
         }
 
     override suspend fun queryPurchases(throwError: Boolean) = try {
@@ -108,7 +113,10 @@ class BillingClientImpl(
                         add(subs.purchases + iaps.purchases)
                     }
                 } else {
-                    Timber.e("SUBS: ${subs.responseCodeString} IAPs: ${iaps.responseCodeString}")
+                    firebase.reportIabResult(
+                        "SUBS:${subs.responseCodeString} IAPs:${iaps.responseCodeString}",
+                        state = "QUERY_PURCHASES_FAILED",
+                    )
                 }
             }
         }
@@ -138,6 +146,12 @@ class BillingClientImpl(
                         it.orderId ?: "",
                     )
                 }
+        } else {
+            Timber.w("onPurchasesUpdated: ${result.responseCodeString}: ${result.debugMessage}")
+            firebase.reportIabResult(
+                result.responseCodeString,
+                state = "PURCHASE_UPDATED_FAILED",
+            )
         }
         workManager.updatePurchases()
     }
@@ -166,19 +180,19 @@ class BillingClientImpl(
 
             val productDetailsResult = withContext(Dispatchers.IO) {
                 suspendCoroutine { cont ->
-                    billingClient.queryProductDetailsAsync(queryParams) { billingResult, productDetailsList ->
-                        cont.resume(billingResult to productDetailsList)
+                    billingClient.queryProductDetailsAsync(queryParams) { billingResult, result ->
+                        cont.resume(billingResult to result)
                     }
                 }
             }
 
             productDetailsResult.first.let {
                 if (!it.success) {
-                    throw IllegalStateException(it.responseCodeString)
+                    throw it.asException
                 }
             }
 
-            val productDetails = productDetailsResult.second?.firstOrNull()
+            val productDetails = productDetailsResult.second.productDetailsList.firstOrNull()
                 ?: throw IllegalStateException("Product $sku not found")
 
             val productDetailsParamsBuilder = ProductDetailsParams.newBuilder()
@@ -206,7 +220,16 @@ class BillingClientImpl(
             }
 
             this@BillingClientImpl.onPurchased = onPurchased
-            billingClient.launchBillingFlow(activity, params.build())
+            Timber.d("launchBillingFlow: sku=$sku oldPurchase=${oldPurchase?.sku}")
+            val result = billingClient.launchBillingFlow(activity, params.build())
+            if (!result.success) {
+                firebase.reportIabResult(
+                    result.responseCodeString,
+                    sku,
+                    state = "LAUNCH_FAILED",
+                )
+                throw IllegalStateException(result.responseCodeString)
+            }
         }
     }
 
@@ -239,9 +262,7 @@ class BillingClientImpl(
                         } else {
                             connected = false
                             if (cont.isActive) {
-                                cont.resumeWithException(
-                                    IllegalStateException(result.responseCodeString)
-                                )
+                                cont.resumeWithException(result.asException)
                             }
                         }
                     }
@@ -294,6 +315,20 @@ class BillingClientImpl(
 
         private val BillingResult.success: Boolean
             get() = responseCode == BillingResponseCode.OK
+
+        private val unrecoverable = setOf(
+            BillingResponseCode.BILLING_UNAVAILABLE,
+            BillingResponseCode.FEATURE_NOT_SUPPORTED,
+            BillingResponseCode.DEVELOPER_ERROR,
+            BillingResponseCode.ITEM_UNAVAILABLE,
+        )
+
+        private val BillingResult.asException: IllegalStateException
+            get() = if (responseCode in unrecoverable) {
+                UnrecoverableBillingException(responseCodeString)
+            } else {
+                IllegalStateException(responseCodeString)
+            }
 
         val BillingResult.responseCodeString: String
             get() = when (responseCode) {

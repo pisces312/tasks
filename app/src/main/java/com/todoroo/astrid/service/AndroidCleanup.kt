@@ -11,16 +11,14 @@ import org.tasks.data.dao.UserActivityDao
 import org.tasks.data.pictureUri
 import org.tasks.files.FileHelper
 import org.tasks.location.LocationService
+import org.tasks.notifications.CancelReason
 import org.tasks.notifications.NotificationManager
 import org.tasks.service.TaskCleanup
-import org.tasks.sync.SyncAdapters
-import org.tasks.sync.SyncSource
 import javax.inject.Inject
 
 class AndroidCleanup @Inject constructor(
     @ApplicationContext private val context: Context,
     private val deletionDao: DeletionDao,
-    private val syncAdapters: SyncAdapters,
     private val notificationManager: NotificationManager,
     private val locationService: LocationService,
     private val userActivityDao: UserActivityDao,
@@ -31,7 +29,7 @@ class AndroidCleanup @Inject constructor(
         if (tasks.isEmpty()) {
             return
         }
-        notificationManager.cancel(tasks)
+        notificationManager.cancel(tasks, CancelReason.CLEANUP)
         tasks.forEach { task ->
             locationDao.getGeofencesForTask(task).forEach {
                 locationDao.delete(it)
@@ -48,9 +46,5 @@ class AndroidCleanup @Inject constructor(
                 deletionDao.purgeDeleted()
             }
         }
-    }
-
-    override suspend fun onMarkedDeleted() {
-        syncAdapters.sync(SyncSource.TASK_CHANGE)
     }
 }

@@ -1,5 +1,9 @@
 package org.tasks.compose.settings
 
+import org.tasks.themes.TasksIcons
+import org.tasks.compose.components.SymbolIcon
+import org.tasks.kmp.org.tasks.themes.ColorProvider as KmpColorProvider
+import org.tasks.themes.contentColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,8 +17,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -32,12 +34,25 @@ data class PickerColor(
     val isFree: Boolean,
 )
 
+fun buildPickerColors(isDark: Boolean): List<PickerColor> =
+    (KmpColorProvider.PRESET_COLORS + KmpColorProvider.WHITE).map { originalColor ->
+        val adjusted = KmpColorProvider.getColor(originalColor, isDark, adjust = true)
+        PickerColor(
+            originalColor = originalColor,
+            primaryColor = adjusted,
+            colorOnPrimary = contentColor(adjusted),
+            isFree = KmpColorProvider.isFreeColor(originalColor),
+        )
+    }
+
 @Composable
 fun ColorPicker(
     hasPro: Boolean,
     colors: List<PickerColor>,
     onSelected: (PickerColor) -> Unit,
+    onSubscribe: () -> Unit = {},
     onColorWheelSelected: () -> Unit = {},
+    showColorWheel: Boolean = true,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 48.dp),
@@ -46,17 +61,20 @@ fun ColorPicker(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        item {
-            ColorWheelCircle(
-                onClick = onColorWheelSelected,
-                hasPro = hasPro,
-            )
+        if (showColorWheel) {
+            item {
+                ColorWheelCircle(
+                    onClick = if (hasPro) onColorWheelSelected else onSubscribe,
+                    hasPro = hasPro,
+                )
+            }
         }
         items(colors) { color ->
+            val locked = !(hasPro || color.isFree)
             ColorCircle(
                 color = color,
-                locked = !(hasPro || color.isFree),
-                onClick = { onSelected(color) }
+                locked = locked,
+                onClick = { if (locked) onSubscribe() else onSelected(color) }
             )
         }
     }
@@ -127,8 +145,8 @@ private fun ColorWheelCircle(
 
 @Composable
 private fun LockIcon(tint: Color) {
-    Icon(
-        imageVector = Icons.Outlined.Lock,
+    SymbolIcon(
+        name = TasksIcons.LOCK,
         contentDescription = null,
         tint = tint,
         modifier = Modifier.size(24.dp)

@@ -1,5 +1,6 @@
 package org.tasks.compose.settings
 
+import org.tasks.themes.TasksIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,20 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.List
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Build
-import androidx.compose.material.icons.outlined.BugReport
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.SdStorage
-import androidx.compose.material.icons.outlined.Menu
-import androidx.compose.material.icons.outlined.Laptop
-import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -38,10 +25,13 @@ import tasks.kmp.generated.resources.add_account
 import tasks.kmp.generated.resources.backup_BPr_header
 import tasks.kmp.generated.resources.caldav
 import tasks.kmp.generated.resources.etesync
+import tasks.kmp.generated.resources.gtasks_GPr_header
+import tasks.kmp.generated.resources.microsoft
 import tasks.kmp.generated.resources.date_and_time
 import tasks.kmp.generated.resources.debug
 import tasks.kmp.generated.resources.about
 import tasks.kmp.generated.resources.local_lists
+import tasks.kmp.generated.resources.mcp_server
 import tasks.kmp.generated.resources.tasks_org
 import tasks.kmp.generated.resources.navigation_drawer
 import tasks.kmp.generated.resources.notifications
@@ -53,6 +43,8 @@ import tasks.kmp.generated.resources.task_list_options
 import tasks.kmp.generated.resources.link_desktop
 import tasks.kmp.generated.resources.link_desktop_description
 import tasks.kmp.generated.resources.widget_settings
+import tasks.kmp.generated.resources.works_with_tasks
+import tasks.kmp.generated.resources.works_with_tasks_description
 
 sealed interface SettingsPane {
     val titleRes: StringResource
@@ -68,7 +60,9 @@ sealed class SettingsDestination(override val titleRes: StringResource) : Settin
     data object NavigationDrawer : SettingsDestination(Res.string.navigation_drawer)
     data object Backups : SettingsDestination(Res.string.backup_BPr_header)
     data object Widgets : SettingsDestination(Res.string.widget_settings)
+    data object McpServer : SettingsDestination(Res.string.mcp_server)
     data object Advanced : SettingsDestination(Res.string.preferences_advanced)
+    data object WorksWith : SettingsDestination(Res.string.works_with_tasks)
     data object HelpAndFeedback : SettingsDestination(Res.string.about)
     data object Debug : SettingsDestination(Res.string.debug)
 }
@@ -97,6 +91,18 @@ data class EtebaseAccountSettingsPane(
     override val titleRes: StringResource = Res.string.etesync
 }
 
+data class GoogleTasksAccountSettingsPane(
+    val account: CaldavAccount,
+) : SettingsPane {
+    override val titleRes: StringResource = Res.string.gtasks_GPr_header
+}
+
+data class MicrosoftAccountSettingsPane(
+    val account: CaldavAccount,
+) : SettingsPane {
+    override val titleRes: StringResource = Res.string.microsoft
+}
+
 data class OpenTaskAccountSettingsPane(
     val account: CaldavAccount,
 ) : SettingsPane {
@@ -110,6 +116,8 @@ fun MainSettingsScreen(
     environmentLabel: String? = null,
     showBackupWarning: Boolean,
     showWidgets: Boolean,
+    showNotifications: Boolean = true,
+    showMcpServer: Boolean = false,
     isDebug: Boolean = false,
     onAccountClick: (CaldavAccount) -> Unit,
     onAddAccountClick: () -> Unit,
@@ -162,7 +170,7 @@ fun MainSettingsScreen(
                     ) {
                         PreferenceRow(
                             title = stringResource(Res.string.add_account),
-                            icon = Icons.Outlined.Add,
+                            icon = TasksIcons.ADD,
                             onClick = onAddAccountClick
                         )
                     }
@@ -171,25 +179,38 @@ fun MainSettingsScreen(
             Spacer(modifier = Modifier.height(SettingsContentPadding))
         }
 
-        if (showDesktopLinking) {
-            Column(
-                modifier = Modifier.padding(horizontal = SettingsContentPadding),
-            ) {
-                SettingsItemCard(position = CardPosition.Only) {
+        Column(
+            modifier = Modifier.padding(horizontal = SettingsContentPadding),
+            verticalArrangement = Arrangement.spacedBy(SettingsCardGap),
+        ) {
+            if (showDesktopLinking) {
+                SettingsItemCard(position = CardPosition.First) {
                     PreferenceRow(
                         title = stringResource(Res.string.link_desktop),
                         summary = stringResource(Res.string.link_desktop_description),
-                        icon = Icons.Outlined.Laptop,
+                        icon = TasksIcons.LAPTOP,
                         onClick = onLinkDesktopClick,
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(SettingsContentPadding))
+            SettingsItemCard(
+                position = if (showDesktopLinking) CardPosition.Last else CardPosition.Only,
+            ) {
+                PreferenceRow(
+                    title = stringResource(Res.string.works_with_tasks),
+                    summary = stringResource(Res.string.works_with_tasks_description),
+                    icon = TasksIcons.EXTENSION,
+                    onClick = { onSettingsClick(SettingsDestination.WorksWith) },
+                )
+            }
         }
+        Spacer(modifier = Modifier.height(SettingsContentPadding))
 
         SettingsCategories(
             showBackupWarning = showBackupWarning,
             showWidgets = showWidgets,
+            showNotifications = showNotifications,
+            showMcpServer = showMcpServer,
             isDebug = isDebug,
             onSettingsClick = onSettingsClick,
         )
@@ -202,6 +223,8 @@ fun MainSettingsScreen(
 fun SettingsCategories(
     showBackupWarning: Boolean,
     showWidgets: Boolean,
+    showNotifications: Boolean,
+    showMcpServer: Boolean = false,
     isDebug: Boolean,
     onSettingsClick: (SettingsDestination) -> Unit,
 ) {
@@ -210,19 +233,23 @@ fun SettingsCategories(
         modifier = Modifier.padding(horizontal = SettingsContentPadding),
         verticalArrangement = Arrangement.spacedBy(SettingsCardGap),
     ) {
-        SettingsItemCard(position = CardPosition.First) {
+        SettingsItemCard(
+            position = if (showNotifications) CardPosition.First else CardPosition.Only,
+        ) {
             PreferenceRow(
                 title = stringResource(Res.string.preferences_look_and_feel),
-                icon = Icons.Outlined.Palette,
+                icon = TasksIcons.PALETTE,
                 onClick = { onSettingsClick(SettingsDestination.LookAndFeel) }
             )
         }
-        SettingsItemCard(position = CardPosition.Last) {
-            PreferenceRow(
-                title = stringResource(Res.string.notifications),
-                icon = Icons.Outlined.Notifications,
-                onClick = { onSettingsClick(SettingsDestination.Notifications) }
-            )
+        if (showNotifications) {
+            SettingsItemCard(position = CardPosition.Last) {
+                PreferenceRow(
+                    title = stringResource(Res.string.notifications),
+                    icon = TasksIcons.NOTIFICATIONS,
+                    onClick = { onSettingsClick(SettingsDestination.Notifications) }
+                )
+            }
         }
     }
 
@@ -236,21 +263,21 @@ fun SettingsCategories(
         SettingsItemCard(position = CardPosition.First) {
             PreferenceRow(
                 title = stringResource(Res.string.task_defaults),
-                icon = Icons.Outlined.Add,
+                icon = TasksIcons.ADD,
                 onClick = { onSettingsClick(SettingsDestination.TaskDefaults) }
             )
         }
         SettingsItemCard(position = CardPosition.Middle) {
             PreferenceRow(
                 title = stringResource(Res.string.task_list_options),
-                icon = Icons.AutoMirrored.Outlined.List,
+                icon = TasksIcons.LIST,
                 onClick = { onSettingsClick(SettingsDestination.TaskList) }
             )
         }
         SettingsItemCard(position = CardPosition.Last) {
             PreferenceRow(
                 title = stringResource(Res.string.EPr_edit_screen_options),
-                icon = Icons.Outlined.Edit,
+                icon = TasksIcons.EDIT,
                 onClick = { onSettingsClick(SettingsDestination.TaskEdit) }
             )
         }
@@ -266,21 +293,21 @@ fun SettingsCategories(
         SettingsItemCard(position = CardPosition.First) {
             PreferenceRow(
                 title = stringResource(Res.string.date_and_time),
-                icon = Icons.Outlined.Schedule,
+                icon = TasksIcons.SCHEDULE,
                 onClick = { onSettingsClick(SettingsDestination.DateAndTime) }
             )
         }
         SettingsItemCard(position = CardPosition.Middle) {
             PreferenceRow(
                 title = stringResource(Res.string.navigation_drawer),
-                icon = Icons.Outlined.Menu,
+                icon = TasksIcons.MENU,
                 onClick = { onSettingsClick(SettingsDestination.NavigationDrawer) }
             )
         }
         SettingsItemCard(position = CardPosition.Middle) {
             PreferenceRow(
                 title = stringResource(Res.string.backup_BPr_header),
-                icon = Icons.Outlined.SdStorage,
+                icon = TasksIcons.SD_STORAGE,
                 showWarning = showBackupWarning,
                 onClick = { onSettingsClick(SettingsDestination.Backups) }
             )
@@ -289,15 +316,24 @@ fun SettingsCategories(
             SettingsItemCard(position = CardPosition.Middle) {
                 PreferenceRow(
                     title = stringResource(Res.string.widget_settings),
-                    icon = Icons.Outlined.Widgets,
+                    icon = TasksIcons.WIDGETS,
                     onClick = { onSettingsClick(SettingsDestination.Widgets) }
+                )
+            }
+        }
+        if (showMcpServer) {
+            SettingsItemCard(position = CardPosition.Middle) {
+                PreferenceRow(
+                    title = stringResource(Res.string.mcp_server),
+                    icon = TasksIcons.TERMINAL,
+                    onClick = { onSettingsClick(SettingsDestination.McpServer) }
                 )
             }
         }
         SettingsItemCard(position = CardPosition.Last) {
             PreferenceRow(
                 title = stringResource(Res.string.preferences_advanced),
-                icon = Icons.Outlined.Build,
+                icon = TasksIcons.BUILD,
                 onClick = { onSettingsClick(SettingsDestination.Advanced) }
             )
         }
@@ -315,7 +351,7 @@ fun SettingsCategories(
         ) {
             PreferenceRow(
                 title = stringResource(Res.string.about),
-                icon = Icons.Outlined.Info,
+                icon = TasksIcons.INFO,
                 onClick = { onSettingsClick(SettingsDestination.HelpAndFeedback) }
             )
         }
@@ -323,7 +359,7 @@ fun SettingsCategories(
             SettingsItemCard(position = CardPosition.Last) {
                 PreferenceRow(
                     title = stringResource(Res.string.debug),
-                    icon = Icons.Outlined.BugReport,
+                    icon = TasksIcons.BUG_REPORT,
                     onClick = { onSettingsClick(SettingsDestination.Debug) }
                 )
             }

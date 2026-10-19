@@ -12,6 +12,7 @@ class DesktopKeyProvider(
     private val serviceName: String,
     private val accountName: String,
     private val fallbackKeyFile: File,
+    private val hasEncryptedData: () -> Boolean = { false },
 ) : KeyProvider {
     private val logger = Logger.withTag("DesktopKeyProvider")
 
@@ -26,14 +27,17 @@ class DesktopKeyProvider(
     }
 
     private fun loadKey(): SecretKey {
-        val encoded = readFromKeychain()
-            ?: readFromFile()
-            ?: generateKey().also { storeKey(it) }
+        val existing = readFromKeychain() ?: readFromFile()
+        check(existing != null || !hasEncryptedData()) {
+            "Encryption key unavailable, refusing to replace key for existing data"
+        }
+        val encoded = existing ?: generateKey().also { storeKey(it) }
         return SecretKeySpec(Base64.getDecoder().decode(encoded), "AES")
     }
 
     private fun readFromKeychain(): String? = try {
         Keyring.create().use { it.getPassword(serviceName, accountName) }
+            .also { logger.i { "Loaded key from OS keychain" } }
     } catch (e: Exception) {
         logger.w(e) { "Failed to read from OS keychain" }
         null
@@ -41,15 +45,18 @@ class DesktopKeyProvider(
 
     private fun readFromFile(): String? =
         fallbackKeyFile.takeIf { it.exists() }?.readText()?.trim()
+            ?.also { logger.i { "Loaded key from file" } }
 
     private fun generateKey(): String =
         ByteArray(32)
             .also { SecureRandom().nextBytes(it) }
             .let { Base64.getEncoder().encodeToString(it) }
+            .also { logger.i { "Generated new encryption key" } }
 
     private fun storeKey(key: String) {
         try {
             Keyring.create().use { it.setPassword(serviceName, accountName, key) }
+            logger.i { "Stored key in OS keychain" }
         } catch (e: Exception) {
             logger.w(e) { "OS keychain unavailable, falling back to file" }
             fallbackKeyFile.parentFile?.mkdirs()

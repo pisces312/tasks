@@ -1,17 +1,18 @@
 package org.tasks.data.dao
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Query
-import androidx.room.Transaction
+import androidx.room3.Dao
+import androidx.room3.Delete
+import androidx.room3.Query
+import androidx.room3.Transaction
 import co.touchlab.kermit.Logger
 import org.tasks.data.db.SuspendDbUtils.chunkedMap
 import org.tasks.data.db.SuspendDbUtils.eachChunk
+import org.tasks.data.db.Database
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavCalendar
 
 @Dao
-abstract class DeletionDao {
+abstract class DeletionDao(private val database: Database) {
     @Query("DELETE FROM tasks WHERE _id IN(:ids)")
     internal abstract suspend fun deleteTasks(ids: List<Long>)
 
@@ -52,7 +53,7 @@ WHERE recurring = 1
     }
 
     @Query("UPDATE tasks "
-            + "SET modified = (strftime('%s','now')*1000), deleted = (strftime('%s','now')*1000)"
+            + "SET modified = (strftime('%s','now')*1000), deleted = (strftime('%s','now')*1000) "
             + "WHERE _id IN(:ids)")
     internal abstract suspend fun markDeletedInternal(ids: List<Long>)
 
@@ -62,7 +63,10 @@ WHERE recurring = 1
         cleanup: suspend (List<Long>) -> Unit,
     ) {
         Logger.d("DeletionDao") { "markDeleted ids=$ids" }
-        ids.eachChunk(this::markDeletedInternal)
+        ids.eachChunk {
+            markDeletedInternal(it)
+            database.dirtyDao().setDirty(it)
+        }
         cleanup(ids.toList())
     }
 

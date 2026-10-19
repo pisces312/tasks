@@ -20,9 +20,6 @@ import org.tasks.data.dao.CaldavDao
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_MICROSOFT
 import org.tasks.extensions.Context.toast
-import org.tasks.jobs.WorkManager
-import org.tasks.sync.SyncAdapters
-import org.tasks.sync.SyncSource
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -30,10 +27,8 @@ import javax.inject.Inject
 class MicrosoftSignInViewModel @Inject constructor(
     private val caldavDao: CaldavDao,
     private val firebase: Firebase,
-    private val syncAdapters: SyncAdapters,
-    private val workManager: WorkManager,
 ) : ViewModel() {
-    fun signIn(activity: Activity) {
+    fun signIn(activity: Activity, username: String? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             val app = PublicClientApplication.createMultipleAccountPublicClientApplication(
                 activity,
@@ -43,7 +38,14 @@ class MicrosoftSignInViewModel @Inject constructor(
             val parameters = AcquireTokenParameters.Builder()
                 .startAuthorizationFromActivity(activity)
                 .withScopes(scopes)
-                .withPrompt(Prompt.SELECT_ACCOUNT)
+                .apply {
+                    if (username == null) {
+                        withPrompt(Prompt.SELECT_ACCOUNT)
+                    } else {
+                        withLoginHint(username)
+                        withPrompt(Prompt.LOGIN)
+                    }
+                }
                 .withCallback(object : AuthenticationCallback {
                     override fun onSuccess(authenticationResult: IAuthenticationResult) {
                         val email = authenticationResult.account.claims?.get("preferred_username") as? String
@@ -75,8 +77,6 @@ class MicrosoftSignInViewModel @Inject constructor(
                                             R.string.param_type to Constants.SYNC_TYPE_MICROSOFT
                                         )
                                     }
-                            syncAdapters.sync(SyncSource.ACCOUNT_ADDED)
-                            workManager.updateBackgroundSync()
                         }
                     }
 

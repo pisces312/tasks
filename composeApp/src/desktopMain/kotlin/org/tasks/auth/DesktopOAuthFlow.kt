@@ -6,8 +6,10 @@ import com.sun.net.httpserver.HttpServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import org.tasks.extensions.openInBrowser
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.URLDecoder
 import java.util.concurrent.atomic.AtomicReference
@@ -15,17 +17,28 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 private const val TAG = "DesktopOAuthFlow"
+private const val CALLBACK_TIMEOUT_MILLIS = 10 * 60 * 1000L
 
 class DesktopOAuthFlow(
-    private val oauthClient: TasksOAuthClient = TasksOAuthClient(),
+    private val oauthClient: TasksOAuthClient,
     private val serverEnvironment: TasksServerEnvironment,
-    private val openUrl: (String) -> Unit = { url -> openInBrowser(url) },
-) {
-    suspend fun signIn(provider: OAuthProvider): OAuthResult = withContext(Dispatchers.IO) {
-        val discoveryUrl = "${serverEnvironment.caldavUrl}${provider.discoveryPath}"
+    private val callbackTimeoutMillis: Long = CALLBACK_TIMEOUT_MILLIS,
+    private val openUrl: (String) -> Unit = { url ->
+        if (!openInBrowser(url)) {
+            throw IOException("Nothing on this system could open $url")
+        }
+    },
+) : OAuthFlow {
+    override suspend fun signIn(
+        provider: OAuthProvider,
+        extraAuthParams: Map<String, String>,
+        authHeader: String?,
+    ): OAuthResult = withContext(Dispatchers.IO) {
+        val discoveryUrl = provider.discoveryUrl
+            ?: "${serverEnvironment.caldavUrl}${provider.discoveryPath}"
 
         Logger.d(TAG) { "Fetching discovery from $discoveryUrl" }
-        val discovery = oauthClient.fetchDiscovery(discoveryUrl)
+        val discovery = oauthClient.fetchDiscovery(discoveryUrl, authHeader)
         val authEndpoint = discovery["authorization_endpoint"]!!.jsonPrimitive.content
         val tokenEndpoint = discovery["token_endpoint"]!!.jsonPrimitive.content
         val clientId = provider.clientId.ifEmpty {
@@ -33,12 +46,14 @@ class DesktopOAuthFlow(
                 ?: throw Exception("No client_id in discovery document")
         }
 
-        val codeVerifier = PKCE.generateVerifier()
-        val codeChallenge = PKCE.generateChallenge(codeVerifier)
-        val state = PKCE.generateVerifier()
+        val codeVerifier = if (provider.usesPkce) PKCE.generateVerifier() else null
+        val codeChallenge = codeVerifier?.let(PKCE::generateChallenge)
+        val nonce = PKCE.generateVerifier()
+        val serverCallback = provider.serverCallbackPath?.let { "${serverEnvironment.caldavUrl}$it" }
 
-        val (config, code) = listenForCallback(state) { port ->
-            val redirectUri = "http://127.0.0.1:$port"
+        val (config, code) = listenForCallback(provider.loopbackHost) { port ->
+            val redirectUri = "http://${provider.loopbackHost}:$port"
+            val state = if (serverCallback == null) nonce else RedirectState.encode(nonce, redirectUri)
             val config = OAuthConfig(
                 authorizationEndpoint = authEndpoint,
                 tokenEndpoint = tokenEndpoint,
@@ -47,21 +62,35 @@ class DesktopOAuthFlow(
                 scope = provider.scope,
                 state = state,
             )
-            val authUrl = oauthClient.buildAuthUrl(config, codeChallenge, state)
+            val defaultParams = if (!provider.promptForAccount || extraAuthParams.containsKey("prompt")) emptyMap()
+                else mapOf("prompt" to "select_account")
+            val authUrl = oauthClient.buildAuthUrl(
+                config.copy(redirectUri = serverCallback ?: redirectUri),
+                codeChallenge,
+                state,
+                defaultParams + extraAuthParams,
+            )
             Logger.d(TAG) { "Opening browser: $authUrl" }
             openUrl(authUrl)
             config
         }
 
         Logger.d(TAG) { "Got authorization code, exchanging..." }
-        oauthClient.exchangeCode(config, code, codeVerifier)
+        oauthClient.exchangeCode(config, code, codeVerifier, authHeader)
     }
 
     private suspend fun listenForCallback(
-        expectedState: String,
+        loopbackHost: String,
+        onReady: (port: Int) -> OAuthConfig,
+    ): Pair<OAuthConfig, String> =
+        withTimeoutOrNull(callbackTimeoutMillis) { awaitCallback(loopbackHost, onReady) }
+            ?: throw IOException("Timed out waiting for the sign-in to finish")
+
+    private suspend fun awaitCallback(
+        loopbackHost: String,
         onReady: (port: Int) -> OAuthConfig,
     ): Pair<OAuthConfig, String> = suspendCancellableCoroutine { cont ->
-        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        val server = HttpServer.create(InetSocketAddress(loopbackHost, 0), 0)
         val port = server.address.port
         val config = AtomicReference<OAuthConfig?>(null)
 
@@ -76,6 +105,7 @@ class DesktopOAuthFlow(
 
             val code = params["code"]
             val error = params["error"]
+            val errorDescription = params["error_description"]
             val returnedState = params["state"]
 
             val responseBody = when {
@@ -89,7 +119,7 @@ class DesktopOAuthFlow(
                 else -> """
                     <html><body>
                     <h2>Sign in failed</h2>
-                    <p>${(error ?: "Unknown error").htmlEscape()}</p>
+                    <p>${(errorDescription ?: error ?: "Unknown error").htmlEscape()}</p>
                     </body></html>
                 """.trimIndent()
             }
@@ -103,7 +133,7 @@ class DesktopOAuthFlow(
 
             val currentConfig = config.get()
             if (code != null && currentConfig != null) {
-                if (returnedState != expectedState) {
+                if (returnedState != currentConfig.state) {
                     cont.resumeWithException(
                         Exception("OAuth state mismatch")
                     )
@@ -112,7 +142,8 @@ class DesktopOAuthFlow(
                 }
             } else {
                 cont.resumeWithException(
-                    Exception(error ?: "Authorization failed")
+                    ConditionalAccess.devicePolicyException(error, errorDescription)
+                        ?: Exception(errorDescription ?: error ?: "Authorization failed")
                 )
             }
         }
@@ -124,6 +155,13 @@ class DesktopOAuthFlow(
             server.stop(0)
         }
 
-        config.set(onReady(port))
+        try {
+            config.set(onReady(port))
+        } catch (e: Throwable) {
+            server.stop(0)
+            if (cont.isActive) {
+                cont.resumeWithException(e)
+            }
+        }
     }
 }

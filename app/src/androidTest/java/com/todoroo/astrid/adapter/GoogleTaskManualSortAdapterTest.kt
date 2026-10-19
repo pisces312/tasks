@@ -3,10 +3,11 @@ package com.todoroo.astrid.adapter
 import com.natpryce.makeiteasy.MakeItEasy.with
 import com.natpryce.makeiteasy.PropertyValue
 import org.tasks.data.dao.TaskDao
-import com.todoroo.astrid.service.TaskMover
+import org.tasks.data.TaskMover
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.tasks.LocalBroadcastManager
@@ -15,6 +16,7 @@ import org.tasks.data.TaskContainer
 import org.tasks.data.TaskSaver
 import org.tasks.data.TaskListQuery.getQuery
 import org.tasks.data.dao.CaldavDao
+import org.tasks.data.dao.DirtyDao
 import org.tasks.data.dao.GoogleTaskDao
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_GOOGLE_TASKS
@@ -34,6 +36,7 @@ import javax.inject.Inject
 class GoogleTaskManualSortAdapterTest : InjectingTestCase() {
     @Inject lateinit var taskDao: TaskDao
     @Inject lateinit var taskSaver: TaskSaver
+    @Inject lateinit var dirtyDao: DirtyDao
     @Inject lateinit var caldavDao: CaldavDao
     @Inject lateinit var googleTaskDao: GoogleTaskDao
     @Inject lateinit var preferences: Preferences
@@ -414,13 +417,26 @@ class GoogleTaskManualSortAdapterTest : InjectingTestCase() {
         checkOrder(2, 2)
     }
 
+    @Test
+    fun droppingIntoAFoldedRowLeavesItFolded() = runBlocking {
+        val parent = addTask()
+        addTask(with(PARENT, parent))
+        val dragged = addTask()
+        taskDao.setCollapsed(listOf(parent), true)
+
+        move(1, 1, 1)
+
+        assertEquals(parent, taskDao.fetch(dragged)!!.parent)
+        assertTrue(taskDao.fetch(parent)!!.isCollapsed)
+    }
+
     @Before
     override fun setUp() {
         super.setUp()
         preferences.clear()
         preferences.setBoolean(R.string.p_manual_sort, true)
         tasks.clear()
-        adapter = GoogleTaskManualSortAdapter(googleTaskDao, caldavDao, taskDao, taskSaver, localBroadcastManager, taskMover)
+        adapter = GoogleTaskManualSortAdapter(googleTaskDao, caldavDao, taskDao, taskSaver, dirtyDao, localBroadcastManager, taskMover)
         adapter.setDataSource(dataSource)
     }
 

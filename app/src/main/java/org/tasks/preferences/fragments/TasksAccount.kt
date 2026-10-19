@@ -19,15 +19,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.tasks.LocalBroadcastManager
 import org.tasks.R
+import org.tasks.TasksUrls
+import org.tasks.resources.getString
 import tasks.kmp.generated.resources.Res
 import tasks.kmp.generated.resources.url_app_passwords
 import tasks.kmp.generated.resources.url_sponsor
-import tasks.kmp.generated.resources.url_tos
 import org.tasks.analytics.Firebase
 import org.tasks.auth.SignInActivity
 import org.tasks.billing.BillingClient
@@ -43,9 +44,7 @@ import org.tasks.data.dao.CaldavDao
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavAccount.Companion.isPaymentRequired
 import org.tasks.extensions.Context.openUri
-import org.tasks.extensions.Context.toast
 import org.tasks.caldav.TasksAccountDataRepository
-import org.tasks.jobs.WorkManager
 import org.tasks.preferences.fragments.MainSettingsComposeFragment.Companion.REQUEST_TASKS_ORG
 import org.tasks.themes.Theme
 import org.tasks.utility.copyToClipboard
@@ -56,7 +55,6 @@ class TasksAccount : Fragment() {
 
     @Inject lateinit var inventory: Inventory
     @Inject lateinit var localBroadcastManager: LocalBroadcastManager
-    @Inject lateinit var workManager: WorkManager
     @Inject lateinit var firebase: Firebase
     @Inject lateinit var billingClient: BillingClient
     @Inject lateinit var caldavDao: CaldavDao
@@ -124,12 +122,7 @@ class TasksAccount : Fragment() {
                     )
                 },
                 onOpenSponsor = {
-                    context?.openUri(runBlocking { org.jetbrains.compose.resources.getString(Res.string.url_sponsor) })
-                },
-                onMigrate = {
-                    val currentAccount = account ?: return@TasksAccountScreen
-                    workManager.migrateLocalTasks(currentAccount)
-                    context?.toast(R.string.migrating_tasks)
+                    context?.openUri(runBlocking { getString(Res.string.url_sponsor) })
                 },
                 onCopyEmail = {
                     state.inboundEmail?.let {
@@ -153,7 +146,7 @@ class TasksAccount : Fragment() {
                     viewModel.requestNewPassword(description)
                 },
                 onOpenAppPasswordsInfo = {
-                    context?.openUri(runBlocking { org.jetbrains.compose.resources.getString(Res.string.url_app_passwords) })
+                    context?.openUri(runBlocking { getString(Res.string.url_app_passwords) })
                 },
                 onCopyField = { label, value ->
                     copyToClipboard(requireContext(), label, value)
@@ -165,7 +158,7 @@ class TasksAccount : Fragment() {
                     viewModel.refreshAccount()
                 },
                 onOpenHelp = {
-                    context?.openUri(runBlocking { org.jetbrains.compose.resources.getString(Res.string.url_app_passwords) })
+                    context?.openUri(runBlocking { getString(Res.string.url_app_passwords) })
                 },
                 onAddAccount = {
                     startActivity(Intent(requireContext(), AddAccountActivity::class.java))
@@ -194,7 +187,7 @@ class TasksAccount : Fragment() {
                     viewModel.acceptTos(firebase.getTosVersion())
                 },
                 onViewTos = {
-                    context?.openUri(runBlocking { org.jetbrains.compose.resources.getString(Res.string.url_tos) })
+                    context?.openUri(TasksUrls.TOS)
                 },
                 onDismissTos = {
                     viewModel.dismissTos()

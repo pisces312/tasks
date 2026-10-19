@@ -4,6 +4,7 @@ import android.content.Context
 import com.getpebble.android.kit.PebbleKit
 import com.getpebble.android.kit.util.PebbleDictionary
 import java.util.UUID
+import org.tasks.extensions.truncate
 
 object PebbleProtocol {
     val APP_UUID: UUID = UUID.fromString("a1b2c3d4-1234-5678-abcd-1a5c500e9001")
@@ -70,6 +71,7 @@ object PebbleProtocol {
     const val MSG_GET_TASK: Int = 5
     const val MSG_SAVE_TASK: Int = 6
     const val MSG_GET_TASK_COUNT: Int = 7
+    const val MSG_TOGGLE_LIST: Int = 8
 
     // Phone → Watch response types
     const val RESP_TASKS: Int = 101
@@ -79,6 +81,7 @@ object PebbleProtocol {
     const val RESP_TASK: Int = 105
     const val RESP_SAVE_TASK: Int = 106
     const val RESP_TASK_COUNT: Int = 107
+    const val RESP_TOGGLE_LIST: Int = 108
 
     // Push notification
     const val MSG_REFRESH: Int = 200
@@ -103,13 +106,7 @@ object PebbleProtocol {
         return (high.toLong() and 0xFFFFFFFFL shl 32) or (low.toLong() and 0xFFFFFFFFL)
     }
 
-    fun truncateTitle(title: String?): String {
-        return when {
-            title == null -> ""
-            title.length > MAX_TITLE_LENGTH -> title.substring(0, MAX_TITLE_LENGTH)
-            else -> title
-        }
-    }
+    fun truncateTitle(title: String?): String = title.orEmpty().truncate(MAX_TITLE_LENGTH)
 
     fun toMap(dict: PebbleDictionary): Map<Int, Any> {
         val result = mutableMapOf<Int, Any>()

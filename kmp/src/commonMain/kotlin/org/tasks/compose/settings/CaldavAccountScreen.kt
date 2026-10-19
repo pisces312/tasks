@@ -1,8 +1,11 @@
 package org.tasks.compose.settings
 
+import org.tasks.themes.TasksIcons
+import org.tasks.compose.components.SymbolIcon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,27 +16,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowDropDown
-import androidx.compose.material.icons.outlined.Login
-import androidx.compose.material.icons.outlined.Logout
-import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -67,10 +70,12 @@ import tasks.kmp.generated.resources.display_name
 import tasks.kmp.generated.resources.logout
 import tasks.kmp.generated.resources.logout_confirmation
 import tasks.kmp.generated.resources.logout_warning
-import tasks.kmp.generated.resources.ok
+import tasks.kmp.generated.resources.metadata_move
+import tasks.kmp.generated.resources.metadata_move_message
 import tasks.kmp.generated.resources.password
 import tasks.kmp.generated.resources.save
 import tasks.kmp.generated.resources.sign_in
+import tasks.kmp.generated.resources.sync_metadata
 import tasks.kmp.generated.resources.url
 import tasks.kmp.generated.resources.user
 
@@ -86,6 +91,12 @@ data class CaldavAccountState(
     val isLoading: Boolean = false,
     val snackbar: String? = null,
     val account: CaldavAccount? = null,
+    val metadataVisible: Boolean = false,
+    val metadataChecked: Boolean = false,
+    val metadataInteractable: Boolean = true,
+    val metadataProbing: Boolean = false,
+    val metadataSubtitle: String? = null,
+    val metadataSwitchFrom: String? = null,
 ) {
     val hasChanges: Boolean
         get() = if (account == null) {
@@ -111,6 +122,9 @@ fun CaldavAccountScreen(
     onPasswordChange: (String) -> Unit,
     onNameChange: (String) -> Unit,
     onServerTypeChange: (Int) -> Unit,
+    onMetadataToggle: (Boolean) -> Unit,
+    onConfirmMetadataSwitch: () -> Unit,
+    onCancelMetadataSwitch: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -118,146 +132,172 @@ fun CaldavAccountScreen(
     onDismissSnackbar: () -> Unit,
 ) {
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     PlatformBackHandler(enabled = state.hasChanges) {
         onDiscardDialogChange(true)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
-            .verticalScroll(rememberScrollState())
-    ) {
-        if (state.isLoading) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        }
+    LaunchedEffect(state.snackbar) {
+        val message = state.snackbar ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        onDismissSnackbar()
+    }
 
-        Spacer(modifier = Modifier.height(SettingsContentPadding))
-
-        if (!isNewAccount) {
-            state.account?.error?.takeIf { it.isNotBlank() }?.let { error ->
-                AccountErrorBanner(
-                    error = error,
-                    modifier = Modifier.padding(horizontal = SettingsContentPadding),
-                )
-                Spacer(modifier = Modifier.height(SettingsContentPadding))
-            }
-        }
-
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier.padding(horizontal = SettingsContentPadding),
-            verticalArrangement = Arrangement.spacedBy(SettingsCardGap),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .verticalScroll(rememberScrollState())
         ) {
-            TextInputCard(
-                value = state.url,
-                onValueChange = onUrlChange,
-                label = stringResource(Res.string.url),
-                placeholder = "https://example.com/dav",
-                error = state.urlError,
-                position = CardPosition.First,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Uri,
-                    capitalization = KeyboardCapitalization.None,
-                ),
-            )
-            TextInputCard(
-                value = state.username,
-                onValueChange = onUsernameChange,
-                label = stringResource(Res.string.user),
-                error = state.usernameError,
-                position = CardPosition.Middle,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                ),
-            )
-            TextInputCard(
-                value = state.password,
-                onValueChange = onPasswordChange,
-                label = stringResource(Res.string.password),
-                placeholder = if (!isNewAccount) "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" else null,
-                error = state.passwordError,
-                position = CardPosition.Last,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    capitalization = KeyboardCapitalization.None,
-                ),
-                visualTransformation = PasswordVisualTransformation(),
-            )
-        }
+            if (state.isLoading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
 
-        Spacer(modifier = Modifier.height(SettingsContentPadding))
+            Spacer(modifier = Modifier.height(SettingsContentPadding))
 
-        if (!isNewAccount) {
+            if (!isNewAccount) {
+                state.account?.error?.takeIf { it.isNotBlank() }?.let { error ->
+                    AccountErrorBanner(
+                        error = error,
+                        modifier = Modifier.padding(horizontal = SettingsContentPadding),
+                    )
+                    Spacer(modifier = Modifier.height(SettingsContentPadding))
+                }
+            }
+
             Column(
                 modifier = Modifier.padding(horizontal = SettingsContentPadding),
+                verticalArrangement = Arrangement.spacedBy(SettingsCardGap),
             ) {
                 TextInputCard(
-                    value = state.displayName,
-                    onValueChange = onNameChange,
-                    label = stringResource(Res.string.display_name),
-                    placeholder = state.username.trim().ifEmpty { null },
+                    value = state.url,
+                    onValueChange = onUrlChange,
+                    label = stringResource(Res.string.url),
+                    placeholder = "https://example.com/dav",
+                    error = state.urlError,
+                    position = CardPosition.First,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Uri,
+                        capitalization = KeyboardCapitalization.None,
+                    ),
+                )
+                TextInputCard(
+                    value = state.username,
+                    onValueChange = onUsernameChange,
+                    label = stringResource(Res.string.user),
+                    error = state.usernameError,
+                    position = CardPosition.Middle,
+                    contentType = ContentType.Username,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.None,
+                    ),
+                )
+                TextInputCard(
+                    value = state.password,
+                    onValueChange = onPasswordChange,
+                    label = stringResource(Res.string.password),
+                    placeholder = if (!isNewAccount) "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" else null,
+                    error = state.passwordError,
+                    position = CardPosition.Last,
+                    contentType = ContentType.Password,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        capitalization = KeyboardCapitalization.None,
+                    ),
+                    visualTransformation = PasswordVisualTransformation(),
                 )
             }
 
             Spacer(modifier = Modifier.height(SettingsContentPadding))
-        }
 
-        Column(
-            modifier = Modifier.padding(horizontal = SettingsContentPadding),
-        ) {
-            ServerTypeSelector(
-                selected = state.serverType,
-                onSelected = onServerTypeChange,
-            )
-        }
+            if (!isNewAccount) {
+                Column(
+                    modifier = Modifier.padding(horizontal = SettingsContentPadding),
+                ) {
+                    TextInputCard(
+                        value = state.displayName,
+                        onValueChange = onNameChange,
+                        label = stringResource(Res.string.display_name),
+                        placeholder = state.username.trim().ifEmpty { null },
+                    )
+                }
 
-        Spacer(modifier = Modifier.height(SettingsContentPadding))
+                Spacer(modifier = Modifier.height(SettingsContentPadding))
+            }
 
-        Column(
-            modifier = Modifier.padding(horizontal = SettingsContentPadding),
-        ) {
-            SettingsItemCard {
-                PreferenceRow(
-                    title = stringResource(
-                        if (isNewAccount) Res.string.sign_in else Res.string.save
-                    ),
-                    icon = if (isNewAccount) Icons.Outlined.Login else Icons.Outlined.Save,
-                    enabled = state.hasChanges && !state.isLoading,
-                    onClick = onSave,
+            Column(
+                modifier = Modifier.padding(horizontal = SettingsContentPadding),
+            ) {
+                ServerTypeSelector(
+                    selected = state.serverType,
+                    onSelected = onServerTypeChange,
                 )
             }
-        }
 
-        if (!isNewAccount) {
+            if (state.metadataVisible) {
+                Spacer(modifier = Modifier.height(SettingsContentPadding))
+                Column(
+                    modifier = Modifier.padding(horizontal = SettingsContentPadding),
+                ) {
+                    SettingsItemCard {
+                        SwitchPreferenceRow(
+                            title = stringResource(Res.string.sync_metadata),
+                            summary = state.metadataSubtitle,
+                            checked = state.metadataChecked,
+                            onCheckedChange = onMetadataToggle,
+                            enabled = state.metadataInteractable && !state.metadataProbing,
+                            indent = false,
+                        )
+                    }
+                    if (state.metadataProbing) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(SettingsContentPadding))
 
             Column(
                 modifier = Modifier.padding(horizontal = SettingsContentPadding),
             ) {
-                DangerCard(
-                    icon = Icons.Outlined.Logout,
-                    title = stringResource(Res.string.logout),
-                    tint = MaterialTheme.colorScheme.error,
-                    onClick = { showDeleteDialog = true },
-                )
+                SettingsItemCard {
+                    PreferenceRow(
+                        title = stringResource(
+                            if (isNewAccount) Res.string.sign_in else Res.string.save
+                        ),
+                        icon = if (isNewAccount) TasksIcons.LOGIN else TasksIcons.SAVE,
+                        enabled = state.hasChanges && !state.isLoading && !state.metadataProbing,
+                        onClick = onSave,
+                    )
+                }
             }
+
+            if (!isNewAccount) {
+                Spacer(modifier = Modifier.height(SettingsContentPadding))
+
+                Column(
+                    modifier = Modifier.padding(horizontal = SettingsContentPadding),
+                ) {
+                    DangerCard(
+                        icon = TasksIcons.LOGOUT,
+                        title = stringResource(Res.string.logout),
+                        tint = MaterialTheme.colorScheme.error,
+                        onClick = { showDeleteDialog = true },
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(SettingsContentPadding))
         }
 
-        Spacer(modifier = Modifier.height(SettingsContentPadding))
-
-        if (state.snackbar != null) {
-            Snackbar(
-                modifier = Modifier.padding(horizontal = SettingsContentPadding),
-                action = {
-                    TextButton(onClick = onDismissSnackbar) {
-                        Text(text = stringResource(Res.string.ok))
-                    }
-                },
-            ) {
-                Text(text = state.snackbar)
-            }
-        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(SettingsContentPadding),
+        )
     }
 
     if (showDeleteDialog) {
@@ -314,6 +354,31 @@ fun CaldavAccountScreen(
             },
         )
     }
+
+    if (state.metadataSwitchFrom != null) {
+        AlertDialog(
+            onDismissRequest = onCancelMetadataSwitch,
+            title = {
+                Text(
+                    text = stringResource(Res.string.sync_metadata),
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+            },
+            text = {
+                Text(text = stringResource(Res.string.metadata_move_message, state.metadataSwitchFrom))
+            },
+            confirmButton = {
+                TextButton(onClick = onConfirmMetadataSwitch) {
+                    Text(text = stringResource(Res.string.metadata_move))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onCancelMetadataSwitch) {
+                    Text(text = stringResource(Res.string.cancel))
+                }
+            },
+        )
+    }
 }
 
 val serverTypes = listOf(
@@ -363,8 +428,8 @@ internal fun ServerTypeSelector(
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                 )
-                Icon(
-                    imageVector = Icons.Outlined.ArrowDropDown,
+                SymbolIcon(
+                    name = TasksIcons.ARROW_DROP_DOWN,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

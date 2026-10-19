@@ -1,5 +1,6 @@
 package org.tasks
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.app.Application
 import android.app.ApplicationExitInfo
@@ -8,48 +9,50 @@ import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.JobIntentService
+import androidx.core.app.LocaleManagerCompat
+import androidx.core.os.ConfigurationCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.coroutineScope
 import androidx.work.Configuration
-import com.mikepenz.iconics.Iconics
 import com.todoroo.andlib.utility.AndroidUtilities.atLeastAndroid15
 import com.todoroo.andlib.utility.AndroidUtilities.atLeastR
 import com.todoroo.astrid.service.Upgrader
 import dagger.Lazy
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.tasks.analytics.Firebase
 import org.tasks.billing.Inventory
-import org.tasks.caldav.CaldavSynchronizer
-import org.tasks.icons.OutlinedGoogleMaterial
-import org.tasks.icons.OutlinedGoogleMaterial2
+import org.tasks.caldav.CaldavClient
 import org.tasks.fcm.PushTokenManager
-import org.tasks.injection.InjectingJobIntentService
 import org.tasks.jobs.WorkManager
 import org.tasks.location.LocationService
 import org.tasks.opentasks.OpenTaskContentObserver
 import org.tasks.pebble.PebbleService
 import org.tasks.preferences.Preferences
 import org.tasks.preferences.TasksPreferences
-import org.tasks.receivers.RefreshReceiver
-import org.tasks.scheduling.NotificationSchedulerIntentService
+import org.tasks.receivers.ExternalRefreshWork
+import org.tasks.scheduling.NotificationSchedulerWork
 import org.tasks.sync.SyncAdapters
 import org.tasks.sync.SyncSource
 import org.tasks.themes.ThemeBase
 import org.tasks.time.DateTimeUtils2.currentTimeMillis
 import timber.log.Timber
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -65,7 +68,6 @@ class TasksApplication : Application(), Configuration.Provider {
     @Inject lateinit var upgrader: Lazy<Upgrader>
     @Inject lateinit var workManager: Lazy<WorkManager>
     @Inject lateinit var locationService: Lazy<LocationService>
-    @Inject lateinit var workerFactory: HiltWorkerFactory
     @Inject lateinit var contentObserver: Lazy<OpenTaskContentObserver>
     @Inject lateinit var syncAdapters: Lazy<SyncAdapters>
     @Inject lateinit var firebase: Firebase
@@ -76,6 +78,7 @@ class TasksApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        syncComposeResourceLocale()
         buildSetup.setup()
         val defaultExceptionHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
@@ -83,12 +86,9 @@ class TasksApplication : Application(), Configuration.Provider {
             defaultExceptionHandler?.uncaughtException(thread, throwable) ?: throw throwable
         }
         upgrade()
-        runBlocking {
-            tasksPreferences.set(TasksPreferences.syncOngoing, false)
-            tasksPreferences.set(TasksPreferences.syncOngoingAndroid, false)
-        }
         ThemeBase.getThemeBase(preferences, inventory, null).setDefaultNightMode()
         localBroadcastManager.registerRefreshReceiver(RefreshBroadcastReceiver())
+        inventory.subscription.observeForever { firebase.setSku(it?.sku) }
         backgroundWork()
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             object : DefaultLifecycleObserver {
@@ -142,14 +142,46 @@ class TasksApplication : Application(), Configuration.Provider {
         }
     }
 
+    private fun syncComposeResourceLocale() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return
+        }
+        LocaleManagerCompat.getApplicationLocales(this)[0]?.let {
+            if (Locale.getDefault() != it) {
+                Locale.setDefault(it)
+            }
+        }
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            private fun sync(activity: Activity) {
+                val locale =
+                    ConfigurationCompat.getLocales(activity.resources.configuration)[0] ?: return
+                if (Locale.getDefault() != locale) {
+                    Locale.setDefault(locale)
+                }
+            }
+
+            override fun onActivityPreCreated(activity: Activity, savedInstanceState: Bundle?) =
+                sync(activity)
+
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) =
+                sync(activity)
+
+            override fun onActivityStarted(activity: Activity) {}
+            override fun onActivityResumed(activity: Activity) {}
+            override fun onActivityPaused(activity: Activity) {}
+            override fun onActivityStopped(activity: Activity) {}
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+            override fun onActivityDestroyed(activity: Activity) {}
+        })
+    }
+
     private fun backgroundWork() = scope.launch {
+        tasksPreferences.set(TasksPreferences.syncOngoing, false)
+        tasksPreferences.set(TasksPreferences.syncOngoingAndroid, false)
         tasksPreferences.set(TasksPreferences.syncSource, SyncSource.NONE.name)
-        Iconics.registerFont(OutlinedGoogleMaterial)
-        Iconics.registerFont(OutlinedGoogleMaterial2)
         inventory.updateTasksAccount()
-        NotificationSchedulerIntentService.enqueueWork(context)
+        NotificationSchedulerWork.enqueueWork(context)
         workManager.get().apply {
-            updateBackgroundSync()
             scheduleBackup()
             scheduleConfigRefresh()
             updatePurchases()
@@ -158,16 +190,26 @@ class TasksApplication : Application(), Configuration.Provider {
         }
         OpenTaskContentObserver.registerObserver(context, contentObserver.get())
         locationService.get().registerAllGeofences()
-        CaldavSynchronizer.registerFactories()
+        CaldavClient.registerFactories()
         pushTokenManager.get().registerTokenForAllAccounts()
         pebbleService.register()
     }
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
+            .setWorkerFactory(
+                EntryPointAccessors
+                    .fromApplication(this, WorkerFactoryEntryPoint::class.java)
+                    .workerFactory
+            )
             .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.INFO)
             .build()
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface WorkerFactoryEntryPoint {
+        val workerFactory: HiltWorkerFactory
+    }
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
@@ -182,11 +224,7 @@ class TasksApplication : Application(), Configuration.Provider {
 
     private class RefreshBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            JobIntentService.enqueueWork(
-                    context,
-                    RefreshReceiver::class.java,
-                    InjectingJobIntentService.JOB_ID_REFRESH_RECEIVER,
-                    intent)
+            ExternalRefreshWork.enqueueWork(context)
         }
     }
 

@@ -23,6 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.tasks.R
+import org.tasks.resources.getString
 import tasks.kmp.generated.resources.Res
 import tasks.kmp.generated.resources.tasks_org
 import org.tasks.auth.SignInActivity
@@ -216,7 +217,7 @@ class MainSettingsComposeFragment : Fragment() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     activity.startPreference(
                         newTasksAccountPreference(account),
-                        org.jetbrains.compose.resources.getString(Res.string.tasks_org)
+                        getString(Res.string.tasks_org)
                     )
                 }
             }
@@ -293,13 +294,15 @@ class MainSettingsComposeFragment : Fragment() {
             SettingsDestination.Backups -> Backups()
             SettingsDestination.Widgets -> Widgets()
             SettingsDestination.Advanced -> Advanced()
+            SettingsDestination.WorksWith -> WorksWith()
             SettingsDestination.HelpAndFeedback -> HelpAndFeedback()
             SettingsDestination.Debug -> Debug()
+            SettingsDestination.McpServer -> return
         }
         viewLifecycleOwner.lifecycleScope.launch {
             activity.startPreference(
                 fragment,
-                org.jetbrains.compose.resources.getString(destination.titleRes)
+                getString(destination.titleRes)
             )
         }
     }
@@ -326,7 +329,6 @@ class MainSettingsComposeFragment : Fragment() {
     }
 
     companion object {
-        const val REQUEST_CALDAV_SETTINGS = 10013
         const val REQUEST_GOOGLE_TASKS = 10014
         const val REQUEST_TASKS_ORG = 10016
         private const val REQUEST_ADD_ACCOUNT = 10017

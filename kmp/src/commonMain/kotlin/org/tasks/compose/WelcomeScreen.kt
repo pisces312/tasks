@@ -39,6 +39,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.testTag
+import org.tasks.themes.TestTags
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -55,10 +57,8 @@ import tasks.kmp.generated.resources.privacy_policy_proper
 import tasks.kmp.generated.resources.returning_user_import_backup
 import tasks.kmp.generated.resources.tasks_org
 import tasks.kmp.generated.resources.terms_of_service_proper
-import tasks.kmp.generated.resources.url_license
-import tasks.kmp.generated.resources.url_privacy_policy
+import org.tasks.TasksUrls
 import org.tasks.auth.TasksServerEnvironment
-import tasks.kmp.generated.resources.url_tos
 
 @Composable
 fun WelcomeScreenLayout(
@@ -277,7 +277,7 @@ private fun WelcomeContent(
 
         OutlinedButton(
             onClick = onContinueWithoutSync,
-            modifier = buttonModifier
+            modifier = buttonModifier.testTag(TestTags.CONTINUE_WITHOUT_SYNC)
         ) {
             Text(
                 text = stringResource(Res.string.continue_without_sync),
@@ -321,8 +321,7 @@ fun LegalDisclosure(
     val tosText = stringResource(Res.string.terms_of_service_proper)
     val privacyText = stringResource(Res.string.privacy_policy_proper)
     val licenseText = stringResource(Res.string.gplv3_license)
-    val template = stringResource(Res.string.legal_disclosure)
-    val formatted = String.format(template, prefixText, tosText, privacyText, licenseText)
+    val formatted = stringResource(Res.string.legal_disclosure, prefixText, tosText, privacyText, licenseText)
 
     val tosStart = formatted.indexOf(tosText)
     val tosEnd = tosStart + tosText.length
@@ -331,18 +330,14 @@ fun LegalDisclosure(
     val licenseStart = formatted.indexOf(licenseText)
     val licenseEnd = licenseStart + licenseText.length
 
-    val tosUrl = stringResource(Res.string.url_tos)
-    val privacyUrl = stringResource(Res.string.url_privacy_policy)
-    val licenseUrl = stringResource(Res.string.url_license)
-
     val annotatedText = buildAnnotatedString {
         append(formatted)
         addStyle(linkStyle, tosStart, tosEnd)
-        addStringAnnotation(tag = "url", annotation = tosUrl, start = tosStart, end = tosEnd)
+        addStringAnnotation(tag = "url", annotation = TasksUrls.TOS, start = tosStart, end = tosEnd)
         addStyle(linkStyle, privacyStart, privacyEnd)
-        addStringAnnotation(tag = "url", annotation = privacyUrl, start = privacyStart, end = privacyEnd)
+        addStringAnnotation(tag = "url", annotation = TasksUrls.PRIVACY_POLICY, start = privacyStart, end = privacyEnd)
         addStyle(linkStyle, licenseStart, licenseEnd)
-        addStringAnnotation(tag = "url", annotation = licenseUrl, start = licenseStart, end = licenseEnd)
+        addStringAnnotation(tag = "url", annotation = TasksUrls.LICENSE, start = licenseStart, end = licenseEnd)
     }
 
     ClickableText(

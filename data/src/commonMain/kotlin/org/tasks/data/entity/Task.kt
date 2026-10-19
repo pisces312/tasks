@@ -1,10 +1,10 @@
 package org.tasks.data.entity
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.Ignore
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import androidx.room3.ColumnInfo
+import androidx.room3.Entity
+import androidx.room3.Ignore
+import androidx.room3.Index
+import androidx.room3.PrimaryKey
 import co.touchlab.kermit.Logger
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -20,8 +20,9 @@ import org.tasks.data.db.Table
 import org.tasks.data.sql.Field
 
 const val SUPPRESS_SYNC = "suppress_sync"
-const val FORCE_CALDAV_SYNC = "force_caldav_sync"
-const val FORCE_MICROSOFT_SYNC = "force_microsoft_sync"
+const val SYNC_LOCATION = "sync_location"
+const val SYNC_TAGS = "sync_tags"
+const val SYNC_ALARMS = "sync_alarms"
 
 @Serializable
 @CommonParcelize
@@ -69,6 +70,8 @@ data class Task @OptIn(ExperimentalSerializationApi::class) constructor(
     var ringFlags: Int = 0,
     @ColumnInfo(name = "lastNotified")
     var reminderLast: Long = 0L,
+    @ColumnInfo(name = "reminderDismissed", defaultValue = "0")
+    var reminderDismissed: Long = 0L,
     @ColumnInfo(name = "recurrence")
     var recurrence: String? = null,
     @ColumnInfo(name = "repeat_from", defaultValue = RepeatFrom.DUE_DATE.toString())
@@ -184,7 +187,6 @@ data class Task @OptIn(ExperimentalSerializationApi::class) constructor(
             false
         } else title == original.title
                 && priority == original.priority
-                && hideUntil == original.hideUntil
                 && dueDate == original.dueDate
                 && completionDate == original.completionDate
                 && deletionDate == original.deletionDate
@@ -199,15 +201,24 @@ data class Task @OptIn(ExperimentalSerializationApi::class) constructor(
         if (this === original) {
             return true
         }
-        return if (original == null) {
-            false
-        } else title == original.title
-                && priority == original.priority
-                && dueDate == original.dueDate
-                && completionDate == original.completionDate
-                && deletionDate == original.deletionDate
-                && notes == original.notes
-                && recurrence == original.recurrence
+        if (original == null) {
+            return false
+        }
+        if (parent != original.parent) {
+            return false
+        }
+        return if (parent > 0L) {
+            title == original.title
+                    && completionDate == original.completionDate
+        } else {
+            title == original.title
+                    && priority == original.priority
+                    && dueDate == original.dueDate
+                    && completionDate == original.completionDate
+                    && deletionDate == original.deletionDate
+                    && notes == original.notes
+                    && recurrence == original.recurrence
+        }
     }
 
     val isSaved: Boolean
@@ -246,10 +257,8 @@ data class Task @OptIn(ExperimentalSerializationApi::class) constructor(
     fun <T> getTransitory(key: String?): T? = transitoryData?.get(key) as T?
 
     // --- Convenience wrappers for using transitories as flags
-    fun checkTransitory(flag: String?): Boolean {
-        val trans = getTransitory<Any>(flag)
-        return trans != null
-    }
+    fun checkTransitory(vararg flags: String): Boolean =
+        flags.any { getTransitory<Any>(it) != null }
 
     @Retention(AnnotationRetention.SOURCE)
     annotation class Priority {

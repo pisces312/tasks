@@ -3,16 +3,15 @@ package org.tasks.caldav
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
-import at.bitfire.dav4jvm.okhttp.exception.HttpException
+import at.bitfire.dav4jvm.ktor.exception.HttpException
 import com.todoroo.astrid.activity.MainActivity
 import com.todoroo.astrid.activity.TaskListFragment
+import org.tasks.resources.getString
 import org.tasks.service.TaskDeleter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -22,8 +21,6 @@ import tasks.kmp.generated.resources.error_adding_account
 import tasks.kmp.generated.resources.network_error
 import org.tasks.Strings.isNullOrEmpty
 import org.tasks.activities.BaseListSettingsActivity
-import org.tasks.compose.DeleteButton
-import org.tasks.compose.settings.Toaster
 import org.tasks.data.UUIDHelper
 import org.tasks.data.dao.CaldavDao
 import org.tasks.data.entity.CaldavAccount
@@ -111,10 +108,10 @@ abstract class BaseCaldavCalendarSettingsActivity : BaseListSettingsActivity() {
             is HttpException -> showSnackbar(t.message)
             is org.tasks.http.HttpException -> showSnackbar(t.message ?: "HTTP ${t.code}")
             is DisplayableException -> lifecycleScope.launch {
-                snackbar.showSnackbar(org.jetbrains.compose.resources.getString(t.resource))
+                snackbar.showSnackbar(getString(t.resource))
             }
-            is ConnectException -> showSnackbar(runBlocking { org.jetbrains.compose.resources.getString(Res.string.network_error) })
-            else -> showSnackbar(runBlocking { org.jetbrains.compose.resources.getString(Res.string.error_adding_account, t.message!!) })
+            is ConnectException -> showSnackbar(runBlocking { getString(Res.string.network_error) })
+            else -> showSnackbar(runBlocking { getString(Res.string.error_adding_account, t.message!!) })
         }
         return
     }
@@ -211,22 +208,6 @@ abstract class BaseCaldavCalendarSettingsActivity : BaseListSettingsActivity() {
             setResult(Activity.RESULT_OK, Intent(TaskListFragment.ACTION_DELETED))
             finish()
         }
-    }
-
-    @Composable
-    fun BaseCaldavSettingsContent (
-        optionButton: @Composable () -> Unit = { if (!isNew) DeleteButton(caldavCalendar?.name ?: "") { delete() } },
-        fab: @Composable () -> Unit = {},
-        headerContent: @Composable ColumnScope.() -> Unit = {},
-        extensionContent: @Composable ColumnScope.() -> Unit = {},
-    ) {
-        BaseSettingsContent (
-            optionButton = optionButton,
-            headerContent = headerContent,
-            extensionContent = extensionContent,
-            fab = fab,
-        )
-        Toaster(state = snackbar)
     }
 
     companion object {

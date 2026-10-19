@@ -3,18 +3,18 @@
 package org.tasks.caldav
 
 import com.natpryce.makeiteasy.MakeItEasy.with
-import org.tasks.data.entity.Task.Companion.URGENCY_SPECIFIC_DAY
-import org.tasks.data.entity.Task.Priority.Companion.HIGH
-import org.tasks.data.entity.Task.Priority.Companion.LOW
-import org.tasks.data.entity.Task.Priority.Companion.MEDIUM
-import net.fortuna.ical4j.model.property.Status
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.tasks.data.createDueDate
+import org.tasks.data.entity.Task.Companion.URGENCY_SPECIFIC_DAY
+import org.tasks.data.entity.Task.Priority.Companion.HIGH
+import org.tasks.data.entity.Task.Priority.Companion.LOW
+import org.tasks.data.entity.Task.Priority.Companion.MEDIUM
 import org.tasks.date.DateTimeUtils.newDateTime
+import org.tasks.icalendar.TodoStatus
 import org.tasks.makers.CaldavTaskMaker.REMOTE_PARENT
 import org.tasks.makers.CaldavTaskMaker.newCaldavTask
 import org.tasks.makers.TaskMaker
@@ -26,6 +26,7 @@ import org.tasks.makers.iCalMaker.COLLAPSED
 import org.tasks.makers.iCalMaker.COMPLETED_AT
 import org.tasks.makers.iCalMaker.CREATED_AT
 import org.tasks.makers.iCalMaker.DESCRIPTION
+import org.tasks.makers.iCalMaker.DT_STAMP
 import org.tasks.makers.iCalMaker.DUE_DATE
 import org.tasks.makers.iCalMaker.LAST_MODIFIED
 import org.tasks.makers.iCalMaker.PARENT
@@ -363,9 +364,24 @@ class iCalendarMergeTest {
     }
 
     @Test
+    fun remoteUpdatesCreatedDespiteSubSecondLocalPrecision() {
+        val lastSync = newDateTime().minusMinutes(10).startOfSecond()
+        val localCreated = lastSync.withMillisOfSecond(907)
+        val remoteCreated = newDateTime().minusMinutes(5)
+        newTask(with(CREATION_TIME, localCreated))
+            .applyRemote(
+                remote = newIcal(with(CREATED_AT, remoteCreated.toUTC())),
+                local = newIcal(with(CREATED_AT, lastSync.toUTC())),
+            )
+            .let {
+                assertEquals(remoteCreated.millis, it.creationDate)
+            }
+    }
+
+    @Test
     fun remoteAddsModified() {
         val modified = newDateTime().minusMinutes(5)
-        newTask(with(TaskMaker.MODIFICATION_TIME, modified.minusMinutes(1)))
+        newTask()
             .applyRemote(
                 remote = newIcal(with(LAST_MODIFIED, modified.toUTC())),
                 local = null
@@ -405,6 +421,21 @@ class iCalendarMergeTest {
     }
 
     @Test
+    fun remoteUpdatesModifiedDespiteSubSecondLocalPrecision() {
+        val lastSync = newDateTime().minusMinutes(10).startOfSecond()
+        val localModDate = lastSync.withMillisOfSecond(907)
+        val remoteUpdate = newDateTime().minusMinutes(5)
+        newTask(with(TaskMaker.MODIFICATION_TIME, localModDate))
+            .applyRemote(
+                remote = newIcal(with(LAST_MODIFIED, remoteUpdate.toUTC())),
+                local = newIcal(with(LAST_MODIFIED, lastSync.toUTC())),
+            )
+            .let {
+                assertEquals(remoteUpdate.millis, it.modificationDate)
+            }
+    }
+
+    @Test
     fun remoteModifiedClampedToNow() {
         val future = newDateTime().plusDays(1)
         newTask()
@@ -423,10 +454,136 @@ class iCalendarMergeTest {
         newTask(with(TaskMaker.MODIFICATION_TIME, modified))
             .applyRemote(
                 remote = newIcal(),
+                local = newIcal(with(LAST_MODIFIED, modified.toUTC()))
+            )
+            .let {
+                assertEquals(modified.millis, it.modificationDate)
+            }
+    }
+
+    @Test
+    fun missingLastModifiedFallsBackToCreated() {
+        val created = newDateTime().minusMinutes(5)
+        newTask()
+            .applyRemote(
+                remote = newIcal(with(CREATED_AT, created.toUTC())),
+                local = null
+            )
+            .let {
+                assertEquals(created.millis, it.modificationDate)
+            }
+    }
+
+    @Test
+    fun lastModifiedBeatsCreated() {
+        val created = newDateTime().minusMinutes(10)
+        val modified = newDateTime().minusMinutes(5)
+        newTask()
+            .applyRemote(
+                remote = newIcal(
+                    with(CREATED_AT, created.toUTC()),
+                    with(LAST_MODIFIED, modified.toUTC()),
+                ),
                 local = null
             )
             .let {
                 assertEquals(modified.millis, it.modificationDate)
+            }
+    }
+
+    @Test
+    fun missingLastModifiedAndCreatedFallsBackToCurrentTime() {
+        val before = org.tasks.time.DateTimeUtils2.currentTimeMillis()
+        newTask()
+            .applyRemote(
+                remote = newIcal(),
+                local = null
+            )
+            .let {
+                assertTrue(it.modificationDate >= before)
+                assertTrue(it.modificationDate <= org.tasks.time.DateTimeUtils2.currentTimeMillis())
+            }
+    }
+
+    @Test
+    fun dtStampSetsModifiedWhenLastModifiedAndCreatedMissing() {
+        val dtStamp = newDateTime().minusDays(3)
+        newTask()
+            .applyRemote(
+                remote = newIcal(with(DT_STAMP, dtStamp.toUTC())),
+                local = null
+            )
+            .let {
+                assertEquals(dtStamp.millis, it.modificationDate)
+            }
+    }
+
+    @Test
+    fun dtStampSetsCreationWhenCreatedMissing() {
+        val dtStamp = newDateTime().minusDays(3)
+        newTask()
+            .applyRemote(
+                remote = newIcal(with(DT_STAMP, dtStamp.toUTC())),
+                local = null
+            )
+            .let {
+                assertEquals(dtStamp.millis, it.creationDate)
+            }
+    }
+
+    @Test
+    fun lastModifiedBeatsDtStamp() {
+        val dtStamp = newDateTime().minusMinutes(1)
+        val modified = newDateTime().minusMinutes(5)
+        newTask()
+            .applyRemote(
+                remote = newIcal(
+                    with(LAST_MODIFIED, modified.toUTC()),
+                    with(DT_STAMP, dtStamp.toUTC()),
+                ),
+                local = null
+            )
+            .let {
+                assertEquals(modified.millis, it.modificationDate)
+            }
+    }
+
+    @Test
+    fun createdBeatsDtStampForCreation() {
+        val dtStamp = newDateTime().minusMinutes(1)
+        val created = newDateTime().minusDays(10)
+        newTask()
+            .applyRemote(
+                remote = newIcal(
+                    with(CREATED_AT, created.toUTC()),
+                    with(DT_STAMP, dtStamp.toUTC()),
+                ),
+                local = null
+            )
+            .let {
+                assertEquals(created.millis, it.creationDate)
+            }
+    }
+
+    @Test
+    fun creationImmutableWhenDtStampAdvances() {
+        val imported = newDateTime().minusDays(30)
+        val serverEdit = newDateTime().minusDays(3)
+        val task = newTask()
+            .applyRemote(
+                remote = newIcal(with(DT_STAMP, imported.toUTC())),
+                local = null
+            )
+        assertEquals(imported.millis, task.creationDate)
+        assertEquals(imported.millis, task.modificationDate)
+        task
+            .applyRemote(
+                remote = newIcal(with(DT_STAMP, serverEdit.toUTC())),
+                local = newIcal(with(DT_STAMP, imported.toUTC()))
+            )
+            .let {
+                assertEquals(imported.millis, it.creationDate)
+                assertEquals(serverEdit.millis, it.modificationDate)
             }
     }
 
@@ -489,7 +646,7 @@ class iCalendarMergeTest {
     fun remoteSetsCompletedStatus() =
         newTask()
             .applyRemote(
-                remote = newIcal(with(STATUS, Status.VTODO_COMPLETED)),
+                remote = newIcal(with(STATUS, TodoStatus.COMPLETED)),
                 local = null
             )
             .let {
@@ -500,8 +657,8 @@ class iCalendarMergeTest {
     fun remoteUpdatesCompletedStatus() =
         newTask()
             .applyRemote(
-                remote = newIcal(with(STATUS, Status.VTODO_COMPLETED)),
-                local = newIcal(with(STATUS, Status.VTODO_IN_PROCESS))
+                remote = newIcal(with(STATUS, TodoStatus.COMPLETED)),
+                local = newIcal(with(STATUS, TodoStatus.IN_PROCESS))
             )
             .let {
                 assertTrue(it.isCompleted)
@@ -514,7 +671,7 @@ class iCalendarMergeTest {
             .applyRemote(
                 remote = newIcal(),
                 local = newIcal(
-                    with(STATUS, Status.VTODO_COMPLETED),
+                    with(STATUS, TodoStatus.COMPLETED),
                     with(COMPLETED_AT, now)
                 )
             )
@@ -544,7 +701,7 @@ class iCalendarMergeTest {
                 remote = newIcal(with(COMPLETED_AT, now.plusMinutes(5).toUTC())),
                 local = newIcal(
                     with(COMPLETED_AT, now.toUTC()),
-                    with(STATUS, Status.VTODO_COMPLETED)
+                    with(STATUS, TodoStatus.COMPLETED)
                 )
             )
             .let {
@@ -560,7 +717,7 @@ class iCalendarMergeTest {
                 remote = newIcal(),
                 local = newIcal(
                     with(COMPLETED_AT, now.toUTC()),
-                    with(STATUS, Status.VTODO_COMPLETED)
+                    with(STATUS, TodoStatus.COMPLETED)
                 )
             )
             .let {
@@ -576,7 +733,7 @@ class iCalendarMergeTest {
                 remote = newIcal(with(COMPLETED_AT, now.toUTC())),
                 local = newIcal(
                     with(COMPLETED_AT, now.toUTC()),
-                    with(STATUS, Status.VTODO_COMPLETED)
+                    with(STATUS, TodoStatus.COMPLETED)
                 )
             )
             .let {
@@ -592,7 +749,7 @@ class iCalendarMergeTest {
                 remote = newIcal(with(COMPLETED_AT, now.plusMinutes(1).toUTC())),
                 local = newIcal(
                     with(COMPLETED_AT, now.toUTC()),
-                    with(STATUS, Status.VTODO_COMPLETED)
+                    with(STATUS, TodoStatus.COMPLETED)
                 )
             )
             .let {

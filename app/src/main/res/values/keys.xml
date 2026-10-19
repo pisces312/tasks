@@ -13,6 +13,7 @@
   <string name="decsync">DecSync CC</string>
   <string name="tasks_org">Tasks.org</string>
   <string name="tasks_org_account">Tasks.org Cloud</string>
+  <string name="gtasks_GPr_header">Google Tasks</string>
   <string name="microsoft">Microsoft To&#xA0;Do</string>
   <string name="etebase_url">https://api.etebase.com/partner/tasksorg/</string>
   <string name="help_url_sync">https://tasks.org/sync</string>
@@ -20,18 +21,10 @@
   <string name="url_davx5">https://tasks.org/davx5</string>
   <string name="url_caldav">https://tasks.org/caldav</string>
   <string name="url_etesync">https://tasks.org/etesync</string>
-  <string name="url_decsync">https://tasks.org/decsync</string>
   <string name="url_tasker">https://tasks.org/help/tasker</string>
   <string name="url_donate">https://tasks.org/donate</string>
-  <string name="url_reddit">https://reddit.com/r/tasks</string>
-  <string name="url_twitter">https://twitter.com/tasks_org</string>
   <string name="url_filters">https://tasks.org/filters</string>
-  <string name="url_documentation">https://tasks.org/</string>
-  <string name="url_issue_tracker">https://github.com/tasks/tasks/issues</string>
-  <string name="url_changelog">https://tasks.org/changelog</string>
-  <string name="url_source_code">https://tasks.org/source</string>
   <string name="url_backups">https://tasks.org/backups</string>
-  <string name="url_translations">https://tasks.org/translations</string>
   <string name="url_notifications">https://tasks.org/notifications</string>
   <string name="url_troubleshoot_intents">https://tasks.org/intents</string>
   <string name="url_google_tasks">https://tasks.org/docs/sync_google_tasks</string>
@@ -68,19 +61,8 @@
   <string name="p_rmd_swipe_to_snooze_enabled">notif_swipe_to_snooze_enabled</string>
   <string name="p_rmd_swipe_to_snooze_time_minutes">notif_swipe_to_snooze_time_minutes</string>
 
-  <string-array name="swipe_to_snooze_time_values">
-    <item>0</item>
-    <item>15</item>
-    <item>30</item>
-    <item>60</item>
-    <item>1440</item>
-  </string-array>
-
   <!-- ringtone to use for notifications -->
   <string name="p_completion_ringtone">completion_ringtone</string>
-
-  <!-- default random reminder setting (in hours) -->
-  <string name="p_rmd_default_random_hours">notif_default_reminder</string>
 
   <!-- filters to show -->
   <string name="p_filters_enabled">drawer_filters_enabled</string>
@@ -96,15 +78,6 @@
   <string name="p_show_task_edit_comments">p_show_task_edit_comments</string>
   <string name="p_show_edit_screen_without_unlock">show_edit_screen_without_unlock</string>
 
-  <string-array name="EPr_reminder_random_hours">
-    <!-- values (in hours) associated with random reminders above. -->
-    <item>0</item>
-    <item>1</item>
-    <item>24</item>
-    <item>168</item>
-    <item>336</item>
-  </string-array>
-
   <!-- ======================================================= APPEARANCE == -->
 
   <string name="p_fontSize">font_size_v2</string>
@@ -118,14 +91,6 @@
 
   <!-- default urgency setting (corresponds to entry in TEA_urgency) -->
   <string name="p_default_urgency_key">p_def_urg</string>
-
-  <string-array name="EPr_default_importance_values">
-    <!-- importance: labels that map EPr_default_importance items to task importance values. -->
-    <item>0</item>
-    <item>1</item>
-    <item>2</item>
-    <item>3</item>
-  </string-array>
 
   <string-array name="widget_spacing_titles">
     <item>@string/settings_default</item>
@@ -149,32 +114,6 @@
     <item>@string/widget_due_date_after_title</item>
     <item>@string/widget_due_date_below_title</item>
     <item>@string/widget_due_date_hidden</item>
-  </string-array>
-
-  <string-array name="EPr_default_urgency_values">
-    <!-- urgency: labels that map EPr_default_urgency items to index in TEA_urgency. -->
-    <item>0</item>
-    <item>1</item>
-    <item>2</item>
-    <item>3</item>
-    <item>4</item>
-    <item>5</item>
-  </string-array>
-
-  <string-array name="EPr_default_hideUntil_values">
-    <!-- hideUntil: labels that map EPr_default_hideUntil items to index in TEA_hideUntil. -->
-    <item>0</item>
-    <item>1</item>
-    <item>6</item>
-    <item>2</item>
-    <item>3</item>
-  </string-array>
-
-  <string-array name="EPr_default_reminders_mode_values">
-    <!-- reminders: values that map EPr_default_reminders items to reminder flags. -->
-    <item>0</item>
-    <item>16</item>
-    <item>8</item>
   </string-array>
 
   <!-- default importance setting (corresponds to task setting) -->
@@ -254,6 +193,7 @@
   <string name="TEA_ctrl_creation_date">TEA_ctrl_creation_date</string>
   <string name="p_show_hidden_tasks">show_hidden_tasks</string>
   <string name="p_show_completed_tasks">show_completed_tasks</string>
+  <string name="p_show_completed_subtasks">show_completed_subtasks</string>
   <string name="p_sort_ascending">sort_ascending</string>
   <string name="p_group_ascending">group_ascending</string>
   <string name="p_completed_ascending">completed_ascending</string>
@@ -273,12 +213,6 @@
     <item>@string/theme_wallpaper</item>
     <item>@string/theme_day_night</item>
     <item>@string/theme_system_default</item>
-  </string-array>
-
-  <string-array name="EPr_default_reminders_mode">
-    <item>@string/ring_once</item>
-    <item>@string/ring_five_times</item>
-    <item>@string/ring_nonstop</item>
   </string-array>
 
   <string name="p_collect_statistics">collect_statistics</string>
@@ -306,6 +240,7 @@
   <string name="p_widget_sort_astrid">widget-sort-astrid-</string>
   <string name="p_widget_show_hidden">widget-hidden-</string>
   <string name="p_widget_show_completed">widget-completed-</string>
+  <string name="p_widget_show_completed_subtasks">widget-completed-subtasks-</string>
   <string name="p_widget_compact">widget-compact-</string>
   <string name="p_widget_color">widget-color-</string>
   <string name="p_widget_color_v2">widget-color-v2</string>
@@ -342,7 +277,6 @@
   <string name="p_bundle_notifications">bundle_notifications</string>
   <string name="p_strict_mode_vm">strict_mode_vm</string>
   <string name="p_strict_mode_thread">strict_mode_thread</string>
-  <string name="p_leakcanary">p_leakcanary</string>
   <string name="p_debug_pro">debug_pro</string>
   <string name="p_crash_main_queries">debug_crash_main_queries</string>
   <string name="p_last_backup">last_backup</string>
@@ -400,8 +334,6 @@
   <string name="param_action">action</string>
   <string name="param_label">label</string>
   <string name="param_selection">selection</string>
-  <string name="event_todoagenda">cp_todoagenda</string>
-  <string name="event_astrid2taskprovider">cp_astrid2taskprovider</string>
   <string name="event_sync_add_account">sync_add_account</string>
   <string name="event_initial_sync_complete">initial_sync_complete</string>
   <string name="param_task_count">task_count</string>
@@ -410,6 +342,7 @@
   <string name="event_sync_unknown_access">sync_unknown_access</string>
   <string name="event_banner">banner</string>
   <string name="event_pebble">pebble</string>
+  <string name="event_dashclock">dashclock</string>
   <string name="param_device_model">device_model</string>
   <string name="event_add_task">add_task</string>
   <string name="event_complete_task">complete_task</string>

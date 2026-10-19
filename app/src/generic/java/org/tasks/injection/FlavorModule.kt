@@ -1,5 +1,8 @@
 package org.tasks.injection
 
+import com.google.android.material.color.DynamicColors
+import com.todoroo.andlib.utility.AndroidUtilities
+import org.tasks.AppStore
 import org.tasks.PlatformConfiguration
 import dagger.Module
 import dagger.Provides
@@ -29,8 +32,25 @@ class FlavorModule {
         supportsBackupImport = true,
         supportsGeofences = true,
         supportsCalendarEvents = true,
+        appStore = AppStore.FDROID,
+        isAndroid = true,
         isLibre = true,
         supportsWidgets = true,
+        supportsLogExport = true,
+        supportsNotificationTroubleshooting = true,
+        supportsSystemNotificationSettings = true,
+        supportsOngoingNotifications = AndroidUtilities.preUpsideDownCake(),
+        supportsBundledNotifications = true,
+        supportsVoiceReminders = true,
+        supportsCompletionSound = true,
+        supportsSwipeToSnooze = true,
+        supportsRingMode = true,
+        supportsDynamicColor = DynamicColors.isDynamicColorAvailable(),
+        supportsLauncherIcon = true,
+        supportsMarkdownToggle = true,
+        supportsWallpaperTheme = true,
+        supportsAutoNightTheme = true,
+        supportsLanguageSelection = true,
     )
 
     @Provides

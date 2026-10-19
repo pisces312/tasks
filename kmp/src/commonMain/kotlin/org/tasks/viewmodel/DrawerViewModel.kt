@@ -6,7 +6,9 @@ import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,8 +28,9 @@ import org.tasks.filters.CaldavFilter
 import org.tasks.filters.Filter
 import org.tasks.filters.FilterProvider
 import org.tasks.filters.NavigationDrawerSubheader
-import org.tasks.filters.getIcon
+import org.tasks.filters.SignInPrompt
 import org.tasks.preferences.TasksPreferences
+import org.tasks.kmp.org.tasks.themes.ColorProvider
 
 private const val TAG = "DrawerViewModel"
 
@@ -66,16 +69,27 @@ open class DrawerViewModel(
 
     fun updateFilters() {
         viewModelScope.launch(Dispatchers.IO) {
-            val selectedFilter = _state.value.selectedFilter
-            filterProvider
-                .drawerItems()
-                .map { item -> item.toDrawerItem(selectedFilter) }
-                .let { filters ->
-                    _state.update { it.copy(drawerItems = filters.toPersistentList()) }
+            // Nothing above catches this: viewModelScope's SupervisorJob routes a child failure to
+            // the default handler, which on Android takes the process down - over a drawer that
+            // could not be listed.
+            try {
+                val selectedFilter = _state.value.selectedFilter
+                filterProvider
+                    .drawerItems()
+                    .map { item -> item.toDrawerItem(selectedFilter) }
+                    .let { filters ->
+                        _state.update { it.copy(drawerItems = filters.toPersistentList()) }
+                    }
+                val query = _state.value.menuQuery
+                if (query.isNotBlank()) {
+                    updateSearch(query, selectedFilter)
                 }
-            val query = _state.value.menuQuery
-            if (query.isNotBlank()) {
-                updateSearch(query, selectedFilter)
+            } catch (e: CancellationException) {
+                // A RuntimeException on the JVM, so the catch below would log a cancelled scope -
+                // signing out, or the activity going away - as a failure.
+                throw e
+            } catch (e: Exception) {
+                Logger.e(e, tag = TAG) { "Failed to update filters" }
             }
         }
     }
@@ -96,11 +110,13 @@ open class DrawerViewModel(
             .map { item ->
                 DrawerItem.Filter(
                     title = item.title,
-                    icon = item.getIcon(purchaseState),
-                    color = if (purchaseState.purchasedThemes()) item.tint else 0,
+                    icon = item.resolveIcon(purchaseState),
+                    color = if (purchaseState.purchasedThemes() || ColorProvider.isFreeColor(item.tint)) item.tint else 0,
                     adjustColor = item.tint != 0,
                     count = item.count.takeIf { it != NO_COUNT } ?: try {
                         taskDao.count(item)
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         Logger.e(e, tag = TAG) { "Failed to count tasks" }
                         0
@@ -117,19 +133,7 @@ open class DrawerViewModel(
 
     fun toggleCollapsed(subheader: NavigationDrawerSubheader) {
         viewModelScope.launch(Dispatchers.IO) {
-            val collapsed = !subheader.isCollapsed
-            when (subheader.subheaderType) {
-                NavigationDrawerSubheader.SubheaderType.PREFERENCE -> {
-                    tasksPreferences.set(
-                        androidx.datastore.preferences.core.booleanPreferencesKey(subheader.id),
-                        collapsed,
-                    )
-                }
-                NavigationDrawerSubheader.SubheaderType.CALDAV,
-                NavigationDrawerSubheader.SubheaderType.TASKS -> {
-                    caldavDao.setCollapsed(subheader.id, collapsed)
-                }
-            }
+            toggleCollapsed(subheader, caldavDao, tasksPreferences)
             updateFilters()
         }
     }
@@ -139,8 +143,8 @@ open class DrawerViewModel(
     ): DrawerItem = when (this) {
         is Filter -> DrawerItem.Filter(
             title = title,
-            icon = getIcon(purchaseState),
-            color = if (purchaseState.purchasedThemes()) tint else 0,
+            icon = resolveIcon(purchaseState),
+            color = if (purchaseState.purchasedThemes() || ColorProvider.isFreeColor(tint)) tint else 0,
             adjustColor = tint != 0,
             count = count.takeIf { it != NO_COUNT } ?: try {
                 taskDao.count(this)
@@ -161,6 +165,7 @@ open class DrawerViewModel(
             openTaskApp = openTaskApp,
             header = this,
         )
+        is SignInPrompt -> DrawerItem.SignIn
         else -> throw IllegalArgumentException()
     }
 }

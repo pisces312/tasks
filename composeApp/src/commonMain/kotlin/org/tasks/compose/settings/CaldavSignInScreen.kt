@@ -1,10 +1,10 @@
 package org.tasks.compose.settings
 
+import org.tasks.themes.TasksIcons
+import org.tasks.compose.components.SymbolIcon
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -12,6 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,7 @@ fun CaldavSignInScreen(
     onAccountCreated: () -> Unit,
 ) {
     val viewModel = koinViewModel<CaldavAccountSettingsViewModel>()
+    LaunchedEffect(Unit) { viewModel.watchNewAccountMetadata() }
     val state by viewModel.state.collectAsState()
     var showDiscardDialog by remember { mutableStateOf(false) }
 
@@ -49,8 +51,8 @@ fun CaldavSignInScreen(
                             }
                         }
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        SymbolIcon(
+                            name = TasksIcons.ARROW_BACK,
                             contentDescription = stringResource(Res.string.back),
                         )
                     }
@@ -73,6 +75,9 @@ fun CaldavSignInScreen(
                 onPasswordChange = viewModel::setPassword,
                 onNameChange = {},
                 onServerTypeChange = viewModel::setServerType,
+                onMetadataToggle = viewModel::onMetadataToggle,
+                onConfirmMetadataSwitch = viewModel::confirmMetadataSwitch,
+                onCancelMetadataSwitch = viewModel::cancelMetadataSwitch,
                 onSave = { viewModel.save(onAccountCreated) },
                 onDelete = {},
                 onNavigateBack = onNavigateBack,

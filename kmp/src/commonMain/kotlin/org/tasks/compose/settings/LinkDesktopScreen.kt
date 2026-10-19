@@ -1,5 +1,7 @@
 package org.tasks.compose.settings
 
+import org.tasks.themes.TasksIcons
+import org.tasks.compose.components.SymbolIcon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,15 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -31,17 +33,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.ktor.utils.io.errors.IOException
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.tasks.kmp.formatNumber
 import tasks.kmp.generated.resources.Res
 import tasks.kmp.generated.resources.back
 import tasks.kmp.generated.resources.done
 import tasks.kmp.generated.resources.error_confirmation_failed
 import tasks.kmp.generated.resources.error_network
 import tasks.kmp.generated.resources.link_desktop
-import tasks.kmp.generated.resources.link_desktop_instructions
+import tasks.kmp.generated.resources.link_desktop_step_1
+import tasks.kmp.generated.resources.link_desktop_step_2
+import tasks.kmp.generated.resources.link_desktop_step_3
 import tasks.kmp.generated.resources.link_desktop_success
+import tasks.kmp.generated.resources.google_play_subscription
+import tasks.kmp.generated.resources.restore_purchases
 import tasks.kmp.generated.resources.scan_qr_code
+import tasks.kmp.generated.resources.upgrade
 
 sealed interface LinkDesktopState {
     data object Idle : LinkDesktopState
@@ -70,8 +79,8 @@ fun LinkDesktopScreen(
             TopAppBar(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        SymbolIcon(
+                            name = TasksIcons.ARROW_BACK,
                             contentDescription = stringResource(Res.string.back),
                         )
                     }
@@ -111,12 +120,34 @@ fun LinkDesktopScreen(
                         }
                     }
                     else -> {
-                        Text(
-                            text = stringResource(Res.string.link_desktop_instructions),
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(SettingsCardRadius),
+                            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = SettingsContentPadding),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(24.dp),
+                            ) {
+                                StepText(1, stringResource(Res.string.link_desktop_step_1))
+                                StepText(
+                                    2,
+                                    stringResource(
+                                        Res.string.link_desktop_step_2,
+                                        stringResource(Res.string.upgrade),
+                                        stringResource(Res.string.restore_purchases),
+                                    )
+                                )
+                                StepText(
+                                    3,
+                                    stringResource(
+                                        Res.string.link_desktop_step_3,
+                                        stringResource(Res.string.google_play_subscription),
+                                    )
+                                )
+                            }
+                        }
                         Spacer(modifier = Modifier.height(32.dp))
                         Button(
                             onClick = {
@@ -132,7 +163,7 @@ fun LinkDesktopScreen(
                                             } else {
                                                 LinkDesktopState.Error(confirmationErrorMessage)
                                             }
-                                        } catch (e: java.io.IOException) {
+                                        } catch (e: IOException) {
                                             state = LinkDesktopState.Error(networkErrorMessage)
                                         } catch (e: Exception) {
                                             state = LinkDesktopState.Error(confirmationErrorMessage)
@@ -164,4 +195,13 @@ fun LinkDesktopScreen(
             }
         }
     }
+}
+
+@Composable
+private fun StepText(number: Int, text: String) {
+    Text(
+        text = "${formatNumber(number)}. $text",
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(vertical = 2.dp),
+    )
 }

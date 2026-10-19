@@ -4,37 +4,36 @@ import at.bitfire.ical4android.BatchOperation
 import co.touchlab.kermit.Logger
 import org.dmfs.tasks.contract.TaskContract
 import org.dmfs.tasks.contract.TaskContract.Tasks
-import org.jetbrains.compose.resources.getString
-import org.tasks.analytics.Constants
 import org.tasks.analytics.Reporting
 import org.tasks.broadcast.RefreshBroadcaster
-import org.tasks.caldav.Ical4androidTaskAdapter
 import org.tasks.caldav.iCalendar
+import org.tasks.caldav.toIcal4android
+import org.tasks.caldav.toVTodo
 import org.tasks.data.MyAndroidTask
 import org.tasks.data.OpenTaskDao
 import org.tasks.data.OpenTaskDao.Companion.filterActive
 import org.tasks.data.OpenTaskDao.Companion.toLocalCalendar
 import org.tasks.data.dao.CaldavDao
-import org.tasks.data.dao.TaskDao
+import org.tasks.data.dao.DirtyDao
 import org.tasks.data.entity.CaldavAccount
-import org.tasks.data.entity.CaldavAccount.Companion.isDavx5
-import org.tasks.data.entity.CaldavAccount.Companion.isDavx5Managed
-import org.tasks.data.entity.CaldavAccount.Companion.isDecSync
-import org.tasks.data.entity.CaldavAccount.Companion.isEteSync
+import org.tasks.data.entity.CaldavAccount.Companion.openTaskProvider
 import org.tasks.data.entity.CaldavCalendar
 import org.tasks.data.entity.CaldavTask
+import org.tasks.data.entity.OpenTaskProvider
 import org.tasks.data.entity.Task
 import org.tasks.data.entity.Task.Companion.NO_ID
+import org.tasks.icalendar.serialize
+import org.tasks.resources.getString
 import org.tasks.service.TaskDeleter
 import org.tasks.time.DateTimeUtils2.currentTimeMillis
 import tasks.kmp.generated.resources.Res
-import tasks.kmp.generated.resources.requires_pro_subscription
+import tasks.kmp.generated.resources.subscription_required
 
 class OpenTasksSynchronizer(
     private val caldavDao: CaldavDao,
     private val taskDeleter: TaskDeleter,
     private val refreshBroadcaster: RefreshBroadcaster,
-    private val taskDao: TaskDao,
+    private val dirtyDao: DirtyDao,
     private val reporting: Reporting,
     private val iCalendar: iCalendar,
     private val openTaskDao: OpenTaskDao,
@@ -56,13 +55,8 @@ class OpenTasksSynchronizer(
             .forEach {
                 reporting.logEvent(
                     "sync_add_account",
-                    "type" to when {
-                        it.uuid.isDavx5() -> Constants.SYNC_TYPE_DAVX5
-                        it.uuid.isDavx5Managed() -> Constants.SYNC_TYPE_DAVX5_MANAGED
-                        it.uuid.isEteSync() -> Constants.SYNC_TYPE_ETESYNC_OT
-                        it.uuid.isDecSync() -> Constants.SYNC_TYPE_DECSYNC
-                        else -> throw IllegalArgumentException()
-                    }
+                    "type" to (it.uuid.openTaskProvider()?.syncType
+                        ?: throw IllegalArgumentException())
                 )
             }
         caldavDao.getAccounts(CaldavAccount.TYPE_OPENTASKS).forEach { account ->
@@ -71,19 +65,14 @@ class OpenTasksSynchronizer(
                 Logger.d("OpenTasksSynchronizer") { "Removing $account" }
                 taskDeleter.delete(account)
             } else if (!hasPro) {
-                setError(account, getString(Res.string.requires_pro_subscription))
+                setError(account, getString(Res.string.subscription_required))
             } else {
                 try {
                     sync(account, entries)
                     if (account.lastSync == 0L) {
                         val taskCount = caldavDao.getTaskCountForAccount(account.uuid!!)
-                        val syncType = when {
-                            account.uuid.isDavx5() -> Constants.SYNC_TYPE_DAVX5
-                            account.uuid.isDavx5Managed() -> Constants.SYNC_TYPE_DAVX5_MANAGED
-                            account.uuid.isEteSync() -> Constants.SYNC_TYPE_ETESYNC_OT
-                            account.uuid.isDecSync() -> Constants.SYNC_TYPE_DECSYNC
-                            else -> "opentasks"
-                        }
+                        val syncType =
+                            account.uuid.openTaskProvider()?.syncType ?: "opentasks"
                         reporting.logEvent(
                             "sync_initial_sync_complete",
                             "type" to syncType,
@@ -111,10 +100,10 @@ class OpenTasksSynchronizer(
                 }
         lists.forEach {
             val calendar = toLocalCalendar(it)
-            if (calendar.access != CaldavCalendar.ACCESS_READ_ONLY) {
-                pushChanges(account, calendar, it.id)
-            }
             fetchChanges(account, calendar, it.ctag, it.id)
+            if (calendar.access != CaldavCalendar.ACCESS_READ_ONLY) {
+                pushLocalChanges(account, calendar, it.id)
+            }
         }
     }
 
@@ -140,20 +129,20 @@ class OpenTasksSynchronizer(
         return local
     }
 
-    private suspend fun pushChanges(
+    private suspend fun pushLocalChanges(
         account: CaldavAccount,
         calendar: CaldavCalendar,
         listId: Long
     ) {
         val moved = caldavDao.getMoved(calendar.uuid!!)
-        val (deleted, updated) = taskDao
-            .getCaldavTasksToPush(calendar.uuid!!)
-            .partition { it.isDeleted }
+        val (deleted, updated) = dirtyDao
+            .getTasksToPush(calendar.uuid!!)
+            .partition { it.task.isDeleted }
         if (moved.isEmpty() && deleted.isEmpty() && updated.isEmpty()) {
             return
         }
         Logger.d("OpenTasksSynchronizer") { "Pushing changes: updated=${updated.size} moved=${moved.size} deleted=${deleted.size}" }
-        (moved + deleted.map(Task::id)
+        (moved + deleted.map { it.task.id }
             .let { caldavDao.getTasks(it) })
             .mapNotNull { it.remoteId }
             .takeIf { it.isNotEmpty() }
@@ -163,10 +152,10 @@ class OpenTasksSynchronizer(
                 openTaskDao.batch(it)
             }
         caldavDao.delete(moved)
-        taskDeleter.delete(deleted.map { it.id })
+        taskDeleter.delete(deleted.map { it.task.id })
 
         updated.forEach {
-            push(account, it, listId)
+            push(account, it.task, it.caldavTaskId, it.dirtyVersion, listId)
         }
     }
 
@@ -221,39 +210,44 @@ class OpenTasksSynchronizer(
         }
     }
 
-    private suspend fun push(account: CaldavAccount, task: Task, listId: Long) {
-        val caldavTask = caldavDao.getTask(task.id) ?: return
-        val uid = caldavTask.remoteId!!
-        val androidTask = openTaskDao.getTask(listId, uid)
-                ?: MyAndroidTask(at.bitfire.ical4android.Task())
-        val adapted = Ical4androidTaskAdapter(androidTask.task!!)
-        iCalendar.toVtodo(account, caldavTask, task, adapted)
-        val operations = ArrayList<BatchOperation.CpoBuilder>()
-        val builder = androidTask.toBuilder(openTaskDao.tasks)
-        val idxTask = if (androidTask.isNew) {
-            if (account.isEteSync) {
-                builder.withValue(Tasks.SYNC2, uid)
+    private suspend fun push(account: CaldavAccount, task: Task, caldavTaskId: Long, dirtyVersion: Long?, listId: Long) {
+        val caldavTask = caldavDao.getCaldavTaskById(caldavTaskId) ?: return
+        dirtyDao.withDirtyVersion(caldavTaskId, dirtyVersion) {
+            val uid = caldavTask.remoteId!!
+            if (caldavTask.obj.isNullOrBlank()) {
+                caldavTask.obj = CaldavTask.objectName(uid)
             }
-            builder.withValue(Tasks.LIST_ID, listId)
-            0
-        } else {
-            // remove associated rows which are added later again
-            operations.add(BatchOperation.CpoBuilder
-                    .newDelete(openTaskDao.properties)
-                    .withSelection(
-                            "${TaskContract.Properties.TASK_ID}=?",
-                            arrayOf(androidTask.id.toString())
-                    )
-            )
-            null
+            val androidTask = openTaskDao.getTask(listId, uid)
+                    ?: MyAndroidTask(at.bitfire.ical4android.Task())
+            val remoteModel = androidTask.task!!.toVTodo()
+            iCalendar.applyLocalTo(account, caldavTask, task, remoteModel)
+            androidTask.task = remoteModel.toIcal4android()
+            val operations = ArrayList<BatchOperation.CpoBuilder>()
+            val builder = androidTask.toBuilder(openTaskDao.tasks)
+            val idxTask = if (androidTask.isNew) {
+                if (account.isEteSync) {
+                    builder.withValue(Tasks.SYNC2, uid)
+                }
+                builder.withValue(Tasks.LIST_ID, listId)
+                0
+            } else {
+                // remove associated rows which are added later again
+                operations.add(BatchOperation.CpoBuilder
+                        .newDelete(openTaskDao.properties)
+                        .withSelection(
+                                "${TaskContract.Properties.TASK_ID}=?",
+                                arrayOf(androidTask.id.toString())
+                        )
+                )
+                null
+            }
+            operations.add(builder)
+            androidTask.enqueueProperties(openTaskDao.properties, operations, idxTask)
+
+            operations.map { it.build() }.let { openTaskDao.batch(it) }
+
+            caldavDao.update(caldavTask)
         }
-        operations.add(builder)
-        androidTask.enqueueProperties(openTaskDao.properties, operations, idxTask)
-
-        operations.map { it.build() }.let { openTaskDao.batch(it) }
-
-        caldavTask.lastSync = task.modificationDate
-        caldavDao.update(caldavTask)
         Logger.d("OpenTasksSynchronizer") { "SENT $caldavTask" }
     }
 
@@ -266,16 +260,18 @@ class OpenTasksSynchronizer(
         existing: CaldavTask?
     ) {
         openTaskDao.getTask(listId, uid)?.let { androidTask ->
-            val adapted = Ical4androidTaskAdapter(androidTask.task!!)
-            iCalendar.fromVtodo(account, calendar, existing, adapted, null, null, etag)
+            val remote = androidTask.task!!.toVTodo()
+            iCalendar.fromVtodo(account, calendar, existing, remote, remote.serialize(), CaldavTask.objectName(uid), etag)
         }
     }
 
     companion object {
         private val CaldavAccount.isEteSync: Boolean
-            get() = uuid?.isEteSync() == true
+            get() = uuid.openTaskProvider().let {
+                it == OpenTaskProvider.ETESYNC || it == OpenTaskProvider.SILENTSUITE
+            }
 
         private val CaldavAccount.isDecSync: Boolean
-            get() = uuid?.isDecSync() == true
+            get() = uuid.openTaskProvider() == OpenTaskProvider.DECSYNC
     }
 }

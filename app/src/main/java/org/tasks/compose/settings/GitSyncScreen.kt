@@ -23,11 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,6 +40,8 @@ import org.tasks.R
 import org.tasks.backup.GitSyncLogCollector
 import org.tasks.backup.GitSyncResult
 import org.tasks.backup.GitSyncStep
+import org.tasks.compose.components.SymbolIcon
+import org.tasks.themes.TasksIcons
 
 @Composable
 fun GitSyncScreen(
@@ -156,7 +154,7 @@ fun GitSyncScreen(
                         PreferenceRow(
                             title = sshKeyInfo,
                             summary = stringResource(R.string.git_sync_ssh_key_delete),
-                            icon = Icons.Outlined.Delete,
+                            icon = TasksIcons.DELETE,
                             onClick = onDeleteSshKey,
                         )
                     }
@@ -185,7 +183,7 @@ fun GitSyncScreen(
                 SettingsItemCard(position = CardPosition.Middle) {
                     PreferenceRow(
                         title = stringResource(R.string.git_sync_view_json),
-                        icon = Icons.Outlined.Visibility,
+                        icon = TasksIcons.VISIBILITY,
                         enabled = syncStep == GitSyncStep.IDLE,
                         onClick = onViewJson,
                     )
@@ -264,8 +262,8 @@ private fun LogPanel(
                 Spacer(modifier = Modifier.weight(1f))
                 if (logEntries.isNotEmpty()) {
                     IconButton(onClick = onClearLogs, modifier = Modifier.size(32.dp)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
+                        SymbolIcon(
+                            name = TasksIcons.DELETE,
                             contentDescription = stringResource(R.string.git_sync_logs_clear),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp),

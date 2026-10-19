@@ -3,16 +3,24 @@ package org.tasks.data
 import co.touchlab.kermit.Logger
 import com.todoroo.astrid.timers.TimerPlugin
 import org.tasks.broadcast.RefreshBroadcaster
+import org.tasks.data.dao.CaldavDao
 import org.tasks.data.dao.TaskDao
-import org.tasks.data.db.SuspendDbUtils.eachChunk
+import org.tasks.data.entity.CaldavAccount
+import org.tasks.data.entity.CaldavAccount.Companion.TYPE_GOOGLE_TASKS
+import org.tasks.data.entity.CaldavAccount.Companion.TYPE_LOCAL
+import org.tasks.data.entity.CaldavAccount.Companion.TYPE_MICROSOFT
+import org.tasks.data.entity.SUPPRESS_SYNC
+import org.tasks.data.entity.SyncTrait
+import org.tasks.data.entity.SYNC_ALARMS
+import org.tasks.data.entity.SYNC_LOCATION
+import org.tasks.data.entity.SYNC_TAGS
 import org.tasks.data.entity.Task
 import org.tasks.filters.Filter
 import org.tasks.preferences.QueryPreferences
 import org.tasks.jobs.BackgroundWork
 import org.tasks.location.LocationService
+import org.tasks.notifications.CancelReason
 import org.tasks.notifications.Notifier
-import org.tasks.sync.SyncAdapters
-import org.tasks.sync.SyncSource
 import org.tasks.time.DateTimeUtils2.currentTimeMillis
 
 class TaskSaver(
@@ -21,13 +29,56 @@ class TaskSaver(
     private val notifier: Notifier,
     private val locationService: LocationService,
     private val timerPlugin: TimerPlugin,
-    private val syncAdapters: SyncAdapters,
     private val backgroundWork: BackgroundWork,
+    private val caldavDao: CaldavDao,
 ) {
-    suspend fun save(task: Task, original: Task? = null) {
-        if (taskDao.update(task, original)) {
+    suspend fun save(
+        task: Task,
+        original: Task?,
+        dirty: Boolean = true,
+        preserveHierarchy: Boolean = false,
+    ) {
+        val changes = if (preserveHierarchy && original != null) {
+            task.copy(parent = original.parent, order = original.order)
+        } else {
+            task
+        }
+        val markDirty = dirty && needsSync(changes, original)
+        if (taskDao.update(
+                task,
+                original,
+                updateTimestamp = dirty,
+                markDirty = markDirty,
+                preserveHierarchy = preserveHierarchy,
+            )
+        ) {
             Logger.d("TaskSaver") { "Saved $task" }
             afterSave(task, original)
+        }
+    }
+
+    private suspend fun needsSync(task: Task, original: Task?): Boolean {
+        if (task.checkTransitory(SUPPRESS_SYNC)) {
+            return false
+        }
+        val accountType = caldavDao.getAccountType(task.id) ?: return false
+        val traits = CaldavAccount.syncTraits(accountType)
+        val isMicrosoftSubtask = accountType == TYPE_MICROSOFT && task.parent > 0L
+        val transitoryChanged = !isMicrosoftSubtask &&
+                ((SyncTrait.TAGS in traits && task.checkTransitory(SYNC_TAGS)) ||
+                        (SyncTrait.ALARMS in traits && task.checkTransitory(SYNC_ALARMS)) ||
+                        (SyncTrait.LOCATION in traits && task.checkTransitory(SYNC_LOCATION)))
+        if (transitoryChanged) {
+            return true
+        }
+        if (original != null && SyncTrait.START_DATE in traits && task.hideUntil != original.hideUntil) {
+            return true
+        }
+        return when (accountType) {
+            TYPE_LOCAL -> false
+            TYPE_GOOGLE_TASKS -> !task.googleTaskUpToDate(original)
+            TYPE_MICROSOFT -> !task.microsoftUpToDate(original)
+            else -> !task.caldavUpToDate(original)
         }
     }
 
@@ -44,12 +95,11 @@ class TaskSaver(
             }
         }
         if (task.dueDate != original?.dueDate && task.dueDate > currentTimeMillis()) {
-            notifier.cancel(task.id)
+            notifier.cancel(task.id, CancelReason.DUE_DATE_CHANGE)
         }
         if (completionDateModified || deletionDateModified) {
             locationService.updateGeofences(task.id)
         }
-        syncAdapters.sync(task, original)
         if (!task.isSuppressRefresh()) {
             refreshBroadcaster.broadcastRefresh()
         }
@@ -57,23 +107,13 @@ class TaskSaver(
         backgroundWork.scheduleRefresh()
     }
 
-    suspend fun touch(ids: List<Long>) {
-        ids.eachChunk { taskDao.touch(it) }
-        syncAdapters.sync(SyncSource.TASK_CHANGE)
-    }
-
     suspend fun setCollapsed(id: Long, collapsed: Boolean) {
         taskDao.setCollapsed(listOf(id), collapsed)
-        syncAdapters.sync(SyncSource.TASK_CHANGE)
         refreshBroadcaster.broadcastRefresh()
     }
 
     suspend fun setCollapsed(preferences: QueryPreferences, filter: Filter, collapsed: Boolean) {
-        taskDao.fetchTasks(TaskListQuery.getQuery(preferences, filter))
-            .filter(TaskContainer::hasChildren)
-            .map(TaskContainer::id)
-            .eachChunk { taskDao.setCollapsed(it, collapsed) }
-        syncAdapters.sync(SyncSource.TASK_CHANGE)
+        taskDao.setCollapsed(preferences, filter, collapsed)
         refreshBroadcaster.broadcastRefresh()
     }
 }

@@ -14,7 +14,7 @@ import org.tasks.http.OkHttpClientFactory
 class DesktopLinkClientImpl(
     private val httpClientFactory: OkHttpClientFactory,
     private val serverEnvironment: TasksServerEnvironment,
-    private val desktopEntitlement: DesktopEntitlement,
+    private val purchaseEntitlement: PurchaseEntitlement,
     private val json: Json,
 ) : DesktopLinkClient {
     private val logger = Logger.withTag("DesktopLinkClient")
@@ -89,7 +89,6 @@ class DesktopLinkClientImpl(
         }
     }
 
-    override suspend fun onLinkSuccess(jwt: String, refreshToken: String, sku: String?, formattedPrice: String?) {
-        desktopEntitlement.storeEntitlement(jwt, refreshToken, sku, formattedPrice, EntitlementProvider.PLAY)
-    }
+    override suspend fun onLinkSuccess(jwt: String, refreshToken: String, sku: String?, formattedPrice: String?): Boolean =
+        purchaseEntitlement.storeEntitlement(jwt, refreshToken, sku, formattedPrice, EntitlementProvider.PLAY)
 }

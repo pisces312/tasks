@@ -16,6 +16,7 @@ import org.tasks.BuildConfig
 import org.tasks.R
 import org.tasks.jobs.WorkManager
 import org.tasks.preferences.Preferences
+import org.tasks.preferences.TasksPreferences
 import org.tasks.viewmodel.TasksAccountViewModel.Companion.DEFAULT_TOS_VERSION
 import org.tasks.time.DateTimeUtils2.currentTimeMillis
 import org.tasks.time.startOfDay
@@ -24,13 +25,15 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 @Singleton
 class Firebase @Inject constructor(
         @ApplicationContext private val context: Context,
-        private val preferences: Preferences
+        private val preferences: Preferences,
+        override val tasksPreferences: TasksPreferences,
 ) : Reporting, FcmTokenProvider {
     private val crashlytics by lazy {
         if (preferences.isTrackingEnabled) {
@@ -42,7 +45,7 @@ class Firebase @Inject constructor(
         }
     }
 
-    private val posthogEnabled: Boolean = run {
+    private val posthogEnabled: Boolean by lazy {
         val apiKey = context.getString(R.string.posthog_key)
         if (preferences.isTrackingEnabled && apiKey.isNotBlank()) {
             PostHogAndroid.setup(
@@ -101,7 +104,6 @@ class Firebase @Inject constructor(
         R.string.p_default_recurrence,
         R.string.p_default_recurrence_from,
         R.string.p_default_reminders_key,
-        R.string.p_rmd_default_random_hours,
         R.string.p_default_reminders_mode_key,
         R.string.p_default_location,
         R.string.p_default_location_reminder_key,
@@ -253,11 +255,12 @@ class Firebase @Inject constructor(
     }
 
     override fun reportException(t: Throwable, fatal: Boolean) {
+        if (t is CancellationException) return
         Timber.e(t)
         crashlytics?.recordException(t)
     }
 
-    fun reportIabResult(result: String, sku: String, state: String, orderId: String) {
+    fun reportIabResult(result: String, sku: String = "", state: String, orderId: String = "") {
         logEvent(
             R.string.event_purchase_result,
             R.string.param_sku to sku,
@@ -279,10 +282,10 @@ class Firebase @Inject constructor(
     override fun completeTask(source: String) =
         logEvent(R.string.event_complete_task, R.string.param_type to source)
 
-    override fun identify(distinctId: String) {
-        Timber.d("identify -> $distinctId")
+    override fun setSku(sku: String?) {
+        Timber.d("sku -> $sku")
         if (posthogEnabled) {
-            PostHog.identify(distinctId)
+            if (sku != null) PostHog.register("sku", sku) else PostHog.unregister("sku")
         }
     }
 
@@ -305,12 +308,8 @@ class Firebase @Inject constructor(
     }
 
     fun logEventOncePerDay(@StringRes event: Int, vararg p: Pair<Int, Any>) {
-        val eventName = context.getString(event)
-        val prefKey = "last_logged_$eventName"
-        val today = currentTimeMillis().startOfDay()
-        val lastLogged = preferences.getLong(prefKey, 0L)
-        if (lastLogged < today) {
-            preferences.setLong(prefKey, today)
+        val prefKey = "last_logged_${context.getString(event)}"
+        if (preferences.setLongIfGreater(prefKey, currentTimeMillis().startOfDay())) {
             logEvent(event, *p)
         }
     }

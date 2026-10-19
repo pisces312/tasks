@@ -11,9 +11,8 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.tasks.caldav.CaldavClientProvider
 import org.tasks.compose.accounts.Platform
 import org.tasks.data.dao.CaldavDao
+import org.tasks.http.HttpException
 import org.tasks.security.KeyStoreEncryption
-import org.tasks.sync.SyncAdapters
-import org.tasks.sync.SyncSource
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.InetAddress
@@ -29,7 +28,6 @@ class AndroidSignInHandler(
     private val caldavDao: CaldavDao,
     private val encryption: KeyStoreEncryption,
     private val serverEnvironment: TasksServerEnvironment,
-    private val syncAdapters: SyncAdapters,
     private val caldavClientProvider: CaldavClientProvider,
 ) : SignInHandler {
 
@@ -56,12 +54,14 @@ class AndroidSignInHandler(
                 ?: throw Exception("No client_id in discovery document")
         }
 
-        val codeVerifier = PKCE.generateVerifier()
-        val codeChallenge = PKCE.generateChallenge(codeVerifier)
-        val state = PKCE.generateVerifier()
+        val codeVerifier = if (oauthProvider.usesPkce) PKCE.generateVerifier() else null
+        val codeChallenge = codeVerifier?.let(PKCE::generateChallenge)
+        val nonce = PKCE.generateVerifier()
+        val serverCallback = oauthProvider.serverCallbackPath?.let { "${serverEnvironment.caldavUrl}$it" }
 
-        val (config, code) = listenForCallback(state) { port ->
+        val (config, code) = listenForCallback { port ->
             val redirectUri = "http://127.0.0.1:$port"
+            val state = if (serverCallback == null) nonce else RedirectState.encode(nonce, redirectUri)
             val config = OAuthConfig(
                 authorizationEndpoint = authEndpoint,
                 tokenEndpoint = tokenEndpoint,
@@ -70,7 +70,12 @@ class AndroidSignInHandler(
                 scope = oauthProvider.scope,
                 state = state,
             )
-            val authUrl = oauthClient.buildAuthUrl(config, codeChallenge, state)
+            val authUrl = oauthClient.buildAuthUrl(
+                config.copy(redirectUri = serverCallback ?: redirectUri),
+                codeChallenge,
+                state,
+                oauthProvider.extraAuthParams,
+            )
             Logger.d(TAG) { "Opening browser: $authUrl" }
             openUrl(authUrl)
             config
@@ -79,16 +84,22 @@ class AndroidSignInHandler(
         Logger.d(TAG) { "Got authorization code, exchanging..." }
         val result = oauthClient.exchangeCode(config, code, codeVerifier)
 
-        setupTasksAccount(
-            oauthResult = result,
-            issuer = oauthProvider.issuer,
-            caldavUrl = serverEnvironment.caldavUrl,
-            caldavDao = caldavDao,
-            encryption = encryption,
-            provider = caldavClientProvider,
-        )
+        try {
+            setupTasksAccount(
+                oauthResult = result,
+                issuer = oauthProvider.issuer,
+                caldavUrl = serverEnvironment.caldavUrl,
+                caldavDao = caldavDao,
+                encryption = encryption,
+                provider = caldavClientProvider,
+            )
+        } catch (e: HttpException) {
+            if (e.code == 402) {
+                throw PaymentRequiredException()
+            }
+            throw e
+        }
         Logger.i(TAG) { "Account created successfully" }
-        syncAdapters.sync(SyncSource.ACCOUNT_ADDED)
         bringAppToForeground()
     }
 
@@ -101,7 +112,6 @@ class AndroidSignInHandler(
     }
 
     private suspend fun listenForCallback(
-        expectedState: String,
         onReady: (port: Int) -> OAuthConfig,
     ): Pair<OAuthConfig, String> = suspendCancellableCoroutine { cont ->
         val serverSocket = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))
@@ -155,7 +165,7 @@ class AndroidSignInHandler(
             socket.getOutputStream().flush()
 
             if (code != null) {
-                if (returnedState != expectedState) {
+                if (returnedState != config.state) {
                     cont.resumeWithException(Exception("OAuth state mismatch"))
                 } else {
                     cont.resume(config to code)

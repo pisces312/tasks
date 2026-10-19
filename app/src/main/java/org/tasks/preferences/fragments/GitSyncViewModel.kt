@@ -19,7 +19,7 @@ import org.tasks.backup.GitSyncResult
 import org.tasks.backup.GitSyncStep
 import org.tasks.backup.SshKeyManager
 import org.tasks.extensions.Context.is24HourFormat
-import org.tasks.kmp.org.tasks.time.getFullDateTime
+import org.tasks.kmp.org.tasks.time.DateFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,7 +43,7 @@ class GitSyncViewModel @Inject constructor(
         private set
     var sshKeyInfo by mutableStateOf(buildKeyInfo())
         private set
-    var lastSyncSummary by mutableStateOf(buildLastSyncSummary())
+    var lastSyncSummary by mutableStateOf("")
         private set
     var syncStep by mutableStateOf(GitSyncStep.IDLE)
         private set
@@ -53,6 +53,10 @@ class GitSyncViewModel @Inject constructor(
         private set
     var isLoadingJson by mutableStateOf(false)
         private set
+
+    init {
+        refreshLastSyncSummary()
+    }
 
     // Log panel state
     var logEntries by mutableStateOf(GitSyncLogCollector.getLogs())
@@ -183,7 +187,11 @@ class GitSyncViewModel @Inject constructor(
 
     fun resetLocalRepo() {
         gitSyncManager.resetLocalRepo()
-        lastSyncSummary = buildLastSyncSummary()
+        refreshLastSyncSummary()
+    }
+
+    private fun refreshLastSyncSummary() {
+        viewModelScope.launch { lastSyncSummary = buildLastSyncSummary() }
     }
 
     private fun buildKeyInfo(): String {
@@ -195,12 +203,12 @@ class GitSyncViewModel @Inject constructor(
         return context.getString(R.string.git_sync_ssh_key_imported, keyType, fingerprint)
     }
 
-    private fun buildLastSyncSummary(): String {
+    private suspend fun buildLastSyncSummary(): String {
         val lastSync = gitSyncManager.lastSyncTime
         if (lastSync <= 0) {
             return context.getString(R.string.git_sync_last_never)
         }
-        val timeStr = getFullDateTime(lastSync, context.is24HourFormat)
+        val timeStr = DateFormatter.create(context.is24HourFormat).fullDateTime(lastSync)
         return context.getString(R.string.git_sync_last, timeStr)
     }
 }

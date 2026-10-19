@@ -16,12 +16,12 @@ import androidx.preference.PreferenceManager
 import com.todoroo.andlib.utility.AndroidUtilities
 import com.todoroo.astrid.activity.BeastModePreferences
 import com.todoroo.astrid.core.SortHelper
-import kotlinx.serialization.json.Json
 import org.tasks.BuildConfig
 import org.tasks.R
 import org.tasks.Strings.isNullOrEmpty
 import org.tasks.billing.Purchase
 import org.tasks.data.entity.Alarm
+import org.tasks.compose.pickers.QuickPickTimes
 import org.tasks.data.entity.Task
 import org.tasks.data.entity.TaskAttachment
 import org.tasks.extensions.Context.getResourceUri
@@ -39,6 +39,12 @@ class Preferences @JvmOverloads constructor(
 ) : QueryPreferences, AppPreferences {
     private val prefs: SharedPreferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
 
+    private val notificationDefaults = NotificationSettings()
+
+    private val drawerDefaults = DrawerSettings()
+
+    private val lookAndFeelDefaults = LookAndFeelSettings()
+
     fun registerOnSharedPreferenceChangeListener(
         listener: SharedPreferences.OnSharedPreferenceChangeListener
     ) {
@@ -55,43 +61,15 @@ class Preferences @JvmOverloads constructor(
 
     fun showBackupWarnings() = !getBoolean(R.string.p_backups_ignore_warnings, false)
 
-    fun addTasksToTop(): Boolean = getBoolean(R.string.p_add_to_top, true)
+    override suspend fun addTasksToTop(): Boolean = getBoolean(R.string.p_add_to_top, true)
 
     fun backButtonSavesTask(): Boolean = getBoolean(R.string.p_back_button_saves_task, false)
 
-    override suspend fun isCurrentlyQuietHours(): Boolean {
-            if (quietHoursEnabled()) {
-                val dateTime = DateTime()
-                val start = dateTime.withMillisOfDay(quietHoursStart)
-                val end = dateTime.withMillisOfDay(quietHoursEnd)
-                return if (start.isAfter(end)) {
-                    dateTime.isBefore(end) || dateTime.isAfter(start)
-                } else {
-                    dateTime.isAfter(start) && dateTime.isBefore(end)
-                }
-            }
-            return false
-        }
+    override suspend fun isCurrentlyQuietHours(): Boolean =
+        notificationSettings().isCurrentlyQuietHours()
 
-    override suspend fun adjustForQuietHours(time: Long): Long {
-        if (quietHoursEnabled()) {
-            val dateTime = DateTime(time)
-            val start = dateTime.withMillisOfDay(quietHoursStart)
-            val end = dateTime.withMillisOfDay(quietHoursEnd)
-            if (start.isAfter(end)) {
-                if (dateTime.isBefore(end)) {
-                    return end.millis
-                } else if (dateTime.isAfter(start)) {
-                    return end.plusDays(1).millis
-                }
-            } else {
-                if (dateTime.isAfter(start) && dateTime.isBefore(end)) {
-                    return end.millis
-                }
-            }
-        }
-        return time
-    }
+    override suspend fun adjustForQuietHours(time: Long): Long =
+        notificationSettings().adjustForQuietHours(time)
 
     private fun quietHoursEnabled(): Boolean = getBoolean(R.string.p_rmd_enable_quiet, false)
 
@@ -99,13 +77,152 @@ class Preferences @JvmOverloads constructor(
         getBoolean(R.string.p_rmd_time_enabled, true)
 
     override suspend fun defaultDueTime(): Int =
-        getInt(R.string.p_rmd_time, TimeUnit.HOURS.toMillis(18).toInt())
+        getInt(R.string.p_rmd_time, notificationDefaults.defaultReminderTime)
 
     private val quietHoursStart: Int
-        get() = getMillisPerDayPref(R.string.p_rmd_quietStart, R.integer.default_quiet_hours_start)
+        get() = getMillisOfDayPref(R.string.p_rmd_quietStart, notificationDefaults.quietHoursStart)
 
     private val quietHoursEnd: Int
-        get() = getMillisPerDayPref(R.string.p_rmd_quietEnd, R.integer.default_quiet_hours_end)
+        get() = getMillisOfDayPref(R.string.p_rmd_quietEnd, notificationDefaults.quietHoursEnd)
+
+    override suspend fun notificationSettings() = NotificationSettings(
+        persistentNotifications = getBoolean(
+            R.string.p_rmd_persistent,
+            notificationDefaults.persistentNotifications
+        ),
+        wearableNotifications = getBoolean(
+            R.string.p_wearable_notifications,
+            notificationDefaults.wearableNotifications
+        ),
+        bundleNotifications = getBoolean(
+            R.string.p_bundle_notifications,
+            notificationDefaults.bundleNotifications
+        ),
+        voiceReminders = getBoolean(
+            R.string.p_voiceRemindersEnabled,
+            notificationDefaults.voiceReminders
+        ),
+        swipeToSnoozeEnabled = getBoolean(
+            R.string.p_rmd_swipe_to_snooze_enabled,
+            notificationDefaults.swipeToSnoozeEnabled
+        ),
+        swipeToSnoozeMinutes = getIntegerFromString(
+            R.string.p_rmd_swipe_to_snooze_time_minutes,
+            notificationDefaults.swipeToSnoozeMinutes
+        ),
+        defaultRemindersEnabled = getBoolean(
+            R.string.p_rmd_time_enabled,
+            notificationDefaults.defaultRemindersEnabled
+        ),
+        defaultReminderTime = getMillisOfDayPref(
+            R.string.p_rmd_time,
+            notificationDefaults.defaultReminderTime
+        ),
+        quietHoursEnabled = quietHoursEnabled(),
+        quietHoursStart = quietHoursStart,
+        quietHoursEnd = quietHoursEnd,
+    )
+
+    override suspend fun setNotificationsEnabled(value: Boolean) {
+        Timber.w("Ignoring notificationsEnabled=%s; the OS permission is the switch here", value)
+    }
+
+    override suspend fun setPersistentNotifications(value: Boolean) =
+        setBoolean(R.string.p_rmd_persistent, value)
+
+    override suspend fun setWearableNotifications(value: Boolean) =
+        setBoolean(R.string.p_wearable_notifications, value)
+
+    override suspend fun setBundleNotifications(value: Boolean) =
+        setBoolean(R.string.p_bundle_notifications, value)
+
+    override suspend fun setVoiceReminders(value: Boolean) =
+        setBoolean(R.string.p_voiceRemindersEnabled, value)
+
+    override suspend fun setSwipeToSnoozeEnabled(value: Boolean) =
+        setBoolean(R.string.p_rmd_swipe_to_snooze_enabled, value)
+
+    override suspend fun setSwipeToSnoozeMinutes(value: Int) =
+        setStringFromInteger(R.string.p_rmd_swipe_to_snooze_time_minutes, value)
+
+    override suspend fun setDefaultRemindersEnabled(value: Boolean) =
+        setBoolean(R.string.p_rmd_time_enabled, value)
+
+    override suspend fun setDefaultReminderTime(value: Int) = setInt(R.string.p_rmd_time, value)
+
+    override suspend fun setQuietHoursEnabled(value: Boolean) =
+        setBoolean(R.string.p_rmd_enable_quiet, value)
+
+    override suspend fun setQuietHoursStart(value: Int) = setInt(R.string.p_rmd_quietStart, value)
+
+    override suspend fun setQuietHoursEnd(value: Int) = setInt(R.string.p_rmd_quietEnd, value)
+
+    override suspend fun drawerSettings() = DrawerSettings(
+        filtersEnabled = getBoolean(R.string.p_filters_enabled, drawerDefaults.filtersEnabled),
+        todayFilter = getBoolean(R.string.p_show_today_filter, drawerDefaults.todayFilter),
+        recentlyModifiedFilter = getBoolean(
+            R.string.p_show_recently_modified_filter,
+            drawerDefaults.recentlyModifiedFilter
+        ),
+        tagsEnabled = getBoolean(R.string.p_tags_enabled, drawerDefaults.tagsEnabled),
+        hideUnusedTags = getBoolean(R.string.p_tags_hide_unused, drawerDefaults.hideUnusedTags),
+        placesEnabled = getBoolean(R.string.p_places_enabled, drawerDefaults.placesEnabled),
+        hideUnusedPlaces = getBoolean(
+            R.string.p_places_hide_unused,
+            drawerDefaults.hideUnusedPlaces
+        ),
+    )
+
+    override suspend fun setFiltersEnabled(value: Boolean) =
+        setBoolean(R.string.p_filters_enabled, value)
+
+    override suspend fun setTodayFilter(value: Boolean) =
+        setBoolean(R.string.p_show_today_filter, value)
+
+    override suspend fun setRecentlyModifiedFilter(value: Boolean) =
+        setBoolean(R.string.p_show_recently_modified_filter, value)
+
+    override suspend fun setTagsEnabled(value: Boolean) =
+        setBoolean(R.string.p_tags_enabled, value)
+
+    override suspend fun setHideUnusedTags(value: Boolean) =
+        setBoolean(R.string.p_tags_hide_unused, value)
+
+    override suspend fun setPlacesEnabled(value: Boolean) =
+        setBoolean(R.string.p_places_enabled, value)
+
+    override suspend fun setHideUnusedPlaces(value: Boolean) =
+        setBoolean(R.string.p_places_hide_unused, value)
+
+    override suspend fun lookAndFeelSettings() = LookAndFeelSettings(
+        theme = getInt(R.string.p_theme, lookAndFeelDefaults.theme),
+        themeColor = getInt(R.string.p_theme_color, lookAndFeelDefaults.themeColor),
+        dynamicColor = getBoolean(R.string.p_dynamic_color, lookAndFeelDefaults.dynamicColor),
+        markdown = getBoolean(R.string.p_markdown, lookAndFeelDefaults.markdown),
+        openLastViewedList = getBoolean(
+            R.string.p_open_last_viewed_list,
+            lookAndFeelDefaults.openLastViewedList
+        ),
+        defaultOpenFilter = getStringValue(R.string.p_default_open_filter),
+        languageTag = null,
+    )
+
+    override suspend fun setTheme(value: Int) = setInt(R.string.p_theme, value)
+
+    override suspend fun setThemeColor(value: Int) = setInt(R.string.p_theme_color, value)
+
+    override suspend fun setDynamicColor(value: Boolean) =
+        setBoolean(R.string.p_dynamic_color, value)
+
+    override suspend fun setMarkdown(value: Boolean) = setBoolean(R.string.p_markdown, value)
+
+    override suspend fun setOpenLastViewedList(value: Boolean) =
+        setBoolean(R.string.p_open_last_viewed_list, value)
+
+    override suspend fun setDefaultOpenFilter(value: String?) =
+        setString(R.string.p_default_open_filter, value)
+
+    override suspend fun setLanguageTag(value: String?) = Unit
 
     val dateShortcutMorning: Int
         get() = getMillisPerDayPref(R.string.p_date_shortcut_morning, R.integer.default_morning)
@@ -139,10 +256,21 @@ class Preferences @JvmOverloads constructor(
     val dateShortcutNight: Int
         get() = getMillisPerDayPref(R.string.p_date_shortcut_night, R.integer.default_night)
 
-    private fun getMillisPerDayPref(resId: Int, defResId: Int): Int {
+    val quickPickTimes: QuickPickTimes
+        get() = QuickPickTimes(
+            dateShortcutMorning,
+            dateShortcutAfternoon,
+            dateShortcutEvening,
+            dateShortcutNight,
+        )
+
+    private fun getMillisPerDayPref(resId: Int, defResId: Int): Int =
+        getMillisOfDayPref(resId, context.resources.getInteger(defResId))
+
+    private fun getMillisOfDayPref(resId: Int, defaultValue: Int): Int {
         val setting = getInt(resId, -1)
         return if (setting < 0 || setting > DateTime.MAX_MILLIS_PER_DAY) {
-            context.resources.getInteger(defResId)
+            defaultValue
         } else setting
     }
 
@@ -182,14 +310,11 @@ class Preferences @JvmOverloads constructor(
     }
 
     fun setDefaults() {
-        PreferenceManager.setDefaultValues(context, R.xml.preferences_look_and_feel, true)
         PreferenceManager.setDefaultValues(context, R.xml.preferences_notifications, true)
         PreferenceManager.setDefaultValues(context, R.xml.preferences_task_defaults, true)
         PreferenceManager.setDefaultValues(context, R.xml.preferences_date_and_time, true)
-        PreferenceManager.setDefaultValues(context, R.xml.preferences_navigation_drawer, true)
         PreferenceManager.setDefaultValues(context, R.xml.preferences_backups, true)
         PreferenceManager.setDefaultValues(context, R.xml.preferences_advanced, true)
-        PreferenceManager.setDefaultValues(context, R.xml.help_and_feedback, true)
         BeastModePreferences.setDefaultOrder(this, context)
     }
 
@@ -208,35 +333,98 @@ class Preferences @JvmOverloads constructor(
     }
 
     override suspend fun defaultAlarms(): List<Alarm> =
-        getStringSet(R.string.p_default_alarms, DEFAULT_ALARMS)
-            .mapNotNull {
-                try {
-                    Json.decodeFromString<Alarm>(it)
-                } catch (e: Exception) {
-                    Timber.e(e)
-                    null
-                }
-            }
-            .sortedWith(compareBy({ it.type }, { it.time }))
+        getStringSet(R.string.p_default_alarms, DEFAULT_ALARMS_JSON).toAlarms()
 
-    fun setDefaultAlarms(alarms: List<Alarm>) {
-        setStringSet(
-            R.string.p_default_alarms,
-            alarms.map { Json.encodeToString(it) }.toHashSet()
-        )
+    override suspend fun setDefaultAlarms(value: List<Alarm>) {
+        setStringSet(R.string.p_default_alarms, value.toAlarmJson())
     }
 
     override suspend fun defaultRingMode(): Int =
         getIntegerFromString(R.string.p_default_reminders_mode_key, 0)
 
     override suspend fun defaultLocationReminder(): Int =
-        getIntegerFromString(R.string.p_default_location_reminder_key, 1)
+        getIntegerFromString(
+            R.string.p_default_location_reminder_key,
+            taskSettingDefaults.defaultLocationReminder
+        )
 
     override suspend fun locationUpdateIntervalMinutes(): Int =
-        getIntegerFromString(R.string.p_location_update_interval, 15)
+        getIntegerFromString(R.string.p_location_update_interval, DEFAULT_LOCATION_UPDATE_INTERVAL)
 
-    override suspend fun defaultRandomHours(): Int =
-        getIntegerFromString(R.string.p_rmd_default_random_hours, 0)
+    private val taskSettingDefaults = TaskDefaultSettings()
+
+    override suspend fun taskDefaults() = TaskDefaultSettings(
+        addTasksToTop = addTasksToTop(),
+        defaultList = defaultListUuid(),
+        defaultTags = defaultTags,
+        defaultPriority = defaultPriority(),
+        defaultHideUntil = getIntegerFromString(
+            R.string.p_default_hideUntil_key,
+            taskSettingDefaults.defaultHideUntil
+        ),
+        defaultDueDate = getIntegerFromString(
+            R.string.p_default_urgency_key,
+            taskSettingDefaults.defaultDueDate
+        ),
+        defaultCalendar = defaultCalendar,
+        defaultRecurrence = getStringValue(R.string.p_default_recurrence)?.takeIf { it.isNotBlank() },
+        defaultRecurrenceFrom = getIntegerFromString(
+            R.string.p_default_recurrence_from,
+            taskSettingDefaults.defaultRecurrenceFrom
+        ),
+        defaultAlarms = defaultAlarms(),
+        defaultRingMode = defaultRingMode(),
+        defaultLocation = getStringValue(R.string.p_default_location),
+        defaultLocationReminder = defaultLocationReminder(),
+        locationUpdateIntervalMinutes = locationUpdateIntervalMinutes(),
+    )
+
+    override suspend fun setAddTasksToTop(value: Boolean) = setBoolean(R.string.p_add_to_top, value)
+
+    private fun defaultListUuid(): String? =
+        getStringValue(R.string.p_default_list)?.substringAfter(':')?.takeIf { it.isNotBlank() }
+
+    override suspend fun setDefaultList(value: String?) =
+        setString(R.string.p_default_list, value?.let { "${DefaultFilterProvider.TYPE_CALDAV}:$it" })
+
+    private var defaultTags: List<String>
+        get() = getStringValue(R.string.p_default_tags)
+            ?.split(",")
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
+        set(value) = setString(R.string.p_default_tags, value.joinToString(","))
+
+    override suspend fun setDefaultTags(value: List<String>) { defaultTags = value }
+
+    override suspend fun setDefaultPriority(value: Int) =
+        setStringFromInteger(R.string.p_default_importance_key, value)
+
+    override suspend fun setDefaultHideUntil(value: Int) =
+        setStringFromInteger(R.string.p_default_hideUntil_key, value)
+
+    override suspend fun setDefaultDueDate(value: Int) =
+        setStringFromInteger(R.string.p_default_urgency_key, value)
+
+    override suspend fun setDefaultCalendar(value: String?) =
+        setString(R.string.gcal_p_default, value)
+
+    override suspend fun setDefaultRecurrence(value: String?) =
+        setString(R.string.p_default_recurrence, value)
+
+    override suspend fun setDefaultRecurrenceFrom(value: Int) =
+        setStringFromInteger(R.string.p_default_recurrence_from, value)
+
+    override suspend fun setDefaultRingMode(value: Int) =
+        setStringFromInteger(R.string.p_default_reminders_mode_key, value)
+
+    override suspend fun setDefaultLocation(value: String?) =
+        setString(R.string.p_default_location, value)
+
+    override suspend fun setDefaultLocationReminder(value: Int) =
+        setStringFromInteger(R.string.p_default_location_reminder_key, value)
+
+    override suspend fun setLocationUpdateIntervalMinutes(value: Int) =
+        setStringFromInteger(R.string.p_location_update_interval, value)
 
     val fontSize: Int
         get() = getInt(R.string.p_fontSize, 16)
@@ -348,6 +536,16 @@ class Preferences @JvmOverloads constructor(
         editor.apply()
     }
 
+    fun setLongIfGreater(key: String, value: Long, defValue: Long = 0L): Boolean =
+            synchronized(longUpdateLock) {
+                if (prefs.getLong(key, defValue) < value) {
+                    setLong(key, value)
+                    true
+                } else {
+                    false
+                }
+            }
+
     fun clear(key: String?) {
         Timber.d("Clearing $key")
         val editor = prefs.edit()
@@ -404,6 +602,10 @@ class Preferences @JvmOverloads constructor(
     override var showCompleted: Boolean
         get() = getBoolean(R.string.p_show_completed_tasks, true)
         set(value) { setBoolean(R.string.p_show_completed_tasks, value) }
+
+    override var showCompletedSubtasks: Boolean
+        get() = getBoolean(R.string.p_show_completed_subtasks, true)
+        set(value) { setBoolean(R.string.p_show_completed_subtasks, value) }
 
     override var alwaysDisplayFullDate: Boolean
         get() = getBoolean(R.string.p_always_display_full_date, false)
@@ -490,7 +692,10 @@ class Preferences @JvmOverloads constructor(
 
     fun swipeToSnoozeIntervalMS(): Long =
         TimeUnit.MINUTES.toMillis(
-            getIntegerFromString(R.string.p_rmd_swipe_to_snooze_time_minutes, 0).toLong()
+            getIntegerFromString(
+                R.string.p_rmd_swipe_to_snooze_time_minutes,
+                DEFAULT_SNOOZE_MINUTES
+            ).toLong()
         )
 
     var lastSync: Long
@@ -621,14 +826,31 @@ class Preferences @JvmOverloads constructor(
             setStringFromInteger(R.string.p_picker_mode_time, if (mode == DisplayMode.Input) 1 else 0)
         }
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    override suspend fun datePickerPreferences() = DatePickerPreferences(
+        shortcutMorning = dateShortcutMorning,
+        shortcutAfternoon = dateShortcutAfternoon,
+        shortcutEvening = dateShortcutEvening,
+        shortcutNight = dateShortcutNight,
+        alwaysDisplayFullDate = alwaysDisplayFullDate,
+        datePickerInputMode = calendarDisplayMode == DisplayMode.Input,
+        timePickerInputMode = timeDisplayMode == DisplayMode.Input,
+    )
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    override suspend fun setDatePickerInputMode(value: Boolean) {
+        calendarDisplayMode = if (value) DisplayMode.Input else DisplayMode.Picker
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    override suspend fun setTimePickerInputMode(value: Boolean) {
+        timeDisplayMode = if (value) DisplayMode.Input else DisplayMode.Picker
+    }
+
     companion object {
+        private val longUpdateLock = Any()
+
         private fun getSharedPreferencesName(context: Context): String =
                 context.packageName + "_preferences"
-
-        private val DEFAULT_ALARMS: Set<String> = setOf(
-            Json.encodeToString(Alarm(time = 0, type = Alarm.TYPE_REL_START)),
-            Json.encodeToString(Alarm(time = 0, type = Alarm.TYPE_REL_END)),
-            Json.encodeToString(Alarm.whenOverdue(0)),
-        )
     }
 }

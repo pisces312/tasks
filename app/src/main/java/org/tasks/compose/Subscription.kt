@@ -1,5 +1,8 @@
 package org.tasks.compose
 
+import org.tasks.resources.getString
+import org.tasks.themes.TasksIcons
+import org.tasks.compose.components.SymbolIcon
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -24,9 +27,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -60,11 +60,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import tasks.kmp.generated.resources.sign_in
+import tasks.kmp.generated.resources.sign_in_subtitle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -74,10 +74,12 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource as composeStringResource
 import org.tasks.R
 import org.tasks.billing.Sku
+import org.tasks.billing.SubscriptionSkus
 import org.tasks.compose.Constants.HALF_KEYLINE
 import org.tasks.compose.Constants.KEYLINE_FIRST
 import org.tasks.compose.PurchaseText.SubscriptionScreen
@@ -85,12 +87,15 @@ import org.tasks.compose.settings.SettingsCardRadius
 import org.tasks.extensions.Context.openUri
 import org.tasks.themes.TasksTheme
 import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.supporter
+import tasks.kmp.generated.resources.tasks_org_account
+import tasks.kmp.generated.resources.upgrade_subscription_banner
 import tasks.kmp.generated.resources.url_sponsor
 
 object PurchaseText {
     private const val POPPER = "\uD83C\uDF89"
 
-    enum class IconStyle { TINT, ORIGINAL, GRAYSCALE }
+    enum class IconStyle { TINT, ORIGINAL }
 
     data class CarouselItem(
         val title: Int,
@@ -109,12 +114,6 @@ object PurchaseText {
             R.string.upgrade_more_customization,
             R.drawable.ic_outline_palette_24px,
             R.string.upgrade_more_customization_description
-        ),
-        CarouselItem(
-            R.string.tasks_org_account,
-            R.drawable.ic_round_icon,
-            R.string.account_not_included,
-            iconStyle = IconStyle.GRAYSCALE
         ),
         CarouselItem(
             R.string.open_source,
@@ -148,6 +147,12 @@ object PurchaseText {
 
     private val tasksOrgFeatureList = listOf(
         CarouselItem(
+            R.string.tasks_org_account,
+            R.drawable.ic_round_icon,
+            R.string.upgrade_tasks_org_account_description,
+            iconStyle = IconStyle.ORIGINAL
+        ),
+        CarouselItem(
             title = R.string.upgrade_desktop_app,
             icon = R.drawable.ic_outline_computer_24px,
             description = R.string.upgrade_desktop_app_description,
@@ -161,12 +166,6 @@ object PurchaseText {
             R.string.email_to_task,
             R.drawable.ic_outline_email_24px,
             R.string.upgrade_email_to_task_description
-        ),
-        CarouselItem(
-            R.string.tasks_org_account,
-            R.drawable.ic_round_icon,
-            R.string.upgrade_tasks_org_account_description,
-            iconStyle = IconStyle.ORIGINAL
         ),
         CarouselItem(
             R.string.upgrade_more_customization,
@@ -210,18 +209,19 @@ object PurchaseText {
                 TopAppBar(
                     title = {
                         Text(
-                            text = stringResource(
-                                if (nameYourPrice) R.string.name_your_price
-                                else R.string.upgrade_to_pro
-                            ),
+                            text = if (nameYourPrice) {
+                                composeStringResource(Res.string.supporter)
+                            } else {
+                                composeStringResource(Res.string.tasks_org_account)
+                            },
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.titleLarge
                         )
                     },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            SymbolIcon(
+                                name = TasksIcons.ARROW_BACK,
                                 contentDescription = null
                             )
                         }
@@ -230,8 +230,8 @@ object PurchaseText {
                         if (existingSubscriber && !github && !hasTasksAccount) {
                             var expanded by remember { mutableStateOf(false) }
                             IconButton(onClick = { expanded = true }) {
-                                Icon(
-                                    imageVector = Icons.Outlined.MoreVert,
+                                SymbolIcon(
+                                    name = TasksIcons.MORE_VERT,
                                     contentDescription = null,
                                 )
                             }
@@ -240,7 +240,7 @@ object PurchaseText {
                                 onDismissRequest = { expanded = false },
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text(org.jetbrains.compose.resources.stringResource(Res.string.sign_in)) },
+                                    text = { Text(composeStringResource(Res.string.sign_in)) },
                                     onClick = {
                                         expanded = false
                                         onSignIn()
@@ -275,7 +275,7 @@ object PurchaseText {
                         ),
                     ) {
                         Text(
-                            text = stringResource(R.string.upgrade_subscription_banner),
+                            text = composeStringResource(Res.string.upgrade_subscription_banner),
                             modifier = Modifier.padding(KEYLINE_FIRST),
                             color = MaterialTheme.colorScheme.onPrimary,
                             style = MaterialTheme.typography.bodyMedium,
@@ -337,7 +337,7 @@ object PurchaseText {
                         )
                     ) {
                         Text(
-                            text = org.jetbrains.compose.resources.stringResource(Res.string.sign_in),
+                            text = composeStringResource(Res.string.sign_in),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -466,12 +466,19 @@ object PurchaseText {
                             )
                         ) {
                             Text(
-                                text = stringResource(
-                                    if (nameYourPrice) R.string.more_options
-                                    else R.string.name_your_price
-                                ),
+                                text = if (nameYourPrice) {
+                                    composeStringResource(Res.string.tasks_org_account)
+                                } else {
+                                    composeStringResource(Res.string.supporter)
+                                },
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
+                            )
+                            SymbolIcon(
+                                name = TasksIcons.KEYBOARD_ARROW_RIGHT,
+                                contentDescription = null,
+                                modifier = Modifier.padding(start = 4.dp),
+                                tint = MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     }
@@ -494,7 +501,7 @@ object PurchaseText {
             if (!showMoreOptions && !existingSubscriber && !hasTasksAccount) {
                 Spacer(Modifier.height(32.dp))
                 Text(
-                    text = stringResource(R.string.sign_in_subtitle),
+                    text = composeStringResource(Res.string.sign_in_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -507,7 +514,7 @@ object PurchaseText {
                     )
                 ) {
                     Text(
-                        text = org.jetbrains.compose.resources.stringResource(Res.string.sign_in),
+                        text = composeStringResource(Res.string.sign_in),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -529,9 +536,6 @@ object PurchaseText {
                 modifier = Modifier.requiredSize(72.dp),
                 alignment = Alignment.Center,
                 colorFilter = when (feature.iconStyle) {
-                    IconStyle.GRAYSCALE -> ColorFilter.colorMatrix(
-                        ColorMatrix().apply { setToSaturation(0f) }
-                    )
                     IconStyle.TINT -> ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
                     IconStyle.ORIGINAL -> null
                 }
@@ -552,10 +556,7 @@ object PurchaseText {
             Text(
                 text = stringResource(feature.description),
                 modifier = Modifier.fillMaxWidth(),
-                color = if (feature.iconStyle == IconStyle.GRAYSCALE)
-                    MaterialTheme.colorScheme.error
-                else
-                    MaterialTheme.colorScheme.onBackground,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = TextStyle(
                     fontSize = 12.sp,
                     letterSpacing = 0.4.sp
@@ -582,7 +583,7 @@ object PurchaseText {
             ) {
                 PurchaseButton(
                     price = remember(skus) {
-                        skus.find { it.productId == "annual_30" }?.price ?: "$30"
+                        skus.find { it.productId == SubscriptionSkus.sku(30) }?.price ?: "$30"
                     },
                     popperText = "${stringResource(R.string.save_percent, 16)} $POPPER",
                     onClick = { subscribe(30, false) },
@@ -590,7 +591,7 @@ object PurchaseText {
                 Spacer(Modifier.width(KEYLINE_FIRST))
                 PurchaseButton(
                     price = remember(skus) {
-                        skus.find { it.productId == "monthly_03" }?.price ?: "$3"
+                        skus.find { it.productId == SubscriptionSkus.sku(3, monthly = true) }?.price ?: "$3"
                     },
                     monthly = true,
                     onClick = { subscribe(3, true) },
@@ -637,6 +638,7 @@ object PurchaseText {
         subscribe: (Int, Boolean) -> Unit,
         skus: List<Sku>,
     ) {
+        val ladder = SubscriptionSkus.SUPPORTER_LADDER
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -644,10 +646,10 @@ object PurchaseText {
             Row(Modifier.fillMaxWidth()) {
                 Slider(
                     modifier = Modifier.padding(KEYLINE_FIRST, 0.dp, KEYLINE_FIRST, HALF_KEYLINE),
-                    value = sliderPosition,
+                    value = sliderPosition.coerceIn(ladder.first.toFloat(), ladder.last.toFloat()),
                     onValueChange = { setPrice(it) },
-                    valueRange = 1f..25f,
-                    steps = 25,
+                    valueRange = ladder.first.toFloat()..ladder.last.toFloat(),
+                    steps = ladder.count() - 2,
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.secondary,
                         activeTrackColor = MaterialTheme.colorScheme.secondary,
@@ -661,26 +663,26 @@ object PurchaseText {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                val price = sliderPosition.toInt()
+                val price = sliderPosition.roundToInt().coerceIn(ladder.first, ladder.last)
                 PurchaseButton(
                     price = remember(skus, price) {
                         skus
-                            .find { it.productId == "annual_${price.toString().padStart(2, '0')}" }
+                            .find { it.productId == SubscriptionSkus.sku(price) }
                             ?.price
                             ?: "$$price"
                     },
-                    popperText = if (sliderPosition.toInt() >= 7)
+                    popperText = if (price >= 7)
                         "${stringResource(R.string.above_average, 16)} $POPPER"
                     else
                         "",
-                    onClick = { subscribe(sliderPosition.toInt(), false) },
+                    onClick = { subscribe(price, false) },
                 )
-                if (sliderPosition.toInt() < 3) {
+                if (price < 3) {
                     Spacer(Modifier.width(KEYLINE_FIRST))
                     PurchaseButton(
                         price = remember(skus, price) {
                             skus
-                                .find { it.productId == "monthly_${price.toString().padStart(2, '0')}" }
+                                .find { it.productId == SubscriptionSkus.sku(price, monthly = true) }
                                 ?.price
                                 ?: "$$price"
                         },

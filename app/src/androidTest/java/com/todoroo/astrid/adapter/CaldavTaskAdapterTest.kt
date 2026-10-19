@@ -3,7 +3,7 @@ package com.todoroo.astrid.adapter
 import com.natpryce.makeiteasy.MakeItEasy.with
 import com.natpryce.makeiteasy.PropertyValue
 import org.tasks.data.dao.TaskDao
-import com.todoroo.astrid.service.TaskMover
+import org.tasks.data.TaskMover
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -12,7 +12,9 @@ import org.junit.Test
 import org.tasks.LocalBroadcastManager
 import org.tasks.data.*
 import org.tasks.data.dao.CaldavDao
+import org.tasks.data.dao.DirtyDao
 import org.tasks.data.dao.GoogleTaskDao
+import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavTask
 import org.tasks.injection.InjectingTestCase
 import org.tasks.makers.TaskContainerMaker.PARENT
@@ -23,6 +25,7 @@ import javax.inject.Inject
 class CaldavTaskAdapterTest : InjectingTestCase() {
     @Inject lateinit var taskDao: TaskDao
     @Inject lateinit var taskSaver: TaskSaver
+    @Inject lateinit var dirtyDao: DirtyDao
     @Inject lateinit var caldavDao: CaldavDao
     @Inject lateinit var googleTaskDao: GoogleTaskDao
     @Inject lateinit var localBroadcastManager: LocalBroadcastManager
@@ -31,17 +34,19 @@ class CaldavTaskAdapterTest : InjectingTestCase() {
     private lateinit var adapter: TaskAdapter
     private val tasks = ArrayList<TaskContainer>()
 
+    private val dataSource = object : TaskAdapterDataSource {
+        override fun getItem(position: Int) = tasks[position]
+
+        override fun getTaskCount() = tasks.size
+    }
+
     @Before
     override fun setUp() {
         super.setUp()
 
         tasks.clear()
-        adapter = TaskAdapter(false, googleTaskDao, caldavDao, taskDao, taskSaver, localBroadcastManager, taskMover)
-        adapter.setDataSource(object : TaskAdapterDataSource {
-            override fun getItem(position: Int) = tasks[position]
-
-            override fun getTaskCount() = tasks.size
-        })
+        adapter = TaskAdapter(false, googleTaskDao, caldavDao, taskDao, taskSaver, dirtyDao, localBroadcastManager, taskMover)
+        adapter.setDataSource(dataSource)
     }
 
     @Test
@@ -84,6 +89,26 @@ class CaldavTaskAdapterTest : InjectingTestCase() {
     fun maxIndentNoChildren() {
         addTask()
         addTask()
+
+        assertEquals(1, adapter.maxIndent(0, tasks[1]))
+    }
+
+    @Test
+    fun maxIndentUnderCollapsedTask() {
+        addTask()
+        addTask()
+        tasks[0] = tasks[0].collapsedWith(children = 1)
+
+        assertEquals(1, adapter.maxIndent(0, tasks[1]))
+    }
+
+    @Test
+    fun maxIndentUnderACollapsedSingleLevelTask() {
+        addTask()
+        addTask()
+        tasks[0] = tasks[0]
+            .collapsedWith(children = 1)
+            .copy(accountType = CaldavAccount.TYPE_MICROSOFT)
 
         assertEquals(1, adapter.maxIndent(0, tasks[1]))
     }
@@ -194,6 +219,11 @@ class CaldavTaskAdapterTest : InjectingTestCase() {
 
         assertEquals(tasks[0].id, taskDao.fetch(tasks[3].id)!!.parent)
     }
+
+    private fun TaskContainer.collapsedWith(children: Int) = copy(
+        task = task.copy(isCollapsed = true),
+        children = children,
+    )
 
     private fun addTask(vararg properties: PropertyValue<in TaskContainer?, *>) = runBlocking {
         val t = newTaskContainer(*properties)

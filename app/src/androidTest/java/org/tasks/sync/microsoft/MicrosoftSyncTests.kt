@@ -4,7 +4,7 @@ import com.natpryce.makeiteasy.MakeItEasy.with
 import com.natpryce.makeiteasy.PropertyValue
 import com.todoroo.astrid.adapter.TaskAdapter
 import com.todoroo.astrid.adapter.TaskAdapterDataSource
-import com.todoroo.astrid.service.TaskMover
+import org.tasks.data.TaskMover
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -15,6 +15,7 @@ import org.tasks.LocalBroadcastManager
 import org.tasks.data.TaskContainer
 import org.tasks.data.TaskSaver
 import org.tasks.data.dao.CaldavDao
+import org.tasks.data.dao.DirtyDao
 import org.tasks.data.dao.GoogleTaskDao
 import org.tasks.data.dao.TaskDao
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_MICROSOFT
@@ -30,6 +31,7 @@ class MicrosoftSyncTests : InjectingTestCase() {
     @Inject lateinit var caldavDao: CaldavDao
     @Inject lateinit var googleTaskDao: GoogleTaskDao
     @Inject lateinit var taskSaver: TaskSaver
+    @Inject lateinit var dirtyDao: DirtyDao
     @Inject lateinit var localBroadcastManager: LocalBroadcastManager
     @Inject lateinit var taskMover: TaskMover
 
@@ -41,7 +43,7 @@ class MicrosoftSyncTests : InjectingTestCase() {
         super.setUp()
         tasks.clear()
         adapter = TaskAdapter(
-            false, googleTaskDao, caldavDao, taskDao, taskSaver,
+            false, googleTaskDao, caldavDao, taskDao, taskSaver, dirtyDao,
             localBroadcastManager, taskMover,
         )
         adapter.setDataSource(object : TaskAdapterDataSource {

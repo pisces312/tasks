@@ -3,7 +3,9 @@ package org.tasks.analytics
 import co.touchlab.kermit.Logger
 import com.posthog.PostHog
 import com.posthog.PostHogConfig
+import kotlin.coroutines.cancellation.CancellationException
 import org.tasks.TasksBuildConfig
+import org.tasks.preferences.TasksPreferences
 import java.io.File
 import java.util.Locale
 import java.util.TimeZone
@@ -11,10 +13,16 @@ import java.util.TimeZone
 class PostHogReporting(
     apiKey: String,
     dataDir: File,
+    override val tasksPreferences: TasksPreferences,
 ) : Reporting {
     private val logger = Logger.withTag("PostHogReporting")
 
-    private val enabled: Boolean = apiKey.isNotBlank().also { enabled ->
+    private val collectStatistics: Boolean =
+        kotlinx.coroutines.runBlocking {
+            tasksPreferences.get(TasksPreferences.collectStatistics, true)
+        }
+
+    private val enabled: Boolean = (apiKey.isNotBlank() && collectStatistics).also { enabled ->
         if (enabled) {
             val config = PostHogConfig(
                 apiKey = apiKey,
@@ -51,7 +59,7 @@ class PostHogReporting(
     override fun logEvent(event: String, vararg params: Pair<String, Any>) {
         val properties = params.toMap()
         logger.d { "$event -> $properties" }
-        if (enabled) {
+        if (enabled && collectStatistics) {
             PostHog.capture(
                 event = event,
                 properties = properties,
@@ -65,16 +73,17 @@ class PostHogReporting(
     override fun completeTask(source: String) =
         logEvent(AnalyticsEvents.COMPLETE_TASK, AnalyticsEvents.PARAM_TYPE to source)
 
-    override fun identify(distinctId: String) {
-        logger.d { "identify -> $distinctId" }
-        if (enabled) {
-            PostHog.identify(distinctId)
+    override fun setSku(sku: String?) {
+        logger.d { "sku -> $sku" }
+        if (enabled && collectStatistics) {
+            if (sku != null) PostHog.register("sku", sku) else PostHog.unregister("sku")
         }
     }
 
     override fun reportException(t: Throwable, fatal: Boolean) {
+        if (t is CancellationException) return
         logger.e(t) { t.message ?: "" }
-        if (enabled) {
+        if (enabled && collectStatistics) {
             PostHog.capture(
                 event = "exception",
                 properties = mapOf(

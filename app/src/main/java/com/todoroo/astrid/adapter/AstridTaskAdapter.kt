@@ -2,12 +2,13 @@ package com.todoroo.astrid.adapter
 
 import org.tasks.data.dao.TaskDao
 import org.tasks.data.TaskSaver
-import com.todoroo.astrid.service.TaskMover
+import org.tasks.data.TaskMover
 import com.todoroo.astrid.subtasks.SubtasksFilterUpdater
 import org.tasks.Strings.isNullOrEmpty
 import org.tasks.broadcast.RefreshBroadcaster
 import org.tasks.data.TaskContainer
 import org.tasks.data.dao.CaldavDao
+import org.tasks.data.dao.DirtyDao
 import org.tasks.data.dao.GoogleTaskDao
 import org.tasks.data.entity.Task
 import org.tasks.data.entity.TaskListMetadata
@@ -26,10 +27,10 @@ class AstridTaskAdapter internal constructor(
     caldavDao: CaldavDao,
     private val taskDao: TaskDao,
     private val taskSaver: TaskSaver,
+    dirtyDao: DirtyDao,
     private val refreshBroadcaster: RefreshBroadcaster,
     taskMover: TaskMover,
-) : TaskAdapter(false, googleTaskDao, caldavDao, taskDao, taskSaver, refreshBroadcaster, taskMover) {
-
+) : TaskAdapter(false, googleTaskDao, caldavDao, taskDao, taskSaver, dirtyDao, refreshBroadcaster, taskMover) {
     private val chainedCompletions = Collections.synchronizedMap(HashMap<String, ArrayList<String>>())
 
     override fun getIndent(task: TaskContainer) = updater.getIndentForTask(task.uuid)

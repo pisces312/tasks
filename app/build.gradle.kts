@@ -15,16 +15,17 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.androidx.baselineprofile)
 }
+
+val appVersionCode: Int by extra
+val appVersionName: String by extra
 
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+        moduleName.set("tasks_app")
     }
-}
-
-composeCompiler {
-    enableStrongSkippingMode = true
 }
 
 android {
@@ -36,9 +37,9 @@ android {
 
     buildFeatures {
         viewBinding = true
-        dataBinding = true
         compose = true
         buildConfig = true
+        resValues = true
     }
 
     lint {
@@ -51,12 +52,14 @@ android {
 
     defaultConfig {
         testApplicationId = "org.tasks.test"
-        applicationId = "org.tasks"
-        versionCode = libs.versions.versionCode.get().toInt()
-        versionName = libs.versions.versionName.get()
+        applicationId = libs.versions.applicationId.get()
+        versionCode = appVersionCode
+        versionName = appVersionName
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
         testInstrumentationRunner = "org.tasks.TestRunner"
+        manifestPlaceholders["appAuthRedirectScheme"] = "org.tasks"
+        resValue("string", "opentasks_authority", "$applicationId.opentasks")
     }
 
     signingConfigs {
@@ -104,14 +107,27 @@ android {
             resValue("string", "google_key", tasks_google_key ?: "")
             resValue("string", "posthog_key", tasks_posthog_key ?: "")
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard.pro")
+            optimization.keepRules {
+                ignoreFrom("com.github.franmontiel:PersistentCookieJar")
+                ignoreFrom("com.github.tasks:ical4android")
+            }
             signingConfig = signingConfigs.getByName("release")
+        }
+        create("nonMinifiedRelease") {
+            initWith(getByName("release"))
+            isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
         }
     }
 
     productFlavors {
         create("generic") {
             dimension = "store"
+            proguardFile("proguard-generic.pro")
         }
         create("googleplay") {
             isDefault = true
@@ -148,9 +164,28 @@ android {
                 }
             }
         }
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+
+    sourceSets {
+        // Shared test helpers replace Android-test symlinks, which are not portable to Windows.
+        getByName("test").java.directories.add("src/sharedTest/java")
+        getByName("androidTest").java.directories.add("src/sharedTest/java")
     }
 
     namespace = "org.tasks"
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("nonMinifiedRelease")) { variant ->
+        variant.sources.java?.addStaticSourceDirectory("src/release/java")
+        variant.sources.res?.addStaticSourceDirectory("src/release/res")
+        variant.flavorName?.takeIf { it.isNotEmpty() }?.let { flavor ->
+            variant.sources.res?.addStaticSourceDirectory("src/${flavor}Release/res")
+        }
+    }
 }
 
 configurations.all {
@@ -176,8 +211,8 @@ val googleplayImplementation by configurations
 dependencies {
     implementation(projects.data)
     implementation(projects.kmp)
+    baselineProfile(projects.baselineprofile)
     implementation(libs.kermit)
-    implementation(projects.icons)
     implementation(libs.androidx.navigation)
     implementation(libs.androidx.adaptive.navigation.android)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
@@ -187,7 +222,6 @@ dependencies {
         exclude(group = "org.codehaus.groovy", module = "groovy")
         exclude(group = "org.codehaus.groovy", module = "groovy-dateutil")
     }
-    implementation(libs.bitfire.cert4android)
     implementation(libs.dmfs.opentasks.provider) {
         exclude("com.github.tasks.opentasks", "opentasks-contract")
     }
@@ -198,6 +232,7 @@ dependencies {
     implementation(libs.dagger.hilt)
     ksp(libs.dagger.hilt.compiler)
     ksp(libs.androidx.hilt.compiler)
+    ksp(libs.androidx.appfunctions.compiler)
     implementation(libs.androidx.hilt.navigation)
     implementation(libs.androidx.hilt.work)
 
@@ -205,13 +240,14 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.datastore)
     implementation(libs.androidx.fragment.compose)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel)
-    implementation(libs.androidx.room)
+    implementation(libs.androidx.room3)
     implementation(libs.androidx.sqlite)
     implementation(libs.androidx.appcompat)
-    implementation(libs.iconics)
+    implementation(libs.androidx.appfunctions)
     implementation(libs.markwon)
     implementation(libs.markwon.editor)
     implementation(libs.markwon.linkify)
@@ -219,7 +255,6 @@ dependencies {
     implementation(libs.markwon.tables)
     implementation(libs.markwon.tasklist)
 
-    debugImplementation(libs.leakcanary)
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation(libs.kotlin.reflect)
 
@@ -234,6 +269,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.preference)
+    implementation(libs.androidx.profileinstaller)
     implementation(libs.timber)
     implementation(libs.dashclock.api)
     implementation(libs.locale) {
@@ -243,7 +279,6 @@ dependencies {
         isTransitive = false
     }
     implementation(libs.shortcut.badger)
-    implementation(libs.google.api.tasks)
     implementation(libs.google.api.drive)
     implementation(libs.google.oauth2)
     implementation(libs.androidx.work)
@@ -259,7 +294,6 @@ dependencies {
     implementation("androidx.compose.material:material")
     implementation("androidx.compose.runtime:runtime-livedata")
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation(libs.coil.compose)
@@ -314,5 +348,7 @@ dependencies {
     testImplementation(libs.make.it.easy)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.robolectric)
     testImplementation(libs.xpp3)
 }

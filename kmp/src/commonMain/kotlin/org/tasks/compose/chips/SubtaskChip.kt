@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import org.tasks.kmp.formatNumber
 import org.tasks.themes.TasksIcons
 import org.tasks.themes.chipColors
 
@@ -11,8 +12,8 @@ import org.tasks.themes.chipColors
 fun SubtaskChip(
     collapsed: Boolean,
     children: Int,
-    compact: Boolean,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     chipColor: Color = defaultChipColor(),
 ) {
     Chip(
@@ -20,9 +21,10 @@ fun SubtaskChip(
             TasksIcons.KEYBOARD_ARROW_DOWN
         else
             TasksIcons.KEYBOARD_ARROW_UP,
-        text = children.toString(),
+        text = formatNumber(children),
         color = chipColor,
         onClick = onClick,
+        enabled = enabled,
     )
 }
 

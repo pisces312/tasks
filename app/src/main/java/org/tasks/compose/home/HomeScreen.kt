@@ -5,12 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity.RESULT_OK
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,7 +18,6 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -63,10 +60,11 @@ import com.todoroo.astrid.activity.TaskEditFragment
 import com.todoroo.astrid.activity.TaskEditFragment.Companion.EXTRA_TASK
 import com.todoroo.astrid.activity.TaskListFragment
 import com.todoroo.astrid.activity.TaskListFragment.Companion.EXTRA_FILTER
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource as composeStringResource
 import org.tasks.R
 import org.tasks.activities.TagSettingsActivity
+import org.tasks.auth.SignInActivity
 import org.tasks.billing.PurchaseActivity
 import org.tasks.billing.PurchaseActivityViewModel.Companion.EXTRA_NAME_YOUR_PRICE
 import org.tasks.billing.PurchaseActivityViewModel.Companion.EXTRA_SHOW_MORE_OPTIONS
@@ -74,6 +72,7 @@ import org.tasks.billing.PurchaseActivityViewModel.Companion.EXTRA_SOURCE
 import org.tasks.caldav.BaseCaldavCalendarSettingsActivity.Companion.EXTRA_CALDAV_ACCOUNT
 import org.tasks.caldav.LocalListSettingsActivity
 import org.tasks.compose.drawer.DrawerItem
+import org.tasks.compose.drawer.SearchButtonSize
 import org.tasks.compose.drawer.TaskListDrawer
 import org.tasks.data.listSettingsClass
 import org.tasks.filters.Filter
@@ -86,7 +85,11 @@ import org.tasks.kmp.org.tasks.compose.TouchSlopMultiplier
 import org.tasks.kmp.org.tasks.compose.rememberImeState
 import org.tasks.location.LocationPickerActivity
 import org.tasks.preferences.MainPreferences
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.upgrade
 import timber.log.Timber
+
+private val BottomAppBarHeight = 80.dp
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
@@ -119,6 +122,11 @@ fun HomeScreen(
     val isDetailVisible =
         navigator.scaffoldValue[ListDetailPaneScaffoldRole.Detail] == PaneAdaptedValue.Expanded
 
+    val searchButtonInset = (
+        (BottomAppBarHeight - windowInsets.value.calculateBottomPadding())
+            .coerceAtLeast(SearchButtonSize) - SearchButtonSize
+        ) / 2
+
     val openTaskAppDialog = remember { mutableStateOf<org.tasks.data.OpenTaskApp?>(null) }
     val guestDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -150,17 +158,22 @@ fun HomeScreen(
         )
     }
 
+    val scope = rememberCoroutineScope()
     if (guestDialog.value) {
         AlertDialog(
             onDismissRequest = { guestDialog.value = false },
-            title = { Text(stringResource(R.string.upgrade_to_pro)) },
+            title = { Text(composeStringResource(Res.string.upgrade)) },
             text = { Text(stringResource(R.string.guest_create_list_message)) },
             dismissButton = {
                 TextButton(onClick = {
                     guestDialog.value = false
-                    newList.launch(
-                        Intent(context, LocalListSettingsActivity::class.java)
-                    )
+                    scope.launch {
+                        val account = viewModel.getOrCreateLocalAccount()
+                        newList.launch(
+                            Intent(context, LocalListSettingsActivity::class.java)
+                                .putExtra(EXTRA_CALDAV_ACCOUNT, account)
+                        )
+                    }
                 }) { Text(stringResource(R.string.local_lists)) }
             },
             confirmButton = {
@@ -172,7 +185,7 @@ fun HomeScreen(
                             .putExtra(EXTRA_NAME_YOUR_PRICE, false)
                             .putExtra(EXTRA_SHOW_MORE_OPTIONS, false)
                     )
-                }) { Text(stringResource(R.string.button_subscribe)) }
+                }) { Text(composeStringResource(Res.string.upgrade)) }
             },
         )
     }
@@ -207,6 +220,8 @@ fun HomeScreen(
                                     is DrawerItem.Header -> {
                                         drawerViewModel.toggleCollapsed(it.header)
                                     }
+
+                                    is DrawerItem.SignIn -> {}
                                 }
                             },
                             onAddClick = {
@@ -260,6 +275,15 @@ fun HomeScreen(
                             onErrorClick = {
                                 context.startActivity(Intent(context, MainPreferences::class.java))
                             },
+                            onSignIn = {
+                                scope.launch {
+                                    drawerState.close()
+                                    context.startActivity(
+                                        Intent(context, SignInActivity::class.java)
+                                    )
+                                }
+                            },
+                            searchButtonInset = searchButtonInset,
                         )
 
                         SystemBarScrim(

@@ -20,20 +20,17 @@ import org.tasks.R
 
 @Composable
 fun DebugScreen(
-    leakCanaryEnabled: Boolean,
     strictModeVmEnabled: Boolean,
     strictModeThreadEnabled: Boolean,
     crashOnViolationEnabled: Boolean,
     unlockProEnabled: Boolean,
     showDebugFilters: Boolean,
     iapTitle: String,
-    onLeakCanary: (Boolean) -> Unit,
     onStrictModeVm: (Boolean) -> Unit,
     onStrictModeThread: (Boolean) -> Unit,
     onCrashOnViolation: (Boolean) -> Unit,
     onUnlockPro: (Boolean) -> Unit,
     onShowDebugFilters: (Boolean) -> Unit,
-    onResetSsl: () -> Unit,
     onCrashApp: () -> Unit,
     onRestartApp: () -> Unit,
     onIap: () -> Unit,
@@ -54,13 +51,6 @@ fun DebugScreen(
             verticalArrangement = Arrangement.spacedBy(SettingsCardGap),
         ) {
             SettingsItemCard(position = CardPosition.First) {
-                SwitchPreferenceRow(
-                    title = stringResource(R.string.debug_leakcanary),
-                    checked = leakCanaryEnabled,
-                    onCheckedChange = onLeakCanary,
-                )
-            }
-            SettingsItemCard(position = CardPosition.Middle) {
                 SwitchPreferenceRow(
                     title = stringResource(R.string.debug_strict_mode_vm),
                     checked = strictModeVmEnabled,
@@ -105,12 +95,6 @@ fun DebugScreen(
             verticalArrangement = Arrangement.spacedBy(SettingsCardGap),
         ) {
             SettingsItemCard(position = CardPosition.First) {
-                PreferenceRow(
-                    title = stringResource(R.string.debug_reset_ssl),
-                    onClick = onResetSsl,
-                )
-            }
-            SettingsItemCard(position = CardPosition.Middle) {
                 PreferenceRow(
                     title = stringResource(R.string.debug_crash_app),
                     onClick = onCrashApp,

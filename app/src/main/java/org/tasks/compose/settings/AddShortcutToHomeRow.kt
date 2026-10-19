@@ -1,12 +1,11 @@
 package org.tasks.compose.settings
 
+import org.tasks.themes.TasksIcons
+import org.tasks.compose.components.SymbolIcon
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,11 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.ShortcutManagerCompat
-import org.tasks.R
+import org.jetbrains.compose.resources.stringResource
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.add_shortcut_to_home_screen
 import org.tasks.compose.Constants
 import org.tasks.kmp.org.tasks.compose.settings.SettingRow
 import org.tasks.themes.TasksTheme
@@ -38,8 +38,8 @@ fun AddShortcutToHomeRow(onClick: () -> Unit) {
                     modifier = Modifier.size(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Home,
+                    SymbolIcon(
+                        name = TasksIcons.HOME,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -47,7 +47,7 @@ fun AddShortcutToHomeRow(onClick: () -> Unit) {
             },
             center = {
                 Text(
-                    text = stringResource(R.string.add_shortcut_to_home_screen),
+                    text = stringResource(Res.string.add_shortcut_to_home_screen),
                     modifier = Modifier.padding(start = Constants.KEYLINE_FIRST)
                 )
             }
