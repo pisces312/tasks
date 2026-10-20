@@ -33,7 +33,14 @@ abstract class TaskListRecyclerAdapter internal constructor(
         val task = getItem(position)
         if (task != null) {
             (holder as TaskViewHolder)
-                    .bindView(task, filter, groupMode, dirtyTaskIds.contains(task.id), dirtyColor)
+                    .bindView(
+                        task,
+                        filter,
+                        groupMode,
+                        dirtyTaskIds.contains(task.id),
+                        dirtyColor,
+                        taskList.inlineTitleEditState,
+                    )
             holder.moving = false
             val indent = adapter.getIndent(task)
             task.indent = indent

@@ -4,9 +4,12 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,6 +26,10 @@ import org.tasks.data.dao.CaldavDao
 import org.tasks.data.dao.DeletionDao
 import org.tasks.data.dao.TaskDao
 import org.tasks.data.entity.CaldavAccount
+import org.tasks.data.entity.Task
+import org.tasks.resources.getString
+import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.no_title
 import org.tasks.data.composeTitle
 import org.tasks.extensions.Context.canScheduleExactAlarms
 import org.tasks.feed.BlogPost
@@ -55,14 +62,26 @@ sealed class Banner(
     data class BlogAnnouncement(val post: BlogPost) : Banner("blog", "read_more", "dismiss")
 }
 
+data class InlineTitleEditState(
+    val taskId: Long,
+    val originalTitle: String?,
+    val draftTitle: String,
+    val saving: Boolean = false,
+)
+
+data class InlineTitleCommitResult(
+    val success: Boolean,
+    val task: Task? = null,
+)
+
 @HiltViewModel
 class TaskListViewModel @Inject constructor(
     @ApplicationContext private val applicationContext: Context,
     private val preferences: Preferences,
-    taskDao: TaskDao,
+    private val taskDao: TaskDao,
     taskDeleter: TaskDeleter,
     deletionDao: DeletionDao,
-    taskSaver: TaskSaver,
+    private val taskSaver: TaskSaver,
     taskCompleter: TaskCompleter,
     private val tasksPreferences: TasksPreferences,
     composeRefreshBroadcaster: ComposeRefreshBroadcaster,
@@ -88,6 +107,80 @@ class TaskListViewModel @Inject constructor(
 ) {
     private val _banner = MutableStateFlow<Banner?>(null)
     val banner = _banner.asStateFlow()
+
+    private val _inlineTitleEditState = MutableStateFlow<InlineTitleEditState?>(null)
+    val inlineTitleEditState = _inlineTitleEditState.asStateFlow()
+
+    private val _inlineTitleSaveFailures = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val inlineTitleSaveFailures = _inlineTitleSaveFailures.asSharedFlow()
+
+    private val _inlineTitleCommitResults =
+        MutableSharedFlow<InlineTitleCommitResult>(extraBufferCapacity = 1)
+    val inlineTitleCommitResults = _inlineTitleCommitResults.asSharedFlow()
+
+    fun beginInlineTitleEdit(taskId: Long, title: String?) {
+        _inlineTitleEditState.value = InlineTitleEditState(
+            taskId = taskId,
+            originalTitle = title,
+            draftTitle = title.orEmpty(),
+        )
+    }
+
+    fun updateInlineTitleDraft(taskId: Long, title: String) {
+        _inlineTitleEditState.value
+            ?.takeIf { it.taskId == taskId && !it.saving }
+            ?.let { current ->
+                _inlineTitleEditState.value = current.copy(draftTitle = title)
+            }
+    }
+
+    fun cancelInlineTitleEdit() {
+        _inlineTitleEditState.value = null
+    }
+
+    /** Returns true when no asynchronous save is required. */
+    fun commitInlineTitleEdit(): Boolean {
+        val state = _inlineTitleEditState.value ?: return true
+        if (state.saving) {
+            return false
+        }
+        if (state.originalTitle.orEmpty() == state.draftTitle) {
+            _inlineTitleEditState.value = null
+            return true
+        }
+        _inlineTitleEditState.value = state.copy(saving = true)
+        viewModelScope.launch {
+            withContext(NonCancellable) {
+                try {
+                    val current = taskDao.fetch(state.taskId)
+                    if (current == null || current.isDeleted || current.readOnly) {
+                        _inlineTitleEditState.value = null
+                        invalidate()
+                        _inlineTitleSaveFailures.emit(Unit)
+                        _inlineTitleCommitResults.emit(InlineTitleCommitResult(success = false))
+                        return@withContext
+                    }
+                    val title = state.draftTitle.takeIf { it.isNotBlank() }
+                        ?: getString(Res.string.no_title)
+                    val updated = current.copy(title = title)
+                    taskSaver.save(updated, current, preserveHierarchy = true)
+                    val saved = taskDao.fetch(state.taskId)
+                    check(saved?.title == title) { "Task title update was not persisted" }
+                    _inlineTitleEditState.value = null
+                    _inlineTitleCommitResults.emit(
+                        InlineTitleCommitResult(success = true, task = updated)
+                    )
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Throwable) {
+                    _inlineTitleEditState.value = state.copy(saving = false)
+                    _inlineTitleSaveFailures.emit(Unit)
+                    _inlineTitleCommitResults.emit(InlineTitleCommitResult(success = false))
+                }
+            }
+        }
+        return false
+    }
 
     fun updateBannerState() {
         viewModelScope.launch(Dispatchers.IO) {

@@ -1,0 +1,159 @@
+# 任务列表标题原地编辑调研与设计
+
+日期：2026-10-20
+
+## 背景与目标
+
+在进入某个清单后的任务列表中，当前点击任务会打开完整任务详情。仅修改标题时，用户需要进入详情、修改、保存并返回，操作链路较长。
+
+本功能目标：
+
+- 点击任务标题文字后直接在列表行内显示光标并编辑标题。
+- 不进入任务详情即可完成常见的标题修改。
+- 保留稳定、始终可见的完整任务详情入口。
+- 不改变复选框、日期、标签、多选和拖动的既有语义。
+
+## 当前实现调研
+
+Android 手机端的主页是 Compose 与传统 View 混合实现：
+
+1. `HomeScreen` 使用 `ListDetailPaneScaffold` 组织列表 pane 和详情 pane。
+2. 列表 pane 内嵌 `TaskListFragment`，实际列表仍由 RecyclerView 渲染。
+3. `TaskViewHolder` 使用 `task_adapter_row.xml` 展示单个任务；标题目前是 `TextView`。
+4. 普通状态下，任务行点击由 `TaskListFragment.onClick()` 处理，并通过 `MainActivityViewModel.setTask()` 打开 `TaskEditFragment`。
+5. 标题展示支持 Markdown、链接、完成删除线和“显示完整标题”偏好。
+6. 列表没有现成的主任务标题原地编辑功能。详情页的标题编辑和新建子任务输入可以作为交互参考，但不能直接嵌入当前 XML ViewHolder。
+7. 标题保存应复用 `TaskSaver.save()`。该入口负责数据库更新、远端同步 dirty 标记、刷新广播、通知更新和后台同步调度；直接执行 DAO 标题更新会绕过这些副作用。
+
+关键文件：
+
+- `app/src/main/java/org/tasks/compose/home/HomeScreen.kt`
+- `app/src/main/java/com/todoroo/astrid/activity/TaskListFragment.kt`
+- `app/src/main/java/org/tasks/tasklist/TaskViewHolder.kt`
+- `app/src/main/java/org/tasks/tasklist/TaskListRecyclerAdapter.kt`
+- `app/src/main/java/org/tasks/tasklist/DragAndDropRecyclerAdapter.kt`
+- `app/src/main/res/layout/task_adapter_row.xml`
+- `app/src/main/java/org/tasks/ui/TaskListViewModel.kt`
+- `kmp/src/commonMain/kotlin/org/tasks/data/TaskSaver.kt`
+
+## 可选交互方案
+
+### 方案 A：点击标题原地编辑，右侧按钮进入详情（采用）
+
+- 点击标题：原地编辑。
+- 点击右侧固定箭头：进入完整详情。
+- 点击标题之外的普通行区域：仍可进入详情，作为兼容入口。
+
+优点：最符合“直接点击任务内容修改”的目标；标题无论占满一行还是多行，右侧详情按钮都不会消失；入口可发现、无手势歧义。
+
+代价：每行需要为详情按钮保留固定宽度，标题可用空间略有减少。
+
+### 方案 B：点击整行进入详情，铅笔按钮原地编辑
+
+优点：保留传统列表点击语义；误触编辑概率较低。
+
+缺点：用户修改标题仍必须精确点击小按钮，不符合本次优先诉求。
+
+### 方案 C：双击、长按或滑动进入其中一个模式
+
+不采用。双击难发现；长按与多选/拖动冲突；横向滑动与现有子任务缩进拖动冲突。
+
+### 方案 D：点击标题空白区域进入详情
+
+不采用。标题占满时没有可靠入口，交互会随文本长度变化。
+
+## 确认后的交互规则
+
+| 区域/状态 | 行为 |
+|---|---|
+| 左侧复选框 | 完成或取消完成任务 |
+| 标题非链接文字 | 进入标题原地编辑 |
+| 标题中的可点击链接 | 保持打开链接 |
+| 右侧详情箭头 | 打开完整任务详情 |
+| 日期 | 保持现有日期修改行为 |
+| 描述或普通行空白 | 打开完整任务详情 |
+| 标签、地点、清单、子任务 chip | 保持现有行为 |
+| 长按 | 保持多选/拖动行为 |
+| 只读任务标题 | 不进入编辑；打开详情以供查看 |
+| 多选模式中的标题点击 | 切换选中状态，不进入编辑 |
+
+编辑状态：
+
+- 自动请求焦点、显示键盘，光标默认位于标题末尾。
+- 键盘 Done、失去焦点、按返回键、切换到另一任务或打开详情时提交。
+- 标题未变化时不写数据库。
+- 空白标题沿用详情页规则，保存为本地化的“无标题”文案。
+- 保存失败时保留草稿和编辑状态，并显示错误提示。
+- 同时只允许编辑一个任务。
+
+## 技术设计
+
+### 行布局
+
+在 `task_adapter_row.xml` 中：
+
+- 保留原标题 `TextView`，继续承担 Markdown、链接、删除线和展示偏好。
+- 增加位置重叠的 `EditText`，仅编辑状态可见。
+- 增加固定在最右侧的 48dp 详情按钮；图标为 24dp 向右箭头，并在 RTL 布局中自动镜像。
+- 日期位于详情按钮左侧，标题位于日期左侧；日期隐藏时标题仍止于详情按钮。
+
+### 编辑状态与保存协调
+
+编辑状态保存在 Android `TaskListViewModel`，不保存在 ViewHolder：
+
+```kotlin
+data class InlineTitleEditState(
+    val taskId: Long,
+    val originalTitle: String?,
+    val draftTitle: String,
+    val saving: Boolean,
+)
+```
+
+这样可避免 RecyclerView 回收、滚动和配置变化导致草稿丢失或串到其他任务。提交开始时立即将 `saving` 设为 `true` 并重绑任务行，冻结输入框，确保屏幕内容与提交快照一致。
+
+ViewModel 不保存 Fragment 或 View 回调，只发布提交结果事件；当前 Fragment 在自身 view lifecycle 内消费结果。保存期间发生多个后续操作时采用 **latest-wins**：只保留用户最后一次请求的动作，避免保存完成后同时执行导航、完成任务和弹出日期选择器。
+
+### 保存流程
+
+1. 记录当前任务 ID 和标题草稿。
+2. 根据 ID 从 `TaskDao` 重新读取最新任务，避免用列表旧快照覆盖并发修改。
+3. 检查任务未删除且非只读。
+4. 仅替换最新任务对象的标题。
+5. 调用 `TaskSaver.save(updated, current, preserveHierarchy = true)`。
+6. 成功后退出编辑并由刷新广播更新列表；瞬时失败时保留草稿。
+7. 任务已删除或转为只读属于终端失败：退出编辑并刷新列表。
+8. 保存失败提示提供“取消”操作，允许明确丢弃草稿，不会把用户困在编辑状态。
+
+`preserveHierarchy = true` 用于避免标题保存覆盖拖动过程中变化的父子层级和排序字段。
+
+### RecyclerView 与手势
+
+- ViewHolder 绑定时根据 ViewModel 的 `taskId` 决定显示标题还是输入框。
+- TextWatcher 在重新绑定前移除，避免重复监听。
+- 编辑中的任务在 `ItemTouchHelper.getMovementFlags()` 中返回不可拖动。
+- 开始多选或长按前提交当前编辑。
+- 所有独立按钮消费自己的点击事件，不向任务行冒泡。
+
+## 范围
+
+本次实现只包含已有任务的标题原地编辑和固定详情入口。
+
+以下内容不在本次范围：
+
+- 将“新建任务”改为列表内直接创建。
+- 描述、日期、标签等字段的行内编辑。
+- 撤销历史或多任务同时编辑。
+- 将 RecyclerView 任务列表迁移到 Compose。
+- 新增用户设置以切换单击语义。
+
+## 验证重点
+
+- 标题点击不打开详情，而是显示输入框和键盘。
+- 详情按钮始终可用，长标题不会遮挡。
+- Done、失焦和返回均能保存。
+- 保存后数据库和刷新后的列表标题一致。
+- 复选框、日期、链接和 chip 行为不回归。
+- 多选、拖动、只读任务与编辑状态无冲突。
+- ViewHolder 回收后草稿不会出现在其他任务。
+- `generic` debug Kotlin 编译通过；正式交付仍遵循 `generic` + `arm64-v8a`。

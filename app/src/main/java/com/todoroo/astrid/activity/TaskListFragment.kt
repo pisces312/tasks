@@ -223,6 +223,9 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
 
     private val listViewModel: TaskListViewModel by viewModels()
     private val mainViewModel: MainActivityViewModel by activityViewModels()
+    val inlineTitleEditState
+        get() = listViewModel.inlineTitleEditState.value
+
     private lateinit var taskAdapter: TaskAdapter
     private var recyclerAdapter: DragAndDropRecyclerAdapter? = null
     private var dirtyTaskIds: Set<Long> = emptySet()
@@ -237,6 +240,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
     private var windowInsets: PaddingValues? = null
     private var recyclerViewState: Parcelable? = null
     private var hasWritableList = true
+    private var pendingInlineTitleAction: ((Task?) -> Unit)? = null
     private val listPickerLauncher = registerForListPickerResult {
         val selected = taskAdapter.getSelected()
         lifecycleScope.launch {
@@ -320,6 +324,36 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        listViewModel.inlineTitleSaveFailures
+            .onEach {
+                if (!viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    return@onEach
+                }
+                makeSnackbar(R.string.inline_title_save_failed)
+                    ?.setAction(R.string.cancel) {
+                        pendingInlineTitleAction = null
+                        listViewModel.cancelInlineTitleEdit()
+                        rebindInlineTitleRows()
+                        activity?.hideKeyboard()
+                    }
+                    ?.show()
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        listViewModel.inlineTitleCommitResults
+            .onEach { result ->
+                rebindInlineTitleRows()
+                val action = pendingInlineTitleAction
+                pendingInlineTitleAction = null
+                if (
+                    result.success &&
+                    viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+                ) {
+                    action?.invoke(result.task)
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         taskListEventBus
             .onEach { event ->
                 try {
@@ -338,6 +372,10 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
 
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (inlineTitleEditState != null) {
+                    commitInlineTitleEdit()
+                    return
+                }
                 if ((mainViewModel.state.value.filter as? SearchFilter)?.query?.isNotBlank() == true) {
                     lifecycleScope.launch {
                         mainViewModel.openLastViewedFilter()
@@ -1007,6 +1045,9 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
     }
 
     override fun onPause() {
+        if (inlineTitleEditState != null) {
+            commitInlineTitleEdit()
+        }
         super.onPause()
         recyclerViewState = binding.bodyStandard.recyclerView.layoutManager?.onSaveInstanceState()
         localBroadcastManager.unregisterReceiver(repeatConfirmationReceiver)
@@ -1324,11 +1365,50 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         if (task.isReadOnly) {
             return
         }
-        lifecycleScope.launch {
-            taskCompleter.setComplete(task.task, newState)
-            firebase.completeTask("task_list")
-            taskAdapter.onCompletedTask(task.uuid, newState)
-            loadTaskListContent()
+        commitInlineTitleEdit {
+            lifecycleScope.launch {
+                taskCompleter.setComplete(task.task, newState)
+                firebase.completeTask("task_list")
+                taskAdapter.onCompletedTask(task.uuid, newState)
+                loadTaskListContent()
+            }
+        }
+    }
+
+    private fun rebindInlineTitleRows() {
+        val adapter = recyclerAdapter ?: return
+        binding.bodyStandard.recyclerView.post {
+            if (binding.bodyStandard.recyclerView.adapter != null) {
+                adapter.notifyItemRangeChanged(0, adapter.itemCount)
+            }
+        }
+    }
+
+    private fun commitInlineTitleEdit(
+        afterCommit: ((task: Task?) -> Unit)? = null,
+    ) {
+        if (inlineTitleEditState == null) {
+            afterCommit?.invoke(null)
+            return
+        }
+        if (afterCommit != null) {
+            pendingInlineTitleAction = afterCommit
+        }
+        val completedSynchronously = listViewModel.commitInlineTitleEdit()
+        rebindInlineTitleRows()
+        activity?.hideKeyboard()
+        if (completedSynchronously) {
+            val action = pendingInlineTitleAction
+            pendingInlineTitleAction = null
+            action?.invoke(null)
+        }
+    }
+
+    private fun openTaskDetails(task: Task) {
+        commitInlineTitleEdit { savedTask ->
+            onTaskListItemClicked(
+                savedTask?.takeIf { it.id == task.id } ?: task
+            )
         }
     }
 
@@ -1340,21 +1420,64 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             false
         }
 
+    override fun onTitleClick(taskViewHolder: TaskViewHolder) {
+        if (isActionModeActive) {
+            recyclerAdapter?.toggle(taskViewHolder)
+            return
+        }
+        val task = taskViewHolder.task
+        if (task.isReadOnly) {
+            openTaskDetails(task.task)
+            return
+        }
+        if (inlineTitleEditState?.taskId == task.id) {
+            return
+        }
+        commitInlineTitleEdit {
+            listViewModel.beginInlineTitleEdit(task.id, task.title)
+            rebindInlineTitleRows()
+        }
+    }
+
+    override fun onTitleChanged(taskId: Long, title: String) {
+        listViewModel.updateInlineTitleDraft(taskId, title)
+    }
+
+    override fun onTitleCommit(taskViewHolder: TaskViewHolder) {
+        if (inlineTitleEditState?.taskId == taskViewHolder.task.id) {
+            commitInlineTitleEdit()
+        }
+    }
+
+    override fun onOpenDetails(taskViewHolder: TaskViewHolder) {
+        if (isActionModeActive) {
+            recyclerAdapter?.toggle(taskViewHolder)
+        } else {
+            openTaskDetails(taskViewHolder.task.task)
+        }
+    }
+
     override fun onClick(taskViewHolder: TaskViewHolder) {
         if (isActionModeActive) {
             recyclerAdapter?.toggle(taskViewHolder)
         } else {
-            onTaskListItemClicked(taskViewHolder.task.task)
+            openTaskDetails(taskViewHolder.task.task)
         }
     }
 
     override fun onClick(filter: Filter) {
         if (!isActionModeActive) {
-            mainViewModel.setFilter(filter)
+            commitInlineTitleEdit {
+                mainViewModel.setFilter(filter)
+            }
         }
     }
 
     override fun onLongPress(taskViewHolder: TaskViewHolder): Boolean {
+        if (inlineTitleEditState != null) {
+            commitInlineTitleEdit()
+            return true
+        }
         if (recyclerAdapter?.dragAndDropEnabled() != true) {
             startActionMode()
         }
@@ -1368,12 +1491,18 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         if (task.isReadOnly) {
             return
         }
-        showDateTimePicker(task)
+        commitInlineTitleEdit {
+            if (isAdded && !parentFragmentManager.isStateSaved) {
+                showDateTimePicker(task)
+            }
+        }
     }
 
     override fun toggleSubtasks(task: Long, collapsed: Boolean) {
-        lifecycleScope.launch {
-            taskSaver.setCollapsed(task, collapsed)
+        commitInlineTitleEdit {
+            lifecycleScope.launch {
+                taskSaver.setCollapsed(task, collapsed)
+            }
         }
     }
 

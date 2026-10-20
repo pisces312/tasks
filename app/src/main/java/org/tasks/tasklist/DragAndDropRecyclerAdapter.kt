@@ -129,6 +129,7 @@ class DragAndDropRecyclerAdapter(
                 viewHolder !is TaskViewHolder -> NO_MOVEMENT
                 !dragAndDropEnabled() -> NO_MOVEMENT
                 adapter.numSelected > 0 -> NO_MOVEMENT
+                taskList.inlineTitleEditState != null -> NO_MOVEMENT
                 else -> ALLOW_DRAGGING
             }
         }  
