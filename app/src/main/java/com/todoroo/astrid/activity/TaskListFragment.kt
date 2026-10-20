@@ -331,9 +331,10 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
                 }
                 makeSnackbar(R.string.inline_title_save_failed)
                     ?.setAction(R.string.cancel) {
+                        val editingTaskId = inlineTitleEditState?.taskId
                         pendingInlineTitleAction = null
                         listViewModel.cancelInlineTitleEdit()
-                        rebindInlineTitleRows()
+                        rebindInlineTitleRows(editingTaskId)
                         activity?.hideKeyboard()
                     }
                     ?.show()
@@ -342,7 +343,6 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
 
         listViewModel.inlineTitleCommitResults
             .onEach { result ->
-                rebindInlineTitleRows()
                 val action = pendingInlineTitleAction
                 pendingInlineTitleAction = null
                 if (
@@ -351,6 +351,11 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
                 ) {
                     action?.invoke(result.task)
                 }
+                rebindInlineTitleRows(
+                    result.taskId,
+                    inlineTitleEditState?.taskId,
+                    committedTask = result.task,
+                )
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -1375,11 +1380,19 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         }
     }
 
-    private fun rebindInlineTitleRows() {
+    private fun rebindInlineTitleRows(
+        vararg taskIds: Long?,
+        committedTask: Task? = null,
+    ) {
+        val ids = taskIds.filterNotNull().toSet()
+        if (ids.isEmpty()) {
+            return
+        }
         val adapter = recyclerAdapter ?: return
+        committedTask?.let(adapter::recordCommittedTitle)
         binding.bodyStandard.recyclerView.post {
             if (binding.bodyStandard.recyclerView.adapter != null) {
-                adapter.notifyItemRangeChanged(0, adapter.itemCount)
+                adapter.notifyInlineTitleStateChanged(ids, committedTask)
             }
         }
     }
@@ -1387,20 +1400,24 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
     private fun commitInlineTitleEdit(
         afterCommit: ((task: Task?) -> Unit)? = null,
     ) {
-        if (inlineTitleEditState == null) {
+        val editingTaskId = inlineTitleEditState?.taskId
+        if (editingTaskId == null) {
             afterCommit?.invoke(null)
+            rebindInlineTitleRows(inlineTitleEditState?.taskId)
             return
         }
         if (afterCommit != null) {
             pendingInlineTitleAction = afterCommit
         }
         val completedSynchronously = listViewModel.commitInlineTitleEdit()
-        rebindInlineTitleRows()
         activity?.hideKeyboard()
         if (completedSynchronously) {
             val action = pendingInlineTitleAction
             pendingInlineTitleAction = null
             action?.invoke(null)
+            rebindInlineTitleRows(editingTaskId, inlineTitleEditState?.taskId)
+        } else {
+            rebindInlineTitleRows(editingTaskId)
         }
     }
 
@@ -1422,6 +1439,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
 
     override fun onTitleClick(
         taskViewHolder: TaskViewHolder,
+        title: String?,
         cursorOffset: Int?,
         cursorX: Float?,
         cursorY: Float?,
@@ -1440,12 +1458,11 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         commitInlineTitleEdit {
             listViewModel.beginInlineTitleEdit(
                 task.id,
-                task.title,
+                title,
                 cursorOffset,
                 cursorX,
                 cursorY,
             )
-            rebindInlineTitleRows()
         }
     }
 

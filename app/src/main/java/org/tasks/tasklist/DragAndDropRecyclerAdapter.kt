@@ -98,6 +98,7 @@ class DragAndDropRecyclerAdapter(
     override fun drainQueue() {
         val recyclerViewState = recyclerView.layoutManager!!.onSaveInstanceState()
         super.drainQueue()
+        reconcileInlineTitleOverrides(items)
         recyclerView.layoutManager!!.onRestoreInstanceState(recyclerViewState)
     }
 

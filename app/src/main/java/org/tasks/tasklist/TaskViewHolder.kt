@@ -33,6 +33,7 @@ import org.tasks.compose.StartDateChip
 import org.tasks.compose.chips.SubtaskChip
 import org.tasks.data.INDENT_STEP_DP
 import org.tasks.data.TaskContainer
+import org.tasks.data.entity.Task
 import org.tasks.data.hasNotes
 import org.tasks.data.isHidden
 import org.tasks.data.isOverdue
@@ -90,6 +91,9 @@ class TaskViewHolder internal constructor(
     private val titleContainer = binding.titleContainer
     private val nameView: TextView = binding.title
     private val titleEditor: EditText = binding.titleEditor
+    private val titleEditorKeyListener = titleEditor.keyListener
+    private var titleEditorInputType = 0
+    private var displayedTitleSource: String? = null
     private var inlineEditing = false
     private val openDetails = binding.openDetails.apply {
         setOnClickListener { onTrailingActionClick() }
@@ -205,11 +209,17 @@ class TaskViewHolder internal constructor(
         }
         titleTapX = null
         titleTapY = null
-        callback.onTitleClick(this, cursorOffset, cursorX, cursorY)
+        callback.onTitleClick(
+            this,
+            displayedTitleSource ?: task.title,
+            cursorOffset,
+            cursorX,
+            cursorY,
+        )
     }
 
     private fun sourceOffsetAtTap(x: Float, y: Float): Int? {
-        val source = task.title.orEmpty()
+        val source = displayedTitleSource ?: task.title.orEmpty()
         val rendered = nameView.text.toString()
         if (source.isEmpty() || rendered.isEmpty()) {
             return 0
@@ -258,6 +268,7 @@ class TaskViewHolder internal constructor(
         isDirty: Boolean = false,
         dirtyColor: Int = 0,
         inlineTitleEditState: InlineTitleEditState? = null,
+        displayedTitle: String? = task.title,
     ) {
         titleTapX = null
         titleTapY = null
@@ -270,9 +281,12 @@ class TaskViewHolder internal constructor(
             debugDirty.visibility = View.GONE
         }
         indent = task.indent
-        markdown.setMarkdown(nameView, task.title)
+        displayedTitleSource = displayedTitle
+        markdown.setMarkdown(nameView, displayedTitle)
         setupTitleAndCheckbox()
-        setupInlineTitleEdit(inlineTitleEditState?.takeIf { it.taskId == task.id })
+        bindInlineTitleEdit(
+            inlineTitleEditState?.takeIf { it.taskId == task.id },
+        )
         setupDueDate(sortMode == SORT_DUE)
         setupChips(
             filter = filter,
@@ -323,6 +337,17 @@ class TaskViewHolder internal constructor(
         }
     }
 
+    fun bindInlineTitleEdit(
+        editState: InlineTitleEditState?,
+        committedTask: Task? = null,
+    ) {
+        committedTask?.let { saved ->
+            displayedTitleSource = saved.title
+            markdown.setMarkdown(nameView, saved.title)
+        }
+        setupInlineTitleEdit(editState)
+    }
+
     private fun setupInlineTitleEdit(editState: InlineTitleEditState?) {
         cursorPositionRunnable?.let(titleEditor::removeCallbacks)
         cursorPositionRunnable = null
@@ -340,6 +365,11 @@ class TaskViewHolder internal constructor(
             boundEditorTaskId = null
             titleEditor.clearFocus()
             titleEditor.isEnabled = true
+            titleEditor.keyListener = titleEditorKeyListener
+            titleEditor.setRawInputType(titleEditorInputType)
+            titleEditor.isFocusableInTouchMode = true
+            titleEditor.isCursorVisible = true
+            titleEditor.isLongClickable = true
             titleEditor.visibility = View.GONE
             nameView.visibility = View.VISIBLE
             return
@@ -354,30 +384,49 @@ class TaskViewHolder internal constructor(
         boundEditorTaskId = editState.taskId
         nameView.visibility = View.INVISIBLE
         titleEditor.visibility = View.VISIBLE
-        titleEditor.isEnabled = !editState.saving
+        titleEditor.isEnabled = true
+        titleEditor.setTextColor(nameView.currentTextColor)
+        if (editState.saving) {
+            titleEditor.clearFocus()
+            titleEditor.keyListener = null
+            titleEditor.isFocusable = false
+            titleEditor.isCursorVisible = false
+            titleEditor.isLongClickable = false
+        } else {
+            titleEditor.keyListener = titleEditorKeyListener
+            titleEditor.setRawInputType(titleEditorInputType)
+            titleEditor.isFocusableInTouchMode = true
+            titleEditor.isCursorVisible = true
+            titleEditor.isLongClickable = true
+        }
         val replacedText = titleEditor.text.toString() != editState.draftTitle
         if (replacedText) {
             titleEditor.setText(editState.draftTitle)
         }
-        titleTextWatcher = titleEditor.doAfterTextChanged {
-            callback.onTitleChanged(task.id, it?.toString().orEmpty())
-        }
-        titleEditor.setOnEditorActionListener { view, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                view.isEnabled = false
-                callback.onTitleCommit(this)
-                (context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-                    .hideSoftInputFromWindow(view.windowToken, 0)
-                view.clearFocus()
-                true
-            } else {
-                false
+        if (!editState.saving) {
+            titleTextWatcher = titleEditor.doAfterTextChanged {
+                callback.onTitleChanged(task.id, it?.toString().orEmpty())
             }
-        }
-        titleEditor.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-            if (!hasFocus && view.isEnabled && bindingAdapterPosition != RecyclerView.NO_POSITION) {
-                view.isEnabled = false
-                callback.onTitleCommit(this)
+            titleEditor.setOnEditorActionListener { view, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    view.onFocusChangeListener = null
+                    view.isCursorVisible = false
+                    view.isFocusable = false
+                    callback.onTitleCommit(this)
+                    (context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+                        .hideSoftInputFromWindow(view.windowToken, 0)
+                    true
+                } else {
+                    false
+                }
+            }
+            titleEditor.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+                if (!hasFocus && bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                    titleEditor.onFocusChangeListener = null
+                    titleEditor.isCursorVisible = false
+                    titleEditor.isFocusable = false
+                    callback.onTitleCommit(this)
+                }
             }
         }
         val cursorRequestId = editState.cursorRequestId
@@ -596,6 +645,7 @@ class TaskViewHolder internal constructor(
         fun onLinkClicked(vh: TaskViewHolder, url: String): Boolean
         fun onTitleClick(
             taskViewHolder: TaskViewHolder,
+            title: String?,
             cursorOffset: Int?,
             cursorX: Float?,
             cursorY: Float?,
@@ -622,6 +672,7 @@ class TaskViewHolder internal constructor(
         titleEditor.maxLines = nameView.maxLines
         titleEditor.setHorizontallyScrolling(!fullTaskTitle)
         titleEditor.imeOptions = EditorInfo.IME_ACTION_DONE
+        titleEditorInputType = titleEditor.inputType
         if (preferences.getBoolean(R.string.p_show_full_description, false)) {
             description.maxLines = Int.MAX_VALUE
             description.isSingleLine = false

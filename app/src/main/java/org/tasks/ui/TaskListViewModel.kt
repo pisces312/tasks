@@ -74,6 +74,7 @@ data class InlineTitleEditState(
 )
 
 data class InlineTitleCommitResult(
+    val taskId: Long,
     val success: Boolean,
     val task: Task? = null,
 )
@@ -186,7 +187,9 @@ class TaskListViewModel @Inject constructor(
                         _inlineTitleEditState.value = null
                         invalidate()
                         _inlineTitleSaveFailures.emit(Unit)
-                        _inlineTitleCommitResults.emit(InlineTitleCommitResult(success = false))
+                        _inlineTitleCommitResults.emit(
+                            InlineTitleCommitResult(taskId = state.taskId, success = false)
+                        )
                         return@withContext
                     }
                     val title = state.draftTitle.takeIf { it.isNotBlank() }
@@ -197,14 +200,20 @@ class TaskListViewModel @Inject constructor(
                     check(saved?.title == title) { "Task title update was not persisted" }
                     _inlineTitleEditState.value = null
                     _inlineTitleCommitResults.emit(
-                        InlineTitleCommitResult(success = true, task = updated)
+                        InlineTitleCommitResult(
+                            taskId = state.taskId,
+                            success = true,
+                            task = updated,
+                        )
                     )
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Throwable) {
                     _inlineTitleEditState.value = state.copy(saving = false)
                     _inlineTitleSaveFailures.emit(Unit)
-                    _inlineTitleCommitResults.emit(InlineTitleCommitResult(success = false))
+                    _inlineTitleCommitResults.emit(
+                        InlineTitleCommitResult(taskId = state.taskId, success = false)
+                    )
                 }
             }
         }

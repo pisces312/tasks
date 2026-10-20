@@ -127,7 +127,7 @@ data class InlineTitleEditState(
 )
 ```
 
-这样可避免 RecyclerView 回收、滚动和配置变化导致草稿丢失或串到其他任务。提交开始时立即将 `saving` 设为 `true` 并重绑任务行，冻结输入框，确保屏幕内容与提交快照一致。
+这样可避免 RecyclerView 回收、滚动和配置变化导致草稿丢失或串到其他任务。提交开始时立即将 `saving` 设为 `true`，但不把 `EditText` 设为 disabled：保存期间临时移除 `keyListener`、清除焦点、隐藏光标和禁止长按，形成只读输入边界，并显式保持与展示标题相同的文字颜色，避免深色主题下闪过 disabled 灰色。
 
 ViewModel 不保存 Fragment 或 View 回调，只发布提交结果事件；当前 Fragment 在自身 view lifecycle 内消费结果。保存期间发生多个后续操作时采用 **latest-wins**：只保留用户最后一次请求的动作，避免保存完成后同时执行导航、完成任务和弹出日期选择器。
 
@@ -144,9 +144,13 @@ ViewModel 不保存 Fragment 或 View 回调，只发布提交结果事件；当
 
 `preserveHierarchy = true` 用于避免标题保存覆盖拖动过程中变化的父子层级和排序字段。
 
-### RecyclerView 与手势
+### RecyclerView、渲染稳定性与手势
 
-- ViewHolder 绑定时根据 ViewModel 的 `taskId` 决定显示标题还是输入框。
+- ViewHolder 完整绑定时根据 ViewModel 的 `taskId` 决定显示标题还是输入框。
+- 编辑状态变化使用专用 payload，扫描位置时跳过分组 header，只定向更新旧编辑行和新编辑行的标题控件、焦点与尾部图标；不再调用 `notifyItemRangeChanged()` 重绑全列表，也不重复渲染无关行的 Markdown、描述、日期和 chip。
+- 从一行切换到另一行时，保存结果先执行“开始编辑新行”，再在同一批更新中让旧行退出、新行进入，避免绘制“所有行都未编辑”的中间帧。
+- 保存成功的标题由 adapter 记录为短期展示覆盖，并随 payload 更新旧行 ViewHolder；后续任何全量绑定在数据库新快照真正应用前仍使用该覆盖，避免恢复旧标题。覆盖不修改 adapter/`DiffUtil` 持有的数据快照；在 `drainQueue()` 应用新列表后，若新标题等于已提交值则清除，若出现不同于原值的外部更新则让外部更新胜出。
+- 保存状态不使用 `EditText.isEnabled = false`，因此不会触发主题 disabled 颜色；输入冻结不改变标题亮度。
 - TextWatcher 在重新绑定前移除，避免重复监听。
 - 编辑中的任务在 `ItemTouchHelper.getMovementFlags()` 中返回不可拖动。
 - 开始多选或长按前提交当前编辑。
@@ -175,4 +179,6 @@ ViewModel 不保存 Fragment 或 View 回调，只发布提交结果事件；当
 - 复选框、日期、链接和 chip 行为不回归。
 - 多选、拖动、只读任务与编辑状态无冲突。
 - ViewHolder 回收后草稿不会出现在其他任务。
+- 从一行标题切换到另一行时，旧行不出现 disabled 变色、旧标题回闪或全列表闪烁。
+- 深色主题下保存中与退出编辑后的标题颜色保持稳定。
 - `generic` debug Kotlin 编译通过；正式交付仍遵循 `generic` + `arm64-v8a`。
