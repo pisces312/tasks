@@ -241,6 +241,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
     private var recyclerViewState: Parcelable? = null
     private var hasWritableList = true
     private var pendingInlineTitleAction: ((Task?) -> Unit)? = null
+    private var preserveKeyboardForPendingInlineTitleAction = false
     private val listPickerLauncher = registerForListPickerResult {
         val selected = taskAdapter.getSelected()
         lifecycleScope.launch {
@@ -333,6 +334,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
                     ?.setAction(R.string.cancel) {
                         val editingTaskId = inlineTitleEditState?.taskId
                         pendingInlineTitleAction = null
+                        preserveKeyboardForPendingInlineTitleAction = false
                         listViewModel.cancelInlineTitleEdit()
                         rebindInlineTitleRows(editingTaskId)
                         activity?.hideKeyboard()
@@ -344,12 +346,17 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         listViewModel.inlineTitleCommitResults
             .onEach { result ->
                 val action = pendingInlineTitleAction
+                val preserveKeyboard = preserveKeyboardForPendingInlineTitleAction
                 pendingInlineTitleAction = null
+                preserveKeyboardForPendingInlineTitleAction = false
                 if (
                     result.success &&
                     viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
                 ) {
                     action?.invoke(result.task)
+                }
+                if (!preserveKeyboard || inlineTitleEditState == null) {
+                    activity?.hideKeyboard()
                 }
                 rebindInlineTitleRows(
                     result.taskId,
@@ -1398,6 +1405,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
     }
 
     private fun commitInlineTitleEdit(
+        preserveKeyboard: Boolean = false,
         afterCommit: ((task: Task?) -> Unit)? = null,
     ) {
         val editingTaskId = inlineTitleEditState?.taskId
@@ -1406,15 +1414,21 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             rebindInlineTitleRows(inlineTitleEditState?.taskId)
             return
         }
-        if (afterCommit != null) {
-            pendingInlineTitleAction = afterCommit
+        pendingInlineTitleAction = afterCommit
+        preserveKeyboardForPendingInlineTitleAction = preserveKeyboard
+        val completedSynchronously = listViewModel.commitInlineTitleEdit(preserveKeyboard)
+        if (!preserveKeyboard) {
+            activity?.hideKeyboard()
         }
-        val completedSynchronously = listViewModel.commitInlineTitleEdit()
-        activity?.hideKeyboard()
         if (completedSynchronously) {
             val action = pendingInlineTitleAction
+            val keepKeyboardVisible = preserveKeyboardForPendingInlineTitleAction
             pendingInlineTitleAction = null
+            preserveKeyboardForPendingInlineTitleAction = false
             action?.invoke(null)
+            if (!keepKeyboardVisible || inlineTitleEditState == null) {
+                activity?.hideKeyboard()
+            }
             rebindInlineTitleRows(editingTaskId, inlineTitleEditState?.taskId)
         } else {
             rebindInlineTitleRows(editingTaskId)
@@ -1455,7 +1469,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         if (inlineTitleEditState?.taskId == task.id) {
             return
         }
-        commitInlineTitleEdit {
+        commitInlineTitleEdit(preserveKeyboard = true) {
             listViewModel.beginInlineTitleEdit(
                 task.id,
                 title,

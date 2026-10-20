@@ -3,6 +3,7 @@ package org.tasks.tasklist
 import android.app.Activity
 import android.content.Context
 import android.graphics.Paint
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.view.MotionEvent
@@ -24,6 +25,8 @@ import com.todoroo.astrid.core.SortHelper.SORT_LIST
 import com.todoroo.astrid.core.SortHelper.SORT_START
 import com.todoroo.astrid.ui.CheckableImageView
 import androidx.core.graphics.ColorUtils
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.color.MaterialColors
 import org.tasks.R
@@ -92,6 +95,10 @@ class TaskViewHolder internal constructor(
     private val nameView: TextView = binding.title
     private val titleEditor: EditText = binding.titleEditor
     private val titleEditorKeyListener = titleEditor.keyListener
+    private val titleEditorFilters = titleEditor.filters
+    private val preserveKeyboardInputFilter = InputFilter { _, _, _, dest, dstart, dend ->
+        dest.subSequence(dstart, dend)
+    }
     private var titleEditorInputType = 0
     private var displayedTitleSource: String? = null
     private var inlineEditing = false
@@ -367,6 +374,7 @@ class TaskViewHolder internal constructor(
             titleEditor.isEnabled = true
             titleEditor.keyListener = titleEditorKeyListener
             titleEditor.setRawInputType(titleEditorInputType)
+            titleEditor.filters = titleEditorFilters
             titleEditor.isFocusableInTouchMode = true
             titleEditor.isCursorVisible = true
             titleEditor.isLongClickable = true
@@ -386,22 +394,36 @@ class TaskViewHolder internal constructor(
         titleEditor.visibility = View.VISIBLE
         titleEditor.isEnabled = true
         titleEditor.setTextColor(nameView.currentTextColor)
-        if (editState.saving) {
-            titleEditor.clearFocus()
-            titleEditor.keyListener = null
-            titleEditor.isFocusable = false
-            titleEditor.isCursorVisible = false
-            titleEditor.isLongClickable = false
-        } else {
+        if (titleEditor.keyListener == null) {
             titleEditor.keyListener = titleEditorKeyListener
-            titleEditor.setRawInputType(titleEditorInputType)
-            titleEditor.isFocusableInTouchMode = true
-            titleEditor.isCursorVisible = true
-            titleEditor.isLongClickable = true
         }
+        if (titleEditor.inputType != titleEditorInputType) {
+            titleEditor.setRawInputType(titleEditorInputType)
+        }
+        titleEditor.filters = titleEditorFilters
         val replacedText = titleEditor.text.toString() != editState.draftTitle
         if (replacedText) {
             titleEditor.setText(editState.draftTitle)
+        }
+        when {
+            !editState.saving -> {
+                titleEditor.isFocusableInTouchMode = true
+                titleEditor.isCursorVisible = true
+                titleEditor.isLongClickable = true
+            }
+            editState.preserveKeyboard -> {
+                titleEditor.filters = titleEditorFilters + preserveKeyboardInputFilter
+                titleEditor.isFocusableInTouchMode = true
+                titleEditor.isCursorVisible = false
+                titleEditor.isLongClickable = false
+            }
+            else -> {
+                titleEditor.clearFocus()
+                titleEditor.keyListener = null
+                titleEditor.isFocusable = false
+                titleEditor.isCursorVisible = false
+                titleEditor.isLongClickable = false
+            }
         }
         if (!editState.saving) {
             titleTextWatcher = titleEditor.doAfterTextChanged {
@@ -443,6 +465,8 @@ class TaskViewHolder internal constructor(
                 ) {
                     return@Runnable
                 }
+                val imeVisible = ViewCompat.getRootWindowInsets(titleEditor)
+                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true
                 val requestedOffset = editState.cursorOffset
                 val cursorX = editState.cursorX
                 val cursorY = editState.cursorY
@@ -473,8 +497,10 @@ class TaskViewHolder internal constructor(
                 if (cursorRequestId != null) {
                     callback.onTitleCursorPositioned(taskId, cursorRequestId)
                 }
-                (context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-                    .showSoftInput(titleEditor, InputMethodManager.SHOW_IMPLICIT)
+                if (!imeVisible) {
+                    (context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+                        .showSoftInput(titleEditor, InputMethodManager.SHOW_IMPLICIT)
+                }
             }
             cursorPositionRunnable = positionCursor
             titleEditor.post(positionCursor)

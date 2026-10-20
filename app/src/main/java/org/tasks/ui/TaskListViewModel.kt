@@ -67,6 +67,7 @@ data class InlineTitleEditState(
     val originalTitle: String?,
     val draftTitle: String,
     val saving: Boolean = false,
+    val preserveKeyboard: Boolean = false,
     val cursorRequestId: Long? = null,
     val cursorOffset: Int? = null,
     val cursorX: Float? = null,
@@ -169,16 +170,22 @@ class TaskListViewModel @Inject constructor(
     }
 
     /** Returns true when no asynchronous save is required. */
-    fun commitInlineTitleEdit(): Boolean {
+    fun commitInlineTitleEdit(preserveKeyboard: Boolean = false): Boolean {
         val state = _inlineTitleEditState.value ?: return true
         if (state.saving) {
+            if (state.preserveKeyboard != preserveKeyboard) {
+                _inlineTitleEditState.value = state.copy(preserveKeyboard = preserveKeyboard)
+            }
             return false
         }
         if (state.originalTitle.orEmpty() == state.draftTitle) {
             _inlineTitleEditState.value = null
             return true
         }
-        _inlineTitleEditState.value = state.copy(saving = true)
+        _inlineTitleEditState.value = state.copy(
+            saving = true,
+            preserveKeyboard = preserveKeyboard,
+        )
         viewModelScope.launch {
             withContext(NonCancellable) {
                 try {
