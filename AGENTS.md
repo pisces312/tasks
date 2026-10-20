@@ -22,7 +22,7 @@ ABI splits、环境变量签名。
 不要"顺手"构建 `googleplay` 或其它 ABI；只有在用户明确要求时才构建。
 
 ```bash
-# build.sh（Windows + Git Bash 推荐）
+# build.sh（Windows 下必须用 Git Bash，位于 D:\dev\git\bin\bash.exe）
 ./build.sh                                    # generic release, arm64-v8a（默认）
 ./build.sh debug                              # generic debug
 ./build.sh release googleplay                 # googleplay release（仅明确要求时）
@@ -94,6 +94,13 @@ tasks_google_key_debug="<key>"
 **ABI splits：** 传 `-PbuildAbi=arm64-v8a` 只构建单个 ABI（更快），省略则构建全部。
 
 **Java：** 需要 JDK 17+（JBR 位于 `D:\dev\AndroidStudio\jbr\`，旧路径 `D:\nili\dev\AndroidStudio\jbr\` 已被 `build.sh` 兼容）。
+
+**Shell 环境（Windows）：** `build.sh` 必须用 **Git Bash**（`D:\dev\git\bin\bash.exe`）运行，
+**不能用 WSL 的 `bash`**（`C:\Windows\System32\bash.exe`）。`local.properties` 里的
+`sdk.dir` 是 Windows 路径（`D:\dev\android_sdk`），WSL 下会报
+`SDK location not found`。从 PowerShell/cmd 调用时应显式指定
+`& "D:\dev\git\bin\bash.exe" -lc "cd /d/3rd-party-projects/tasks-org-source && ./build.sh"`，
+避免解析到 WSL bash。
 
 ## 索引
 
