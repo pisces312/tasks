@@ -1432,7 +1432,6 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         }
         val task = taskViewHolder.task
         if (task.isReadOnly) {
-            openTaskDetails(task.task)
             return
         }
         if (inlineTitleEditState?.taskId == task.id) {
@@ -1472,11 +1471,11 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         }
     }
 
-    override fun onClick(taskViewHolder: TaskViewHolder) {
+    override fun onOutsideClick(taskViewHolder: TaskViewHolder) {
         if (isActionModeActive) {
             recyclerAdapter?.toggle(taskViewHolder)
-        } else {
-            openTaskDetails(taskViewHolder.task.task)
+        } else if (inlineTitleEditState != null) {
+            commitInlineTitleEdit()
         }
     }
 

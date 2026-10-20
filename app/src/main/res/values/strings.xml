@@ -38,6 +38,7 @@ File %1$s contained %2$s.\n\n
   <string name="app_settings">App settings</string>
   <string name="TAd_actionEditTask">Edit</string>
   <string name="open_task_details">Open task details</string>
+  <string name="save_task_title">Save task title</string>
   <string name="inline_title_save_failed">Could not save the task title</string>
   <string name="customize_drawer">Customize drawer</string>
   <string name="action_call">Call</string>

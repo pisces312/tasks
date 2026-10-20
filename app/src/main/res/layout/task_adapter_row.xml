@@ -14,7 +14,8 @@
       android:background="?attr/selectableItemBackground"
       android:paddingStart="0dp"
       android:clickable="true"
-      android:focusable="true">
+      android:focusable="false"
+      android:importantForAccessibility="no">
 
         <com.todoroo.astrid.ui.CheckableImageView
           android:id="@+id/completeBox"
@@ -44,7 +45,7 @@
           android:id="@+id/due_date"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:layout_alignBaseline="@id/title"
+          android:layout_alignTop="@id/title_container"
           android:layout_toStartOf="@id/open_details"
           android:background="?attr/selectableItemBackgroundBorderless"
           android:paddingStart="@dimen/half_keyline_first"
@@ -54,52 +55,60 @@
           android:textSize="14sp"
           tools:text="Tmrrw" />
 
-        <TextView
-          android:id="@+id/title"
+        <FrameLayout
+          android:id="@+id/title_container"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:layout_toEndOf="@id/completeBox"
           android:layout_toStartOf="@id/due_date"
-          android:paddingStart="0dp"
-          android:paddingEnd="@dimen/half_keyline_first"
-          android:ellipsize="end"
-          android:gravity="start|top"
-          android:maxLines="1"
-          android:singleLine="true"
-          android:textAlignment="viewStart"
-          android:textColor="?android:attr/textColorPrimary"
-          android:textSize="@dimen/task_edit_text_size"
-          android:drawablePadding="2dp"
-          app:drawableTint="?attr/colorOnSurfaceVariant"
-          tools:text="Task title" />
+          android:clickable="true"
+          android:focusable="false"
+          android:importantForAccessibility="no">
 
-        <EditText
-          android:id="@+id/title_editor"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_toEndOf="@id/completeBox"
-          android:layout_toStartOf="@id/due_date"
-          android:background="@null"
-          android:gravity="start|top"
-          android:imeOptions="actionDone"
-          android:inputType="textCapSentences"
-          android:minHeight="0dp"
-          android:paddingStart="0dp"
-          android:paddingEnd="@dimen/half_keyline_first"
-          android:scrollHorizontally="false"
-          android:singleLine="false"
-          android:textAlignment="viewStart"
-          android:textColor="?android:attr/textColorPrimary"
-          android:textSize="@dimen/task_edit_text_size"
-          android:visibility="gone"
-          tools:text="Task title"
-          tools:visibility="visible" />
+            <TextView
+              android:id="@+id/title"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:paddingStart="0dp"
+              android:paddingEnd="@dimen/half_keyline_first"
+              android:ellipsize="end"
+              android:gravity="start|top"
+              android:maxLines="1"
+              android:singleLine="true"
+              android:textAlignment="viewStart"
+              android:textColor="?android:attr/textColorPrimary"
+              android:textSize="@dimen/task_edit_text_size"
+              android:drawablePadding="2dp"
+              app:drawableTint="?attr/colorOnSurfaceVariant"
+              tools:text="Task title" />
+
+            <EditText
+              android:id="@+id/title_editor"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:background="@null"
+              android:gravity="start|top"
+              android:imeOptions="actionDone"
+              android:inputType="textCapSentences"
+              android:minHeight="0dp"
+              android:paddingStart="0dp"
+              android:paddingEnd="@dimen/half_keyline_first"
+              android:scrollHorizontally="false"
+              android:singleLine="false"
+              android:textAlignment="viewStart"
+              android:textColor="?android:attr/textColorPrimary"
+              android:textSize="@dimen/task_edit_text_size"
+              android:visibility="gone"
+              tools:text="Task title"
+              tools:visibility="visible" />
+
+        </FrameLayout>
 
         <TextView
           android:id="@+id/description"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:layout_below="@id/title"
+          android:layout_below="@id/title_container"
           android:layout_marginTop="@dimen/task_list_item_spacing"
           android:paddingStart="@dimen/keyline_content_inset"
           android:paddingEnd="@dimen/keyline_first"

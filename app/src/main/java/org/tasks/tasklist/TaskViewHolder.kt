@@ -12,7 +12,6 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.remember
@@ -83,30 +82,17 @@ class TaskViewHolder internal constructor(
         setOnClickListener { changeDueDate() }
     }
     private val rowBody: ViewGroup = binding.rowBody.apply {
-        setOnClickListener { callback.onClick(this@TaskViewHolder) }
+        setOnClickListener { callback.onOutsideClick(this@TaskViewHolder) }
         setOnLongClickListener { callback.onLongPress(this@TaskViewHolder) }
     }
     private var titleTapX: Float? = null
     private var titleTapY: Float? = null
-    private val nameView: TextView = binding.title.apply {
-        setOnTouchListener { _, event ->
-            when (event.actionMasked) {
-                MotionEvent.ACTION_UP -> {
-                    titleTapX = event.x
-                    titleTapY = event.y
-                }
-                MotionEvent.ACTION_CANCEL -> {
-                    titleTapX = null
-                    titleTapY = null
-                }
-            }
-            false
-        }
-        setOnClickListener { editTitleAtLastTap() }
-    }
+    private val titleContainer = binding.titleContainer
+    private val nameView: TextView = binding.title
     private val titleEditor: EditText = binding.titleEditor
+    private var inlineEditing = false
     private val openDetails = binding.openDetails.apply {
-        setOnClickListener { callback.onOpenDetails(this@TaskViewHolder) }
+        setOnClickListener { onTrailingActionClick() }
     }
     private var titleTextWatcher: TextWatcher? = null
     private var cursorPositionRunnable: Runnable? = null
@@ -170,6 +156,45 @@ class TaskViewHolder internal constructor(
         }
     }
     
+    private fun setupTitleClickListeners(editable: Boolean) {
+        nameView.movementMethod = null
+        nameView.setOnLongClickListener(null)
+        if (editable) {
+            titleContainer.setOnTouchListener { _, event -> recordTitleTouch(event) }
+            titleContainer.setOnClickListener { editTitleAtLastTap() }
+            nameView.setOnTouchListener { _, event -> recordTitleTouch(event) }
+            nameView.setOnClickListener { editTitleAtLastTap() }
+        } else {
+            titleContainer.setOnTouchListener(null)
+            titleContainer.setOnClickListener(null)
+            nameView.setOnTouchListener(null)
+            nameView.setOnClickListener(null)
+        }
+    }
+
+    private fun recordTitleTouch(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_UP -> {
+                titleTapX = event.x
+                titleTapY = event.y
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                titleTapX = null
+                titleTapY = null
+            }
+        }
+        return false
+    }
+
+    private fun onTrailingActionClick() {
+        if (inlineEditing) {
+            openDetails.isEnabled = false
+            callback.onTitleCommit(this)
+        } else {
+            callback.onOpenDetails(this)
+        }
+    }
+
     private fun editTitleAtLastTap() {
         val cursorX = titleTapX
         val cursorY = titleTapY
@@ -237,6 +262,7 @@ class TaskViewHolder internal constructor(
         titleTapX = null
         titleTapY = null
         this.task = task
+        setupTitleClickListeners(!task.isReadOnly)
         if (isDirty) {
             debugDirty.setBackgroundColor(dirtyColor)
             debugDirty.visibility = View.VISIBLE
@@ -262,18 +288,26 @@ class TaskViewHolder internal constructor(
                 Linkify.safeLinkify(nameView)
                 Linkify.safeLinkify(description)
             }
-            linkify.setMovementMethod(
-                nameView,
-                linkClickHandler = { url -> callback.onLinkClicked(this, url) },
-                rowClickHandler = { editTitleAtLastTap() }
-            )
+            if (!task.isReadOnly) {
+                linkify.setMovementMethod(
+                    nameView,
+                    linkClickHandler = { url -> callback.onLinkClicked(this, url) },
+                    rowClickHandler = { editTitleAtLastTap() }
+                )
+                nameView.setOnLongClickListener { callback.onLongPress(this) }
+            }
             linkify.setMovementMethod(
                 description,
                 linkClickHandler = { url -> callback.onLinkClicked(this, url) },
-                rowClickHandler = { callback.onClick(this) }
+                rowClickHandler = { callback.onOutsideClick(this) }
             )
-            nameView.setOnLongClickListener { callback.onLongPress(this) }
             description.setOnLongClickListener { callback.onLongPress(this) }
+        }
+        if (task.isReadOnly) {
+            nameView.movementMethod = null
+            nameView.setOnTouchListener(null)
+            nameView.setOnClickListener(null)
+            nameView.setOnLongClickListener(null)
         }
         when {
             chipGroup.visibility == View.VISIBLE -> {
@@ -289,13 +323,6 @@ class TaskViewHolder internal constructor(
         }
     }
 
-    private fun anchorDescriptionBelow(anchorId: Int) {
-        val params = description.layoutParams as RelativeLayout.LayoutParams
-        params.removeRule(RelativeLayout.BELOW)
-        params.addRule(RelativeLayout.BELOW, anchorId)
-        description.layoutParams = params
-    }
-
     private fun setupInlineTitleEdit(editState: InlineTitleEditState?) {
         cursorPositionRunnable?.let(titleEditor::removeCallbacks)
         cursorPositionRunnable = null
@@ -305,7 +332,11 @@ class TaskViewHolder internal constructor(
         titleEditor.onFocusChangeListener = null
 
         if (editState == null) {
-            anchorDescriptionBelow(R.id.title)
+            inlineEditing = false
+            openDetails.setImageResource(R.drawable.ic_chevron_right_24dp)
+            openDetails.contentDescription = context.getString(R.string.open_task_details)
+            openDetails.isEnabled = true
+            openDetails.alpha = 1f
             boundEditorTaskId = null
             titleEditor.clearFocus()
             titleEditor.isEnabled = true
@@ -314,7 +345,11 @@ class TaskViewHolder internal constructor(
             return
         }
 
-        anchorDescriptionBelow(R.id.title_editor)
+        inlineEditing = true
+        openDetails.setImageResource(R.drawable.ic_check_24dp)
+        openDetails.contentDescription = context.getString(R.string.save_task_title)
+        openDetails.isEnabled = !editState.saving
+        openDetails.alpha = if (editState.saving) 0.38f else 1f
         val editorTaskChanged = boundEditorTaskId != editState.taskId
         boundEditorTaskId = editState.taskId
         nameView.visibility = View.INVISIBLE
@@ -569,7 +604,7 @@ class TaskViewHolder internal constructor(
         fun onTitleChanged(taskId: Long, title: String)
         fun onTitleCommit(taskViewHolder: TaskViewHolder)
         fun onOpenDetails(taskViewHolder: TaskViewHolder)
-        fun onClick(taskViewHolder: TaskViewHolder)
+        fun onOutsideClick(taskViewHolder: TaskViewHolder)
         fun onClick(filter: Filter)
         fun toggleSubtasks(task: Long, collapsed: Boolean)
         fun onLongPress(taskViewHolder: TaskViewHolder): Boolean
