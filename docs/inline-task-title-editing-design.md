@@ -93,9 +93,16 @@ Android 手机端的主页是 Compose 与传统 View 混合实现：
 在 `task_adapter_row.xml` 中：
 
 - 保留原标题 `TextView`，继续承担 Markdown、链接、删除线和展示偏好。
-- 增加位置重叠的 `EditText`，仅编辑状态可见。
+- 增加位置重叠的 `EditText`，仅编辑状态可见；它复制标题的字体、行距、单/多行模式、最大行数和自动换行规则。原标题在编辑时保持 `INVISIBLE` 占位，因此切换时高度不跳变；继续输入导致更多换行时，描述会动态锚定编辑框并随之下移，避免与描述或 chip 重叠。
 - 增加固定在最右侧的 48dp 详情按钮；图标为 24dp 向右箭头，并在 RTL 布局中自动镜像。
 - 日期位于详情按钮左侧，标题位于日期左侧；日期隐藏时标题仍止于详情按钮。
+
+### 点击位置与光标
+
+- 标题接收 `ACTION_UP` 时记录相对于标题控件的点击坐标，但不消费事件，因此链接处理保持不变。
+- 非链接点击先使用展示文本偏移与原始标题的顺序字符映射，优先把光标放到用户点击的逻辑字符；Markdown 结构无法可靠映射时，再等待 `EditText` 完成同尺寸布局并使用 `getOffsetForPosition(x, y)` 计算屏幕位置。
+- 坐标请求带唯一 ID；ViewHolder 重绑前取消旧的定位任务，成功定位后按任务 ID 和请求 ID 原子清除，避免快速重绑重复移动光标。
+- 无触摸坐标的无障碍点击，以及无法映射或恢复的请求，明确回退到句尾；ViewHolder 绑定新任务时会清除旧触摸坐标和旧选择状态。
 
 ### 编辑状态与保存协调
 
@@ -107,6 +114,10 @@ data class InlineTitleEditState(
     val originalTitle: String?,
     val draftTitle: String,
     val saving: Boolean,
+    val cursorRequestId: Long?,
+    val cursorOffset: Int?,
+    val cursorX: Float?,
+    val cursorY: Float?,
 )
 ```
 

@@ -1420,7 +1420,12 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             false
         }
 
-    override fun onTitleClick(taskViewHolder: TaskViewHolder) {
+    override fun onTitleClick(
+        taskViewHolder: TaskViewHolder,
+        cursorOffset: Int?,
+        cursorX: Float?,
+        cursorY: Float?,
+    ) {
         if (isActionModeActive) {
             recyclerAdapter?.toggle(taskViewHolder)
             return
@@ -1434,9 +1439,19 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             return
         }
         commitInlineTitleEdit {
-            listViewModel.beginInlineTitleEdit(task.id, task.title)
+            listViewModel.beginInlineTitleEdit(
+                task.id,
+                task.title,
+                cursorOffset,
+                cursorX,
+                cursorY,
+            )
             rebindInlineTitleRows()
         }
+    }
+
+    override fun onTitleCursorPositioned(taskId: Long, cursorRequestId: Long) {
+        listViewModel.clearInlineTitleCursorRequest(taskId, cursorRequestId)
     }
 
     override fun onTitleChanged(taskId: Long, title: String) {

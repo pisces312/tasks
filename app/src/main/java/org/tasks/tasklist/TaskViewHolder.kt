@@ -5,12 +5,14 @@ import android.content.Context
 import android.graphics.Paint
 import android.text.TextWatcher
 import android.util.DisplayMetrics
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.remember
@@ -84,14 +86,31 @@ class TaskViewHolder internal constructor(
         setOnClickListener { callback.onClick(this@TaskViewHolder) }
         setOnLongClickListener { callback.onLongPress(this@TaskViewHolder) }
     }
+    private var titleTapX: Float? = null
+    private var titleTapY: Float? = null
     private val nameView: TextView = binding.title.apply {
-        setOnClickListener { callback.onTitleClick(this@TaskViewHolder) }
+        setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_UP -> {
+                    titleTapX = event.x
+                    titleTapY = event.y
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    titleTapX = null
+                    titleTapY = null
+                }
+            }
+            false
+        }
+        setOnClickListener { editTitleAtLastTap() }
     }
     private val titleEditor: EditText = binding.titleEditor
     private val openDetails = binding.openDetails.apply {
         setOnClickListener { callback.onOpenDetails(this@TaskViewHolder) }
     }
     private var titleTextWatcher: TextWatcher? = null
+    private var cursorPositionRunnable: Runnable? = null
+    private var boundEditorTaskId: Long? = null
     private val description: TextView = binding.description
     private val completeBox: CheckableImageView = binding.completeBox.apply {
         setOnClickListener { onCompleteBoxClick() }
@@ -151,6 +170,48 @@ class TaskViewHolder internal constructor(
         }
     }
     
+    private fun editTitleAtLastTap() {
+        val cursorX = titleTapX
+        val cursorY = titleTapY
+        val cursorOffset = if (cursorX != null && cursorY != null) {
+            sourceOffsetAtTap(cursorX, cursorY)
+        } else {
+            null
+        }
+        titleTapX = null
+        titleTapY = null
+        callback.onTitleClick(this, cursorOffset, cursorX, cursorY)
+    }
+
+    private fun sourceOffsetAtTap(x: Float, y: Float): Int? {
+        val source = task.title.orEmpty()
+        val rendered = nameView.text.toString()
+        if (source.isEmpty() || rendered.isEmpty()) {
+            return 0
+        }
+        val renderedOffset = nameView.getOffsetForPosition(x, y)
+            .coerceIn(0, rendered.length)
+        if (source == rendered) {
+            return renderedOffset.coerceIn(0, source.length)
+        }
+
+        var sourceIndex = 0
+        val sourcePositions = IntArray(rendered.length)
+        rendered.forEachIndexed { index, character ->
+            val match = source.indexOf(character, sourceIndex)
+            if (match < 0) {
+                return null
+            }
+            sourcePositions[index] = match
+            sourceIndex = match + 1
+        }
+        return if (renderedOffset == rendered.length) {
+            (sourcePositions.last() + 1).coerceAtMost(source.length)
+        } else {
+            sourcePositions[renderedOffset]
+        }
+    }
+
     private fun updateBackground() {
         if (selected || moving) {
             rowBody.setBackgroundColor(selectedColor)
@@ -173,6 +234,8 @@ class TaskViewHolder internal constructor(
         dirtyColor: Int = 0,
         inlineTitleEditState: InlineTitleEditState? = null,
     ) {
+        titleTapX = null
+        titleTapY = null
         this.task = task
         if (isDirty) {
             debugDirty.setBackgroundColor(dirtyColor)
@@ -202,7 +265,7 @@ class TaskViewHolder internal constructor(
             linkify.setMovementMethod(
                 nameView,
                 linkClickHandler = { url -> callback.onLinkClicked(this, url) },
-                rowClickHandler = { callback.onTitleClick(this) }
+                rowClickHandler = { editTitleAtLastTap() }
             )
             linkify.setMovementMethod(
                 description,
@@ -214,25 +277,36 @@ class TaskViewHolder internal constructor(
         }
         when {
             chipGroup.visibility == View.VISIBLE -> {
-                setBottomPadding(0, description, nameView)
+                setBottomPadding(0, description, nameView, titleEditor)
             }
             description.visibility == View.VISIBLE -> {
                 setBottomPadding(rowPaddingPx, description)
-                setBottomPadding(0, nameView)
+                setBottomPadding(0, nameView, titleEditor)
             }
             else -> {
-                setBottomPadding(rowPaddingPx, nameView)
+                setBottomPadding(rowPaddingPx, nameView, titleEditor)
             }
         }
     }
 
+    private fun anchorDescriptionBelow(anchorId: Int) {
+        val params = description.layoutParams as RelativeLayout.LayoutParams
+        params.removeRule(RelativeLayout.BELOW)
+        params.addRule(RelativeLayout.BELOW, anchorId)
+        description.layoutParams = params
+    }
+
     private fun setupInlineTitleEdit(editState: InlineTitleEditState?) {
+        cursorPositionRunnable?.let(titleEditor::removeCallbacks)
+        cursorPositionRunnable = null
         titleTextWatcher?.let(titleEditor::removeTextChangedListener)
         titleTextWatcher = null
         titleEditor.setOnEditorActionListener(null)
         titleEditor.onFocusChangeListener = null
 
         if (editState == null) {
+            anchorDescriptionBelow(R.id.title)
+            boundEditorTaskId = null
             titleEditor.clearFocus()
             titleEditor.isEnabled = true
             titleEditor.visibility = View.GONE
@@ -240,12 +314,15 @@ class TaskViewHolder internal constructor(
             return
         }
 
+        anchorDescriptionBelow(R.id.title_editor)
+        val editorTaskChanged = boundEditorTaskId != editState.taskId
+        boundEditorTaskId = editState.taskId
         nameView.visibility = View.INVISIBLE
         titleEditor.visibility = View.VISIBLE
         titleEditor.isEnabled = !editState.saving
-        if (titleEditor.text.toString() != editState.draftTitle) {
+        val replacedText = titleEditor.text.toString() != editState.draftTitle
+        if (replacedText) {
             titleEditor.setText(editState.draftTitle)
-            titleEditor.setSelection(titleEditor.text.length)
         }
         titleTextWatcher = titleEditor.doAfterTextChanged {
             callback.onTitleChanged(task.id, it?.toString().orEmpty())
@@ -268,14 +345,55 @@ class TaskViewHolder internal constructor(
                 callback.onTitleCommit(this)
             }
         }
-        if (!editState.saving && !titleEditor.hasFocus()) {
-            titleEditor.post {
-                if (bindingAdapterPosition != RecyclerView.NO_POSITION && titleEditor.requestFocus()) {
-                    titleEditor.setSelection(titleEditor.text.length)
-                    (context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-                        .showSoftInput(titleEditor, InputMethodManager.SHOW_IMPLICIT)
+        val cursorRequestId = editState.cursorRequestId
+        val needsInitialFocus = editorTaskChanged || cursorRequestId != null || !titleEditor.hasFocus()
+        if (!editState.saving && needsInitialFocus) {
+            val taskId = task.id
+            val positionCursor = Runnable {
+                cursorPositionRunnable = null
+                if (
+                    bindingAdapterPosition == RecyclerView.NO_POSITION ||
+                    task.id != taskId ||
+                    titleEditor.visibility != View.VISIBLE ||
+                    !titleEditor.requestFocus()
+                ) {
+                    return@Runnable
                 }
+                val requestedOffset = editState.cursorOffset
+                val cursorX = editState.cursorX
+                val cursorY = editState.cursorY
+                when {
+                    requestedOffset != null -> {
+                        titleEditor.setSelection(
+                            requestedOffset.coerceIn(0, titleEditor.text.length)
+                        )
+                    }
+                    cursorX != null && cursorY != null &&
+                            titleEditor.width > 0 && titleEditor.height > 0 -> {
+                        val x = cursorX.coerceIn(
+                            0f,
+                            (titleEditor.width - 1).coerceAtLeast(0).toFloat(),
+                        )
+                        val y = cursorY.coerceIn(
+                            0f,
+                            (titleEditor.height - 1).coerceAtLeast(0).toFloat(),
+                        )
+                        val offset = titleEditor.getOffsetForPosition(x, y)
+                            .coerceIn(0, titleEditor.text.length)
+                        titleEditor.setSelection(offset)
+                    }
+                    editorTaskChanged || replacedText || cursorRequestId != null -> {
+                        titleEditor.setSelection(titleEditor.text.length)
+                    }
+                }
+                if (cursorRequestId != null) {
+                    callback.onTitleCursorPositioned(taskId, cursorRequestId)
+                }
+                (context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
+                    .showSoftInput(titleEditor, InputMethodManager.SHOW_IMPLICIT)
             }
+            cursorPositionRunnable = positionCursor
+            titleEditor.post(positionCursor)
         }
     }
 
@@ -441,7 +559,13 @@ class TaskViewHolder internal constructor(
     interface ViewHolderCallbacks {
         fun onCompletedTask(task: TaskContainer, newState: Boolean)
         fun onLinkClicked(vh: TaskViewHolder, url: String): Boolean
-        fun onTitleClick(taskViewHolder: TaskViewHolder)
+        fun onTitleClick(
+            taskViewHolder: TaskViewHolder,
+            cursorOffset: Int?,
+            cursorX: Float?,
+            cursorY: Float?,
+        )
+        fun onTitleCursorPositioned(taskId: Long, cursorRequestId: Long)
         fun onTitleChanged(taskId: Long, title: String)
         fun onTitleCommit(taskViewHolder: TaskViewHolder)
         fun onOpenDetails(taskViewHolder: TaskViewHolder)
@@ -453,16 +577,26 @@ class TaskViewHolder internal constructor(
     }
 
     init {
-        if (preferences.getBoolean(R.string.p_fullTaskTitle, false)) {
+        val fullTaskTitle = preferences.getBoolean(R.string.p_fullTaskTitle, false)
+        if (fullTaskTitle) {
             nameView.maxLines = Int.MAX_VALUE
             nameView.isSingleLine = false
             nameView.ellipsize = null
         }
+        titleEditor.isSingleLine = !fullTaskTitle
+        titleEditor.maxLines = nameView.maxLines
+        titleEditor.setHorizontallyScrolling(!fullTaskTitle)
+        titleEditor.imeOptions = EditorInfo.IME_ACTION_DONE
         if (preferences.getBoolean(R.string.p_show_full_description, false)) {
             description.maxLines = Int.MAX_VALUE
             description.isSingleLine = false
             description.ellipsize = null
         }
+        titleEditor.maxLines = nameView.maxLines
+        titleEditor.typeface = nameView.typeface
+        titleEditor.includeFontPadding = nameView.includeFontPadding
+        titleEditor.letterSpacing = nameView.letterSpacing
+        titleEditor.setLineSpacing(nameView.lineSpacingExtra, nameView.lineSpacingMultiplier)
         setTopPadding(rowPaddingPx, nameView, titleEditor, completeBox, dueDate)
         setBottomPadding(rowPaddingPx, completeBox, dueDate)
         nameView.textSize = fontSize.toFloat()

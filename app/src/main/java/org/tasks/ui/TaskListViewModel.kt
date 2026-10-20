@@ -67,6 +67,10 @@ data class InlineTitleEditState(
     val originalTitle: String?,
     val draftTitle: String,
     val saving: Boolean = false,
+    val cursorRequestId: Long? = null,
+    val cursorOffset: Int? = null,
+    val cursorX: Float? = null,
+    val cursorY: Float? = null,
 )
 
 data class InlineTitleCommitResult(
@@ -110,6 +114,7 @@ class TaskListViewModel @Inject constructor(
 
     private val _inlineTitleEditState = MutableStateFlow<InlineTitleEditState?>(null)
     val inlineTitleEditState = _inlineTitleEditState.asStateFlow()
+    private var nextCursorRequestId = 0L
 
     private val _inlineTitleSaveFailures = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val inlineTitleSaveFailures = _inlineTitleSaveFailures.asSharedFlow()
@@ -118,12 +123,36 @@ class TaskListViewModel @Inject constructor(
         MutableSharedFlow<InlineTitleCommitResult>(extraBufferCapacity = 1)
     val inlineTitleCommitResults = _inlineTitleCommitResults.asSharedFlow()
 
-    fun beginInlineTitleEdit(taskId: Long, title: String?) {
+    fun beginInlineTitleEdit(
+        taskId: Long,
+        title: String?,
+        cursorOffset: Int? = null,
+        cursorX: Float? = null,
+        cursorY: Float? = null,
+    ) {
+        val cursorRequestId = ++nextCursorRequestId
         _inlineTitleEditState.value = InlineTitleEditState(
             taskId = taskId,
             originalTitle = title,
             draftTitle = title.orEmpty(),
+            cursorRequestId = cursorRequestId,
+            cursorOffset = cursorOffset,
+            cursorX = cursorX,
+            cursorY = cursorY,
         )
+    }
+
+    fun clearInlineTitleCursorRequest(taskId: Long, cursorRequestId: Long) {
+        _inlineTitleEditState.value
+            ?.takeIf { it.taskId == taskId && it.cursorRequestId == cursorRequestId }
+            ?.let { current ->
+                _inlineTitleEditState.value = current.copy(
+                    cursorRequestId = null,
+                    cursorOffset = null,
+                    cursorX = null,
+                    cursorY = null,
+                )
+            }
     }
 
     fun updateInlineTitleDraft(taskId: Long, title: String) {
