@@ -48,6 +48,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.app.ShareCompat
 import androidx.core.content.IntentCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -370,12 +372,21 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         val viewLayoutDir = view?.layoutDirection ?: resources.configuration.layoutDirection
         val composeLayoutDirection =
             if (viewLayoutDir == View.LAYOUT_DIRECTION_RTL) LayoutDirection.Rtl else LayoutDirection.Ltr
-        val topInset = (windowInsets.calculateTopPadding().value * density).toInt()
-        val bottomInset = (windowInsets.calculateBottomPadding().value * density).toInt()
-        val (startInset, endInset) =
-            (windowInsets.calculateStartPadding(composeLayoutDirection).value * density).toInt().let {
-            if (viewLayoutDir == LAYOUT_DIRECTION_LTR) it to 0 else 0 to it
-        }
+        applyTopInsets(
+            topInset = (windowInsets.calculateTopPadding().value * density).roundToInt(),
+            startInset = (windowInsets.calculateStartPadding(composeLayoutDirection).value * density).roundToInt(),
+            viewLayoutDir = viewLayoutDir,
+        )
+        val bottomInset = (windowInsets.calculateBottomPadding().value * density).roundToInt()
+        binding.bottomAppBar.updatePadding(bottom = bottomInset)
+        val scrimLayoutParams = binding.systemBarScrim.layoutParams
+        scrimLayoutParams.height = bottomInset
+        binding.systemBarScrim.layoutParams = scrimLayoutParams
+    }
+
+    private fun applyTopInsets(topInset: Int, startInset: Int, viewLayoutDir: Int) {
+        val (leftInset, rightInset) =
+            if (viewLayoutDir == LAYOUT_DIRECTION_LTR) startInset to 0 else 0 to startInset
         with(binding.toolbar) {
             val actionBarHeight = TypedValue.complexToDimensionPixelSize(
                 getData(requireContext(), android.R.attr.actionBarSize),
@@ -389,19 +400,50 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             requestLayout()
         }
         binding.taskListCoordinator.updatePadding(
-            left = startInset,
-            right = endInset,
+            left = leftInset,
+            right = rightInset,
         )
-        binding.bottomAppBar.updatePadding(bottom = bottomInset)
-        val scrimLayoutParams = binding.systemBarScrim.layoutParams
-        scrimLayoutParams.height = bottomInset
-        binding.systemBarScrim.layoutParams = scrimLayoutParams
+    }
+
+    /**
+     * Insets are pushed into this view hierarchy from two independent sources:
+     *
+     * 1. [applyInsets] – forwarded from Compose ([org.tasks.compose.home.HomeScreen]) which reads
+     *    `WindowInsets.systemBars`. These values are a snapshot of the composition, so a fragment
+     *    created before the first insets dispatch receives zeroes and the toolbar renders its title
+     *    underneath the status bar.
+     * 2. This listener – the authoritative source, delivered by the window on every insets change
+     *    (attach, configuration change, split screen, display cutout, IME).
+     *
+     * Both write the same geometry, so whichever delivers a non-zero value first wins and later
+     * deliveries are idempotent. Only the top / horizontal insets are handled here: the bottom
+     * insets depend on whether the IME is visible, which Compose already tracks via `imePadding()`.
+     */
+    private fun applyViewWindowInsets(insets: WindowInsetsCompat) {
+        val bars = insets.getInsets(
+            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        )
+        if (bars.top == 0 && bars.bottom == 0 && bars.left == 0 && bars.right == 0) {
+            // Not dispatched yet, or consumed upstream: never overwrite the forwarded value
+            return
+        }
+        val viewLayoutDir = view?.layoutDirection ?: resources.configuration.layoutDirection
+        applyTopInsets(
+            topInset = bars.top,
+            startInset = if (viewLayoutDir == View.LAYOUT_DIRECTION_RTL) bars.right else bars.left,
+            viewLayoutDir = viewLayoutDir,
+        )
     }
 
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentTaskListBinding.inflate(inflater, container, false)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            applyViewWindowInsets(insets)
+            insets
+        }
+        binding.root.doOnAttach { ViewCompat.requestApplyInsets(it) }
         windowInsets?.let { applyInsetsInternal(it) }
         filter = getFilter()
         val swipeRefreshLayout: SwipeRefreshLayout
@@ -682,7 +724,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
                 }
             }
         }
-        ViewCompat.requestApplyInsets(binding.toolbar)
+        ViewCompat.requestApplyInsets(binding.root)
         return binding.root
     }
 

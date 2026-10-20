@@ -102,7 +102,16 @@ fun HomeScreen(
 ) {
     val drawerViewModel = viewModel.drawerViewModel
     val drawerViewModelState by drawerViewModel.state.collectAsStateWithLifecycle()
+    val layoutDirection = LocalLayoutDirection.current
     val currentWindowInsets = WindowInsets.systemBars.asPaddingValues()
+    // Read the values during composition so HomeScreen recomposes when the insets change, and key
+    // the effects below on these primitives. PaddingValues is a new instance on every composition,
+    // so it is unusable as an effect key: a stable key (the state holder) never restarts, an
+    // unstable one restarts on every recomposition.
+    val insetsTop = currentWindowInsets.calculateTopPadding()
+    val insetsBottom = currentWindowInsets.calculateBottomPadding()
+    val insetsStart = currentWindowInsets.calculateStartPadding(layoutDirection)
+    val insetsEnd = currentWindowInsets.calculateEndPadding(layoutDirection)
     val windowInsets = remember { mutableStateOf(currentWindowInsets) }
     val keyboard = LocalSoftwareKeyboardController.current
     val newList =
@@ -114,7 +123,7 @@ fun HomeScreen(
             }
         }
 
-    LaunchedEffect(currentWindowInsets) {
+    LaunchedEffect(insetsTop, insetsBottom, insetsStart, insetsEnd) {
         windowInsets.value = currentWindowInsets
     }
     val isListVisible =
@@ -327,16 +336,28 @@ fun HomeScreen(
                                     scope.launch { drawerState.open() }
                                 }
                             }
-                            LaunchedEffect(fragment, windowInsets, keyboardOpen.value) {
-                                fragment.value?.applyInsets(
-                                    if (keyboardOpen.value) {
-                                        PaddingValues(
-                                            top = windowInsets.value.calculateTopPadding(),
-                                        )
-                                    } else {
-                                        windowInsets.value
-                                    }
-                                )
+                            LaunchedEffect(
+                                fragment.value,
+                                insetsTop,
+                                insetsBottom,
+                                insetsStart,
+                                insetsEnd,
+                                keyboardOpen.value,
+                            ) {
+                                // All-zero insets mean the values were read before the first
+                                // dispatch. TaskListFragment applies the authoritative values from
+                                // its own window insets listener, so never clobber them with zeros.
+                                if (insetsTop > 0.dp || insetsBottom > 0.dp ||
+                                    insetsStart > 0.dp || insetsEnd > 0.dp
+                                ) {
+                                    fragment.value?.applyInsets(
+                                        if (keyboardOpen.value) {
+                                            PaddingValues(top = insetsTop)
+                                        } else {
+                                            windowInsets.value
+                                        }
+                                    )
+                                }
                             }
                         }
                     },
