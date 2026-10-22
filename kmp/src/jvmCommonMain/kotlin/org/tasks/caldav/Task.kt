@@ -259,9 +259,9 @@ data class Task(
             for (prop in todo.properties)
                 when (prop) {
                     is Sequence -> t.sequence = prop.sequenceNo
-                    is Created -> t.createdAt = prop.dateTime.time
-                    is LastModified -> t.lastModified = prop.dateTime.time
-                    is DtStamp -> t.dtStamp = prop.dateTime.time
+                    is Created -> t.createdAt = utcTimestamp(prop.dateTime)
+                    is LastModified -> t.lastModified = utcTimestamp(prop.dateTime)
+                    is DtStamp -> t.dtStamp = utcTimestamp(prop.dateTime)
                     is Summary -> t.summary = prop.value
                     is Location -> t.location = prop.value
                     is Geo -> t.geoPosition = prop
@@ -370,4 +370,26 @@ data class Task(
             return newTz ?: originalTz
         }
     }
+}
+
+// CREATED, LAST-MODIFIED and DTSTAMP are defined as UTC instants by RFC 5545, but some
+// servers emit them without the trailing 'Z'. ical4j then resolves the floating value against
+// the JVM default timezone, so re-read the wall-clock fields as UTC to stay machine-independent.
+private fun utcTimestamp(dateTime: DateTime): Long {
+    if (dateTime.isUtc) return dateTime.time
+    val local = java.util.Calendar.getInstance().apply { timeInMillis = dateTime.time }
+    return java.util.Calendar
+        .getInstance(java.util.TimeZone.getTimeZone("UTC"))
+        .apply {
+            clear()
+            set(
+                local.get(java.util.Calendar.YEAR),
+                local.get(java.util.Calendar.MONTH),
+                local.get(java.util.Calendar.DAY_OF_MONTH),
+                local.get(java.util.Calendar.HOUR_OF_DAY),
+                local.get(java.util.Calendar.MINUTE),
+                local.get(java.util.Calendar.SECOND),
+            )
+        }
+        .timeInMillis
 }

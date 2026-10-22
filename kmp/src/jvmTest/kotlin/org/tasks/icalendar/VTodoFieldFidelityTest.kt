@@ -1,6 +1,7 @@
 package org.tasks.icalendar
 
 import org.junit.Ignore
+import org.tasks.time.DateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -76,7 +77,7 @@ class VTodoFieldFidelityTest {
         assertEquals("mailto:unclesam@example.com", t.organizer!!.value)
         assertEquals("Submit Income Taxes", t.summary)
         assertEquals(TodoStatus.NEEDS_ACTION, t.status)
-        assertEquals(ICalDate.DateTime(892598400000L, floating = true), t.due)
+        assertEquals(ICalDate.DateTime(DateTime(1998, 4, 15, 0, 0).millis, floating = true), t.due)
 
         val alarm = t.alarms.single()
         assertEquals("AUDIO", alarm.action)
