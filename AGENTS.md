@@ -93,7 +93,14 @@ tasks_google_key_debug="<key>"
 
 **ABI splits：** 传 `-PbuildAbi=arm64-v8a` 只构建单个 ABI（更快），省略则构建全部。
 
-**Java：** 需要 JDK 17+（JBR 位于 `D:\dev\AndroidStudio\jbr\`，旧路径 `D:\nili\dev\AndroidStudio\jbr\` 已被 `build.sh` 兼容）。
+**多语言字符串（fork 约定）：** fork 默认**只维护英文与简体中文**两种语言
+（kmp 资源在 `composeResources/values/strings.xml` + `values-zh-rCN/strings.xml`）。
+新增字符串只需加这两处，**不为其它语言补翻译**；未翻译语言自动回退英文。
+
+**Java：** 需要 JDK 17+。本机已装 **JDK 25**（Temurin 25.0.4.1，`D:\dev\jdk-25`，
+`JAVA_HOME` 已指向它），`kmp` JVM 测试目标（class 69）可直接运行，
+**无需**再临时调低 `gradle/libs.versions.toml` 的 `jdk`。Android Studio JBR 位于
+`D:\dev\AndroidStudio\jbr\`（旧路径 `D:\nili\dev\AndroidStudio\jbr\` 已被 `build.sh` 兼容）。
 
 **Shell 环境（Windows）：** `build.sh` 必须用 **Git Bash**（`D:\dev\git\bin\bash.exe`）运行，
 **不能用 WSL 的 `bash`**（`C:\Windows\System32\bash.exe`）。`local.properties` 里的
