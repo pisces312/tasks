@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
@@ -51,6 +52,16 @@ class FileLogWriter(
     fun beginShutdown() {
         shuttingDown = true
         runBlocking { withTimeoutOrNull(DRAIN_TIMEOUT_MS) { flush() } }
+    }
+
+    fun close() {
+        if (!shuttingDown) {
+            beginShutdown()
+        }
+        runBlocking {
+            withTimeoutOrNull(DRAIN_TIMEOUT_MS) { scope.launch { sink.close() }.join() }
+        }
+        scope.cancel()
     }
 
     fun logFiles(): List<Path> = files.filter { fileSystem.exists(it) }

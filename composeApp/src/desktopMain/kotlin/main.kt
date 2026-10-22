@@ -218,6 +218,7 @@ fun main() {
             lockFile.delete()
         }
         Logger.i(tag = TAG) { "Shutdown complete" }
+        fileLogWriter.close()
     })
 
     application {

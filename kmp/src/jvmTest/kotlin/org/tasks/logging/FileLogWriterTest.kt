@@ -2,6 +2,7 @@ package org.tasks.logging
 
 import co.touchlab.kermit.Severity
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -131,17 +132,31 @@ class FileLogWriterTest {
     fun startsANewGenerationOnEveryLaunch() {
         FileLogWriter(folder.root).apply {
             log(Severity.Info, "first run", "Startup", null)
-            beginShutdown()
+            close()
         }
 
         FileLogWriter(folder.root).apply {
             log(Severity.Info, "second run", "Startup", null)
-            beginShutdown()
+            close()
         }
 
         assertTrue(File(folder.root, "log.1.txt").readText().contains("first run"))
         assertTrue(currentLog().readText().contains("second run"))
         assertTrue(!currentLog().readText().contains("first run"))
+    }
+
+    @Test
+    fun closeIsIdempotentAndDropsLogsAfterClose() {
+        val writer = FileLogWriter(folder.root)
+
+        writer.log(Severity.Info, "before close", "Startup", null)
+        writer.close()
+        writer.close()
+        writer.log(Severity.Info, "after close", "Startup", null)
+
+        val written = currentLog().readText()
+        assertTrue(written.contains("before close"))
+        assertFalse(written, written.contains("after close"))
     }
 
     @Test
