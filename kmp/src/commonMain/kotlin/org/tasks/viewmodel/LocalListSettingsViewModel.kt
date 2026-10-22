@@ -89,6 +89,7 @@ open class LocalListSettingsViewModel(
                     name = name,
                     color = s.color,
                     icon = s.icon,
+                    defaultPriority = s.defaultPriority,
                 )
                 caldavDao.insert(calendar)
                 reporting.logEvent(AnalyticsEvents.CREATE_LIST)
@@ -111,6 +112,7 @@ open class LocalListSettingsViewModel(
                     name = name,
                     color = s.color,
                     icon = s.icon,
+                    defaultPriority = s.defaultPriority,
                 )
                 caldavDao.insertOrReplace(result)
                 stateManager.update { it.copy(calendar = result) }

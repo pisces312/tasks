@@ -179,6 +179,20 @@ class CommonMigrationsTest {
     }
 
     @Test
+    fun addsNullableListDefaultPriority() {
+        migrate(98, 99, CommonMigrations.MIGRATION_98_99) {
+            insertAccount(1, uuid = "acct", type = TYPE_LOCAL)
+            insertList(1, uuid = "list", account = "acct")
+        }.use { db ->
+            db.prepare("SELECT `cdl_uuid`, `cdl_default_priority` FROM `caldav_lists`").use {
+                assertTrue(it.step())
+                assertEquals("list", it.getText(0))
+                assertTrue(it.isNull(1), "cdl_default_priority should start null")
+            }
+        }
+    }
+
+    @Test
     fun addsPlatformIdKeepingExistingNotifications() {
         migrate(96, 97, CommonMigrations.MIGRATION_96_97) {
             insertTask(100)

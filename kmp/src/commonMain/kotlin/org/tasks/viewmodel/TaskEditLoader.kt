@@ -64,19 +64,19 @@ internal class TaskEditLoader(
                 if (isSubtaskDraft) {
                     return TaskEditViewModel.State(isLoading = false, deleted = true)
                 }
-                loaded = (uuid
-                    ?.let { taskCreator.createBlankTask(remoteId = it) }
-                    ?: taskCreator.createBlankTask())
-                    .apply {
-                        applyDefaults(defaults)
-                        setDefaultReminders(defaults)
-                    }
                 coroutineScope {
                     val listDeferred = async { seedList(defaults.defaultList) }
                     val tagsDeferred = async { seedTags(defaults.defaultTags) }
                     list = listDeferred.await()
                     tags = tagsDeferred.await()
                 }
+                loaded = (uuid
+                    ?.let { taskCreator.createBlankTask(remoteId = it) }
+                    ?: taskCreator.createBlankTask())
+                    .apply {
+                        applyDefaults(defaults, list?.calendar?.defaultPriority)
+                        setDefaultReminders(defaults)
+                    }
                 alarms = persistentSetOf()
             }
         } else {
@@ -132,8 +132,8 @@ internal class TaskEditLoader(
         )
     }
 
-    private fun Task.applyDefaults(defaults: TaskDefaultSettings) {
-        priority = defaults.defaultPriority
+    private fun Task.applyDefaults(defaults: TaskDefaultSettings, listPriority: Int?) {
+        priority = listPriority ?: defaults.defaultPriority
         dueDate = defaultDueDate(defaults.defaultDueDate)
         defaults.defaultRecurrence?.let {
             recurrence = it

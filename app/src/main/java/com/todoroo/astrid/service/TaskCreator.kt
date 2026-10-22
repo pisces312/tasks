@@ -58,7 +58,21 @@ class TaskCreator @Inject constructor(
         applyDefaults: Boolean = true,
         configure: (Task) -> Unit = {},
     ): Task {
-        val task = createWithValues(filter, title.trim { it <= ' ' }, parseTitle, applyDefaults)
+        // resolve the default list at most once: it is needed both for the new-task
+        // default priority and later to attach the task to a remote list
+        val defaultList: CaldavFilter? =
+            if (applyDefaults && filter !is CaldavFilter) {
+                defaultFilterProvider.getDefaultList()
+            } else {
+                null
+            }
+        val task = create(
+            mapFromSerializedString(filter?.valuesForNewTasks),
+            title.trim { it <= ' ' },
+            parseTitle,
+            applyDefaults,
+            (filter as? CaldavFilter ?: defaultList)?.calendar?.defaultPriority,
+        )
         configure(task)
         taskDao.createNew(task)
         val gcalCreateEventEnabled = preferences.isDefaultCalendarSet && task.hasDueDate() // $NON-NLS-1$
@@ -90,7 +104,7 @@ class TaskCreator @Inject constructor(
                 addToTop
             )
         } else {
-            val remoteList = defaultFilterProvider.getDefaultList()
+            val remoteList = defaultList ?: defaultFilterProvider.getDefaultList()
             if (remoteList is CaldavFilter) {
                 if (remoteList.isGoogleTasks) {
                     googleTaskDao.insertAndShift(
@@ -135,7 +149,18 @@ class TaskCreator @Inject constructor(
         parseTitle: Boolean = true,
         applyDefaults: Boolean = true,
     ): Task =
-        create(mapFromSerializedString(filter?.valuesForNewTasks), title, parseTitle, applyDefaults)
+        create(
+            mapFromSerializedString(filter?.valuesForNewTasks),
+            title,
+            parseTitle,
+            applyDefaults,
+            if (applyDefaults) filter?.let { defaultPriorityFor(it) } else null,
+        )
+
+    private suspend fun defaultPriorityFor(filter: Filter?): Int? = when (filter) {
+        is CaldavFilter -> filter.calendar.defaultPriority
+        else -> defaultFilterProvider.getDefaultList().calendar.defaultPriority
+    }
 
     /**
      * Create task from the given content values, saving it. This version doesn't need to start with a
@@ -146,13 +171,18 @@ class TaskCreator @Inject constructor(
         title: String?,
         parseTitle: Boolean = true,
         applyDefaults: Boolean = true,
+        defaultPriorityOverride: Int? = null,
     ): Task {
         val task = Task(
             title = title?.trim { it <= ' ' },
             creationDate = currentTimeMillis(),
             modificationDate = currentTimeMillis(),
             remoteId = UUIDHelper.newUUID(),
-            priority = if (applyDefaults) preferences.defaultPriority() else Task.Priority.NONE,
+            priority = if (applyDefaults) {
+                defaultPriorityOverride ?: preferences.defaultPriority()
+            } else {
+                Task.Priority.NONE
+            },
         )
         if (applyDefaults) {
             preferences.getStringValue(R.string.p_default_recurrence)

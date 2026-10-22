@@ -184,6 +184,7 @@ open class CaldavCalendarSettingsViewModel(
                     name = name,
                     color = s.color,
                     icon = s.icon,
+                    defaultPriority = s.defaultPriority,
                 )
                 caldavDao.insert(calendar)
                 reporting.logEvent(AnalyticsEvents.CREATE_LIST)
@@ -216,6 +217,7 @@ open class CaldavCalendarSettingsViewModel(
                     name = name,
                     color = s.color,
                     icon = s.icon,
+                    defaultPriority = s.defaultPriority,
                 )
                 caldavDao.update(result)
                 stateManager.update { it.copy(calendar = result) }

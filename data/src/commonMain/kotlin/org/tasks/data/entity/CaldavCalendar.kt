@@ -30,6 +30,7 @@ data class CaldavCalendar(
     @ColumnInfo(name = "cdl_order") val order: Int = NO_ORDER,
     @ColumnInfo(name = "cdl_access") var access: Int = ACCESS_OWNER,
     @ColumnInfo(name = "cdl_last_sync") val lastSync: Long = 0,
+    @ColumnInfo(name = "cdl_default_priority") val defaultPriority: Int? = null,
 ) : CommonParcelable {
     companion object {
         const val ACCESS_UNKNOWN = -1

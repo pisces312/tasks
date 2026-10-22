@@ -10,6 +10,7 @@ interface ListSettingsCallbacks {
     fun setName(value: String)
     fun setColor(value: Int)
     fun setIcon(value: String)
+    fun setDefaultPriority(value: Int?)
 
     fun openColorPicker()
     fun closeColorPicker()

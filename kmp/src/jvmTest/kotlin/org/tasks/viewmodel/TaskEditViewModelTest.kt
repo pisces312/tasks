@@ -207,6 +207,39 @@ class TaskEditViewModelTest : TaskEditViewModelFixture() {
     }
 
     @Test
+    fun listDefaultPriorityOverridesGlobalDefault() = runTest(testDispatcher) {
+        whenever(appPreferences.taskDefaults()).thenReturn(
+            TaskDefaultSettings(
+                defaultAlarms = emptyList(),
+                defaultPriority = Task.Priority.LOW,
+            )
+        )
+        whenever(caldavDao.getCalendarById(seedCalendar.id))
+            .thenReturn(seedCalendar.copy(defaultPriority = Task.Priority.HIGH))
+
+        buildViewModel(listId = seedCalendar.id)
+        advanceUntilIdle()
+
+        assertEquals(Task.Priority.HIGH, viewModel.state.value.task.priority)
+    }
+
+    @Test
+    fun listWithoutDefaultPriorityFallsBackToGlobalDefault() = runTest(testDispatcher) {
+        whenever(appPreferences.taskDefaults()).thenReturn(
+            TaskDefaultSettings(
+                defaultAlarms = emptyList(),
+                defaultPriority = Task.Priority.MEDIUM,
+            )
+        )
+        whenever(caldavDao.getCalendarById(seedCalendar.id)).thenReturn(seedCalendar)
+
+        buildViewModel(listId = seedCalendar.id)
+        advanceUntilIdle()
+
+        assertEquals(Task.Priority.MEDIUM, viewModel.state.value.task.priority)
+    }
+
+    @Test
     fun aDefaultRecurrenceGivesANewTaskADueDateToRecurFrom() = runTest(testDispatcher) {
         whenever(appPreferences.taskDefaults()).thenReturn(
             TaskDefaultSettings(

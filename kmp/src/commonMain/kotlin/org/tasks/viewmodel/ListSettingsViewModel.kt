@@ -68,7 +68,7 @@ abstract class ListSettingsViewModel(
             withContext(NonCancellable) {
                 val calendar = withContext(Dispatchers.IO) {
                     createRemoteList(account, name, s.color, s.icon)
-                }
+                }.copy(defaultPriority = s.defaultPriority)
                 val id = caldavDao.insertOrReplace(calendar)
                 reporting.logEvent(AnalyticsEvents.CREATE_LIST)
                 val inserted = calendar.copy(id = id)
@@ -101,6 +101,7 @@ abstract class ListSettingsViewModel(
                     name = name,
                     color = s.color,
                     icon = s.icon,
+                    defaultPriority = s.defaultPriority,
                 )
                 caldavDao.insertOrReplace(result)
                 stateManager.update { it.copy(calendar = result) }

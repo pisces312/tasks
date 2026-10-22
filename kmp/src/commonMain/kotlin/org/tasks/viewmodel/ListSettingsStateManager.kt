@@ -34,6 +34,7 @@ class ListSettingsStateManager(
             pickerColors = pickerColors,
             hasPro = purchaseState.purchasedThemes(),
             hasColorWheel = hasColorWheel,
+            defaultPriority = calendar.defaultPriority,
         )
     )
     override val state: StateFlow<ListSettingsState> = _state
@@ -52,6 +53,10 @@ class ListSettingsStateManager(
 
     override fun setIcon(value: String) {
         _state.update { it.copy(icon = value) }
+    }
+
+    override fun setDefaultPriority(value: Int?) {
+        _state.update { it.copy(defaultPriority = value) }
     }
 
     override fun openColorPicker() {

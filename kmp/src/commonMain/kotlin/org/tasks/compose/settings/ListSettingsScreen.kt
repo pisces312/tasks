@@ -64,6 +64,8 @@ import org.tasks.data.entity.Task
 import org.tasks.themes.TasksIcons
 import org.tasks.viewmodel.ListSettingsCallbacks
 import tasks.kmp.generated.resources.Res
+import tasks.kmp.generated.resources.EPr_default_importance_title
+import tasks.kmp.generated.resources.app_default
 import tasks.kmp.generated.resources.back
 import tasks.kmp.generated.resources.cancel
 import tasks.kmp.generated.resources.color
@@ -92,10 +94,13 @@ import tasks.kmp.generated.resources.share
 import tasks.kmp.generated.resources.share_list
 import tasks.kmp.generated.resources.user
 
+private const val APP_DEFAULT_PRIORITY = -1
+
 data class ListSettingsState(
     val name: String = "",
     val color: Int = 0,
     val icon: String = TasksIcons.LIST,
+    val defaultPriority: Int? = null,
     val nameError: String? = null,
     val isLoading: Boolean = false,
     val snackbar: String? = null,
@@ -125,10 +130,14 @@ data class ListSettingsState(
 
     val hasChanges: Boolean
         get() {
-            val cal = calendar ?: return name.isNotBlank() || color != 0 || icon != TasksIcons.LIST
+            val cal = calendar ?: return name.isNotBlank() ||
+                    color != 0 ||
+                    icon != TasksIcons.LIST ||
+                    defaultPriority != null
             return name.trim() != (cal.name ?: "") ||
                     color != cal.color ||
-                    icon != (cal.icon ?: TasksIcons.LIST)
+                    icon != (cal.icon ?: TasksIcons.LIST) ||
+                    defaultPriority != cal.defaultPriority
         }
 
     val useEmailForSharing: Boolean
@@ -159,6 +168,7 @@ fun ListSettingsScreen(
     ListSettingsScreen(
         state = state,
         onNameChange = viewModel::setName,
+        onDefaultPriorityChange = viewModel::setDefaultPriority,
         onSave = onSave,
         onDelete = onDelete,
         onNavigateBack = onNavigateBack,
@@ -190,6 +200,7 @@ fun ListSettingsScreen(
 fun ListSettingsScreen(
     state: ListSettingsState,
     onNameChange: (String) -> Unit,
+    onDefaultPriorityChange: (Int?) -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -213,6 +224,7 @@ fun ListSettingsScreen(
     headerContent: @Composable () -> Unit = {},
 ) {
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showPriorityPicker by rememberSaveable { mutableStateOf(false) }
 
     PlatformBackHandler(enabled = true) {
         if (state.hasChanges) {
@@ -299,6 +311,27 @@ fun ListSettingsScreen(
                 onClearColor = { onSelectColor(null) },
                 onIconClick = onOpenIconPicker,
             )
+
+            Spacer(modifier = Modifier.height(SettingsContentPadding))
+
+            // Default priority for new tasks
+            Column(
+                modifier = Modifier.padding(horizontal = SettingsContentPadding),
+            ) {
+                SettingsItemCard {
+                    PreferenceRow(
+                        title = stringResource(Res.string.EPr_default_importance_title),
+                        icon = TasksIcons.FLAG,
+                        summary = state.defaultPriority
+                            ?.let { value ->
+                                PriorityOptions.firstOrNull { it.first == value }?.second
+                            }
+                            ?.let { stringResource(it) }
+                            ?: stringResource(Res.string.app_default),
+                        onClick = { showPriorityPicker = true },
+                    )
+                }
+            }
 
             // Shortcut and widget
             ShortcutWidgetCards(
@@ -398,6 +431,19 @@ fun ListSettingsScreen(
             onSubscribe = { onSubscribe("list_colors") },
             onColorWheelSelected = onColorWheelSelected,
             showColorWheel = state.hasColorWheel,
+        )
+    }
+
+    // Default priority dialog
+    if (showPriorityPicker) {
+        ListPreferenceDialog(
+            title = stringResource(Res.string.EPr_default_importance_title),
+            options = listOf(APP_DEFAULT_PRIORITY to Res.string.app_default) + PriorityOptions,
+            selected = state.defaultPriority ?: APP_DEFAULT_PRIORITY,
+            onSelect = { value ->
+                onDefaultPriorityChange(value.takeIf { it != APP_DEFAULT_PRIORITY })
+            },
+            onDismiss = { showPriorityPicker = false },
         )
     }
 

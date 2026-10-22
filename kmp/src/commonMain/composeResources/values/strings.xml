@@ -644,6 +644,7 @@
     <string name="google_tasks_add_to_top">New tasks on top</string>
     <string name="default_tags">Default tags</string>
     <string name="EPr_default_importance_title">Default priority</string>
+    <string name="app_default">App default</string>
     <string name="default_start_date">Default start date</string>
     <string name="default_due_date">Default due date</string>
     <string name="default_calendar">Default calendar</string>

@@ -17,7 +17,10 @@ import org.tasks.R
 import org.tasks.SuspendFreeze.Companion.freezeAt
 import org.tasks.data.createDueDate
 import org.tasks.data.entity.Alarm
+import org.tasks.data.entity.CaldavAccount
+import org.tasks.data.entity.CaldavCalendar
 import org.tasks.data.getDefaultAlarms
+import org.tasks.filters.CaldavFilter
 import org.tasks.injection.InjectingTestCase
 import org.tasks.preferences.Preferences
 import org.tasks.time.DateTime
@@ -122,6 +125,48 @@ class TaskCreatorTest : InjectingTestCase() {
         assertEquals(
                 Task.Priority.NONE,
                 taskCreator.create(null, "test", applyDefaults = false).priority
+        )
+    }
+
+    @Test
+    fun listDefaultPriorityAppliesToFilteredTasks() = runBlocking {
+        preferences.setString(R.string.p_default_importance_key, Task.Priority.LOW.toString())
+        val filter = CaldavFilter(
+            calendar = CaldavCalendar(
+                account = "acct",
+                uuid = "cal",
+                name = "List",
+                defaultPriority = Task.Priority.HIGH,
+            ),
+            account = CaldavAccount(uuid = "acct"),
+        )
+
+        assertEquals(
+            Task.Priority.HIGH,
+            taskCreator.createWithValues(filter, "test").priority,
+        )
+    }
+
+    @Test
+    fun defaultPriorityOverrideWinsOverGlobalDefault() = runBlocking {
+        preferences.setString(R.string.p_default_importance_key, Task.Priority.LOW.toString())
+
+        assertEquals(
+            Task.Priority.HIGH,
+            taskCreator.create(null, "test", defaultPriorityOverride = Task.Priority.HIGH).priority,
+        )
+    }
+
+    @Test
+    fun apiSkipsDefaultPriorityOverride() = runBlocking {
+        assertEquals(
+            Task.Priority.NONE,
+            taskCreator.create(
+                null,
+                "test",
+                applyDefaults = false,
+                defaultPriorityOverride = Task.Priority.HIGH,
+            ).priority,
         )
     }
 
