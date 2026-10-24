@@ -67,6 +67,7 @@ comm -12 /tmp/fork.txt /tmp/up.txt
 | `gradle.properties` / `libs.versions.toml` / wrapper | 采用上游版本；保留 fork 的仓库镜像（腾讯）；**不要**把凭据写回文件（签名一律用环境变量） |
 | `app/build.gradle.kts` | 上游工具链参数照收；fork 的 `splits.abi`、`signingConfigs.release`（env var）、JGit/jsch 依赖、`buildTypes.debug` 覆盖必须保留 |
 | `app/src/debug/AndroidManifest.xml` | 红图标 + `tools:replace`、dmfs 权限 `tools:node="remove"` 保留；`allowBackup` 跟随上游 |
+| `kmp/build.gradle.kts` | 上游工具链/依赖照收；`android.buildTypes.debug` 的 `APPLICATION_ID` buildConfigField 必须保留（见 5.2） |
 | `BuildSetup.kt`（debug/release） | 保留 `GitSyncLogCollector.timberTree`，并叠加上游 kermit `minSeverity` |
 | `TasksJsonImporter.kt` | **直接采用上游版本**。fork 曾在此叠加"导入时跳过 Microsoft 账户并把其日历改挂本地账户"（`8ddde1750e` / `bd189c39dd`），已于 2026-10-24 revert：备份不含凭据（`CaldavAccount.password` 是 `@Transient`），还原出的 Microsoft 账户本来就要手动登录，而这段定制会让上游 `TasksJsonImporterTest.deduplicateMicrosoftByUsername` 每次合并都红。理由详见 [`upstream-sync-2026-10-19.md`](./upstream-sync-2026-10-19.md) 9.3 |
 | `BackupsViewModel.kt` | 保留设置导出/导入；上游改 `suspend` 就跟着改；上游删除的 `p_*` 键要从忽略表移除 |
@@ -95,7 +96,16 @@ comm -12 /tmp/fork.txt /tmp/up.txt
 
 - `applicationIdSuffix = ".debug"` 在；
 - 合并清单 `android:icon` / `android:roundIcon` 为 `@mipmap/ic_launcher_red`；
-- 清单中不存在 `org.tasks.permission.*`，自定义权限为 `org.tasks.debug.permission.*`。
+- 清单中不存在 `org.tasks.permission.*`，自定义权限为 `org.tasks.debug.permission.*`；
+- `kmp/build.gradle.kts` 的 `android.buildTypes.debug` 里有
+  `buildConfigField("String", "APPLICATION_ID", "\"<base>.debug\"")`。
+  library 模块不吃 app 的 `applicationIdSuffix`，少了这行则 `TasksContract.AUTHORITY` /
+  `PERMISSION_*` 在 debug 包里仍指向 `org.tasks.api` 与 `org.tasks.permission.*`，
+  与合并清单注册的 `org.tasks.debug.api` 不一致 → `TasksApiProvider` 的 `UriMatcher` 匹配不上，
+  debug 包的 Content Provider API 实际不可用（表现为 `TasksApiIntegrationTest` 全挂
+  `Unknown authority org.tasks.api`）。改完跑 `:kmp:testDebugUnitTest`；
+  注意 `TasksContractDocTest` 断言的是去掉 `.debug` 后缀的 release 标识，
+  因为 `CONTENT_PROVIDER.md` 记录的是对外发布契约。
 
 ### 5.3 构建与签名定制
 
