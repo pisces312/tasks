@@ -15,6 +15,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,11 +39,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
@@ -54,6 +58,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +68,10 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -72,6 +81,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -84,6 +94,8 @@ import org.tasks.data.AccountIcon
 import org.tasks.data.composeIcon
 import org.tasks.data.composeTitle
 import org.tasks.data.entity.CaldavAccount
+import org.tasks.filters.DrawerSortMode
+import org.tasks.filters.Filter
 import org.tasks.filters.FilterProvider
 import org.tasks.filters.NavigationDrawerSubheader
 import org.tasks.compose.components.SearchBar
@@ -97,6 +109,9 @@ import org.tasks.themes.ColorTone
 import org.tasks.themes.tonalColor
 import tasks.kmp.generated.resources.Res
 import tasks.kmp.generated.resources.create_a_list
+import tasks.kmp.generated.resources.drawer_reorder_hint
+import tasks.kmp.generated.resources.drawer_sort_manual
+import tasks.kmp.generated.resources.drawer_sort_name
 import tasks.kmp.generated.resources.new_filter
 import tasks.kmp.generated.resources.new_list
 import tasks.kmp.generated.resources.new_place
@@ -104,12 +119,17 @@ import tasks.kmp.generated.resources.new_tag
 import tasks.kmp.generated.resources.not_signed_in
 import tasks.kmp.generated.resources.search
 import tasks.kmp.generated.resources.sign_in
+import tasks.kmp.generated.resources.sort_mode
 
 val DrawerItemInset = 8.dp
 
 val SearchButtonSize = 56.dp
 
 private val SearchButtonGap = 16.dp
+
+private val SortButtonSize = 48.dp
+
+private val SortButtonGap = 8.dp
 
 @Composable
 fun TaskListDrawer(
@@ -120,6 +140,8 @@ fun TaskListDrawer(
     onAddClick: (DrawerItem.Header) -> Unit,
     onErrorClick: () -> Unit,
     onSignIn: () -> Unit = {},
+    onSortModeChange: (DrawerSortMode) -> Unit = {},
+    onReorder: (List<Filter>) -> Unit = {},
     expanded: Boolean = true,
     onExpandDrawer: () -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
@@ -153,9 +175,32 @@ fun TaskListDrawer(
 
     val arrangement = if (query.isNotBlank()) Arrangement.Bottom else Arrangement.Top
     val displayedFilters = if (query.isNotBlank()) drawerState.searchItems else drawerState.drawerItems
+
+    // Manual order can be edited by long-pressing a child and dragging it within its section.
+    val reorderEnabled = expanded && query.isBlank() &&
+            drawerState.sortMode == DrawerSortMode.MANUAL
+    val reorderState = remember { DrawerReorderState() }
+    var reorderItems by remember { mutableStateOf<List<DrawerItem>?>(null) }
+    var draggingKey by remember { mutableStateOf<String?>(null) }
+    var dragOffset by remember { mutableStateOf(0f) }
+    val latestItems by rememberUpdatedState(displayedFilters)
+    val latestReorder by rememberUpdatedState(onReorder)
+    val haptics = LocalHapticFeedback.current
+    val rowHeightPx = with(LocalDensity.current) { 48.dp.toPx() }
+    // Keep showing the reordered rows until the refreshed list arrives, so dropping does not
+    // snap back to the old order for a frame.
+    LaunchedEffect(drawerState.drawerItems) {
+        if (draggingKey == null && reorderItems != null) {
+            reorderItems = null
+        }
+    }
+    val renderedItems = reorderItems ?: displayedFilters
+
     val systemBarPadding = WindowInsets.systemBars.asPaddingValues()
     val bottomNavPadding = systemBarPadding.calculateBottomPadding()
-    val topGutter = systemBarPadding.calculateTopPadding() + searchButtonInset
+    val topGutter = systemBarPadding.calculateTopPadding() +
+            searchButtonInset +
+            if (expanded) SortButtonSize + SortButtonGap else 0.dp
     val bottomGutter = searchButtonInset + SearchButtonSize + SearchButtonGap + bottomNavPadding
     Box(
         modifier = Modifier
@@ -173,13 +218,13 @@ fun TaskListDrawer(
             ),
             verticalArrangement = arrangement,
         ) {
-            itemsIndexed(items = displayedFilters, key = { _, it -> it.key() }) { index, item ->
+            itemsIndexed(items = renderedItems, key = { _, it -> it.key() }) { index, item ->
                 val isFirst = index == 0 ||
                         item is DrawerItem.Header ||
                         item is DrawerItem.SignIn
-                val isLast = index == displayedFilters.lastIndex ||
-                        displayedFilters[index + 1] is DrawerItem.Header ||
-                        displayedFilters[index + 1] is DrawerItem.SignIn
+                val isLast = index == renderedItems.lastIndex ||
+                        renderedItems[index + 1] is DrawerItem.Header ||
+                        renderedItems[index + 1] is DrawerItem.SignIn
                 val cornerRadius = 16.dp
                 val shape = when {
                     isFirst && isLast -> RoundedCornerShape(cornerRadius)
@@ -187,15 +232,71 @@ fun TaskListDrawer(
                     isLast -> RoundedCornerShape(bottomStart = cornerRadius, bottomEnd = cornerRadius)
                     else -> RoundedCornerShape(0.dp)
                 }
+                val reorderable = reorderEnabled && item.reorderGroup() != null
+                val dragging = draggingKey == item.key()
+                val dragModifier = if (reorderable) {
+                    Modifier
+                        .zIndex(if (dragging) 1f else 0f)
+                        .graphicsLayer {
+                            translationY = if (dragging) dragOffset else 0f
+                        }
+                        .pointerInput(item.key(), reorderEnabled) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = {
+                                    val step = listState.layoutInfo.visibleItemsInfo
+                                        .firstOrNull { it.key == item.key() }
+                                        ?.size
+                                        ?.toFloat()
+                                        ?: rowHeightPx
+                                    if (reorderState.start(latestItems, item.key(), step)) {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        draggingKey = item.key()
+                                        dragOffset = 0f
+                                        reorderItems = reorderState.items
+                                    }
+                                },
+                                onDrag = { change, amount ->
+                                    if (draggingKey == null) {
+                                        return@detectDragGesturesAfterLongPress
+                                    }
+                                    change.consume()
+                                    dragOffset = reorderState.drag(amount.y)
+                                    reorderItems = reorderState.items
+                                },
+                                onDragEnd = {
+                                    val ordered = reorderState.finish()
+                                    draggingKey = null
+                                    dragOffset = 0f
+                                    if (ordered != null) {
+                                        latestReorder(ordered)
+                                    } else {
+                                        reorderItems = null
+                                    }
+                                    reorderState.reset()
+                                },
+                                onDragCancel = {
+                                    draggingKey = null
+                                    dragOffset = 0f
+                                    reorderItems = null
+                                    reorderState.reset()
+                                },
+                            )
+                        }
+                } else {
+                    Modifier
+                }
                 Surface(
                     modifier = Modifier
+                        .animateItem()
                         .padding(
                             start = DrawerItemInset,
                             end = DrawerItemInset,
                             top = if (isFirst && index > 0) 8.dp else 0.dp,
-                        ),
+                        )
+                        .then(dragModifier),
                     shape = shape,
                     color = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    shadowElevation = if (dragging) 6.dp else 0.dp,
                 ) {
                     when (item) {
                         is DrawerItem.Filter -> FilterItem(
@@ -219,6 +320,18 @@ fun TaskListDrawer(
                     }
                 }
             }
+        }
+        if (expanded) {
+            DrawerSortButton(
+                sortMode = drawerState.sortMode,
+                onSortModeChange = onSortModeChange,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(
+                        top = systemBarPadding.calculateTopPadding(),
+                        end = DrawerItemInset,
+                    ),
+            )
         }
         AnimatedVisibility(
             visible = expanded,
@@ -326,6 +439,61 @@ private fun SearchFab(
         }
     }
 }
+
+@Composable
+private fun DrawerSortButton(
+    sortMode: DrawerSortMode,
+    onSortModeChange: (DrawerSortMode) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+        IconButton(onClick = { menuOpen = true }) {
+            SymbolIcon(
+                name = TasksIcons.SWAP_VERT,
+                contentDescription = stringResource(Res.string.sort_mode),
+            )
+        }
+        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+            DrawerSortMode.entries.forEach { mode ->
+                DropdownMenuItem(
+                    text = { Text(mode.label()) },
+                    leadingIcon = {
+                        RadioButton(
+                            selected = sortMode == mode,
+                            onClick = null,
+                        )
+                    },
+                    onClick = {
+                        menuOpen = false
+                        onSortModeChange(mode)
+                    },
+                )
+            }
+            if (sortMode == DrawerSortMode.MANUAL) {
+                Text(
+                    text = stringResource(Res.string.drawer_reorder_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 4.dp,
+                        bottom = 8.dp,
+                    ),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DrawerSortMode.label(): String = stringResource(
+    when (this) {
+        DrawerSortMode.MANUAL -> Res.string.drawer_sort_manual
+        DrawerSortMode.NAME -> Res.string.drawer_sort_name
+    }
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

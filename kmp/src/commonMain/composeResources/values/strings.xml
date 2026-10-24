@@ -185,6 +185,9 @@
     <string name="navigation_drawer">Navigation drawer</string>
     <string name="customize_drawer">Customize drawer</string>
     <string name="customize_drawer_summary">Drag and drop to rearrange menu items</string>
+    <string name="drawer_sort_manual">Manual order</string>
+    <string name="drawer_sort_name">Name</string>
+    <string name="drawer_reorder_hint">Long-press and drag to reorder</string>
     <string name="hide_unused_tags">Hide unused tags</string>
     <string name="hide_unused_places">Hide unused places</string>
     <string name="backup_BPr_header">Backups</string>

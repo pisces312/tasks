@@ -1519,6 +1519,8 @@ private fun TaskListChrome(
                     onAddClick = onAddClick,
                     onErrorClick = { /* TODO: show sync error */ },
                     onSignIn = onCloudSignIn,
+                    onSortModeChange = { drawerViewModel?.setSortMode(it) },
+                    onReorder = { drawerViewModel?.setManualOrder(it) },
                     // Hoisted for the same reason as the sidebar's: this sheet is disposed every
                     // time the drawer closes, and it is not inside a nav entry whose saveable
                     // state the decorator would preserve.
@@ -1576,6 +1578,8 @@ private fun TaskListChrome(
                         onAddClick = onAddClick,
                         onErrorClick = { /* TODO: show sync error */ },
                         onSignIn = onCloudSignIn,
+                        onSortModeChange = { drawerViewModel?.setSortMode(it) },
+                        onReorder = { drawerViewModel?.setManualOrder(it) },
                         expanded = sidebarExpanded,
                         onExpandDrawer = {
                             // Expanding is impossible in this window, so the rail's own

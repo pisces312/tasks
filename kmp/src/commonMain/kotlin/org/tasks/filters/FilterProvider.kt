@@ -4,7 +4,6 @@ import org.jetbrains.compose.resources.StringResource
 import org.tasks.billing.PurchaseState
 import org.tasks.compose.drawer.DrawerConfiguration
 import org.tasks.data.LocationFilters
-import org.tasks.data.NO_ORDER
 import org.tasks.data.TagFilters
 import org.tasks.data.dao.CaldavDao
 import org.tasks.data.dao.FilterDao
@@ -68,8 +67,11 @@ class FilterProvider(
         }
     }
 
-    suspend fun drawerItems(): List<FilterListItem> =
-        getAllFilters(showCreate = true, hideUnused = true, showSignIn = true)
+    suspend fun drawerItems(sortMode: DrawerSortMode = DrawerSortMode.MANUAL): List<FilterListItem> =
+        getAllFilters(showCreate = true, hideUnused = true, showSignIn = true, sortMode = sortMode)
+
+    internal fun sortFilters(filters: List<Filter>, sortMode: DrawerSortMode): List<Filter> =
+        filters.sortForDrawer(sortMode)
 
     suspend fun allLists(): List<Filter> =
         caldavFilters(showCreate = false, forceExpand = true)
@@ -122,6 +124,7 @@ class FilterProvider(
         showCreate: Boolean,
         showBuiltIn: Boolean,
         forceExpand: Boolean,
+        sortMode: DrawerSortMode,
     ): List<FilterListItem> =
             if (!configuration.filtersEnabled) {
                 emptyList()
@@ -129,7 +132,7 @@ class FilterProvider(
                 val collapsed = !forceExpand && tasksPreferences.get(collapseFilters, false)
                 val children = buildList<Filter> {
                     if (showBuiltIn) addAll(builtInFilters())
-                    addAll(filterDao.getFilters().map(::CustomFilter).sort())
+                    addAll(filterDao.getFilters().map(::CustomFilter).sortForDrawer(sortMode))
                 }
                 listOf(
                     NavigationDrawerSubheader(
@@ -151,6 +154,7 @@ class FilterProvider(
         showCreate: Boolean,
         hideUnused: Boolean,
         forceExpand: Boolean,
+        sortMode: DrawerSortMode,
     ): List<FilterListItem> =
             if (!configuration.tagsEnabled) {
                 emptyList()
@@ -161,7 +165,7 @@ class FilterProvider(
                         it.count > 0
                     }
                     .map(TagFilters::toTagFilter)
-                    .sort()
+                    .sortForDrawer(sortMode)
                 listOf(
                     NavigationDrawerSubheader(
                         getString(Res.string.drawer_tags),
@@ -182,6 +186,7 @@ class FilterProvider(
         showCreate: Boolean,
         hideUnused: Boolean,
         forceExpand: Boolean,
+        sortMode: DrawerSortMode,
     ): List<FilterListItem> =
             if (!configuration.placesEnabled) {
                 emptyList()
@@ -192,7 +197,7 @@ class FilterProvider(
                         it.count > 0
                     }
                     .map(LocationFilters::toLocationFilter)
-                    .sort()
+                    .sortForDrawer(sortMode)
                 listOf(
                     NavigationDrawerSubheader(
                         getString(Res.string.drawer_places),
@@ -216,6 +221,7 @@ class FilterProvider(
         forceExpand: Boolean = false,
         showCreateList: Boolean = showCreate,
         showSignIn: Boolean = false,
+        sortMode: DrawerSortMode = DrawerSortMode.MANUAL,
     ): List<FilterListItem> =
             if (showBuiltIn) {
                 arrayListOf(MyTasksFilter.create())
@@ -223,10 +229,10 @@ class FilterProvider(
                 ArrayList<FilterListItem>()
             }
                     .asSequence()
-                    .plus(addFilters(showCreate, showBuiltIn, forceExpand))
-                    .plus(addTags(showCreate, hideUnused, forceExpand))
-                    .plus(addPlaces(showCreate, hideUnused, forceExpand))
-                    .plus(caldavFilters(showCreateList, forceExpand, showSignIn))
+                    .plus(addFilters(showCreate, showBuiltIn, forceExpand, sortMode))
+                    .plus(addTags(showCreate, hideUnused, forceExpand, sortMode))
+                    .plus(addPlaces(showCreate, hideUnused, forceExpand, sortMode))
+                    .plus(caldavFilters(showCreateList, forceExpand, showSignIn, sortMode))
                     .toList()
                     .plusAllIf(TasksBuildConfig.DEBUG) { getDebugFilters() }
 
@@ -234,6 +240,7 @@ class FilterProvider(
         showCreate: Boolean,
         forceExpand: Boolean,
         showSignIn: Boolean = false,
+        sortMode: DrawerSortMode = DrawerSortMode.MANUAL,
     ): List<FilterListItem> {
         val accounts = caldavDao.getAccounts()
         val signIn = if (showSignIn) signInAccount(accounts) else emptyList()
@@ -244,6 +251,7 @@ class FilterProvider(
                 showCreate = showCreate,
                 forceExpand = forceExpand,
                 subtitle = account.drawerSubtitle(multipleTypes),
+                sortMode = sortMode,
             )
         }
     }
@@ -266,6 +274,7 @@ class FilterProvider(
         forceExpand: Boolean,
         hideCollapse: Boolean = false,
         subtitle: StringResource? = null,
+        sortMode: DrawerSortMode = DrawerSortMode.MANUAL,
     ): List<FilterListItem> {
         val collapsed = !forceExpand && account.isCollapsed
         val children = caldavDao
@@ -278,7 +287,7 @@ class FilterProvider(
                     count = it.count,
                 )
             }
-            .sort()
+            .sortForDrawer(sortMode)
         val openTaskApp = if (account.accountType == TYPE_OPENTASKS) {
             account.openTaskApp
         } else {
@@ -337,24 +346,6 @@ class FilterProvider(
         const val REQUEST_NEW_TAGS = 10101
         const val REQUEST_NEW_PLACE = 10104
         const val REQUEST_NEW_FILTER = 101015
-        private val COMPARATOR = Comparator<Filter> { f1, f2 ->
-            when {
-                f1.order == NO_ORDER && f2.order == NO_ORDER ->
-                    AlphanumComparator.FILTER.compare(f1, f2)
-                f1.order == NO_ORDER -> 1
-                f2.order == NO_ORDER -> -1
-                f1.order < f2.order -> -1
-                f1.order > f2.order -> 1
-                else -> AlphanumComparator.FILTER.compare(f1, f2)
-            }
-        }
-
-        private fun List<Filter>.sort(): List<Filter> =
-                if (all { it.order == NO_ORDER }) {
-                    sortedWith(AlphanumComparator.FILTER)
-                } else {
-                    sortedWith(COMPARATOR)
-                }
 
         private suspend fun <T> Collection<T>.plusAllIf(predicate: Boolean, item: suspend () -> Iterable<T>): List<T> =
                 plus(if (predicate) item() else emptyList())

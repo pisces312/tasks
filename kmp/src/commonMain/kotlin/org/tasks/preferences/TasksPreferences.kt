@@ -65,6 +65,7 @@ class TasksPreferences(private val dataStore: DataStore<Preferences>) {
     companion object {
         val collapseFilters = booleanPreferencesKey("drawer_collapse_filters")
         val collapseTags = booleanPreferencesKey("drawer_collapse_tags")
+        val drawerSortMode = stringPreferencesKey("drawer_sort_mode")
         val showDebugFilters = booleanPreferencesKey("show_debug_filters")
         val debugPro = booleanPreferencesKey("debug_pro")
         val collapseDebug = booleanPreferencesKey("drawer_collapse_debug")

@@ -292,6 +292,8 @@ fun HomeScreen(
                                     )
                                 }
                             },
+                            onSortModeChange = drawerViewModel::setSortMode,
+                            onReorder = drawerViewModel::setManualOrder,
                             searchButtonInset = searchButtonInset,
                         )
 

@@ -581,6 +581,9 @@
     <string name="subtasks_will_be_flattened">此清单不支持嵌套子任务。保存后，所有子任务都将移至顶层。</string>
     <string name="customize_drawer">自定义抽屉</string>
     <string name="customize_drawer_summary">通过拖放重新安排菜单项</string>
+    <string name="drawer_sort_manual">手动顺序</string>
+    <string name="drawer_sort_name">名称</string>
+    <string name="drawer_reorder_hint">长按并拖动可调整顺序</string>
     <string name="hide_unused_tags">隐藏不用的标签</string>
     <string name="hide_unused_places">隐藏不用的地点</string>
     <string name="language">语言</string>

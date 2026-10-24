@@ -39,7 +39,10 @@ import org.tasks.data.entity.TagData
  * To use this class: Use the static "sort" method from the java.util.Collections class:
  * Collections.sort(your list, new AlphanumComparator());
  */
-class AlphanumComparator<T>(private val getTitle: (T) -> String?) : Comparator<T> {
+class AlphanumComparator<T>(
+    private val getTitle: (T) -> String?,
+    private val compareText: Comparator<String> = CASE_INSENSITIVE,
+) : Comparator<T> {
     private fun isDigit(ch: Char): Boolean = ch.code in 48..57
 
     /** Length of string is passed in for improved efficiency (only need to calculate it once) *  */
@@ -99,7 +102,7 @@ class AlphanumComparator<T>(private val getTitle: (T) -> String?) : Comparator<T
                     }
                 }
             } else {
-                result = thisChunk.compareTo(thatChunk, ignoreCase = true)
+                result = compareText.compare(thisChunk, thatChunk)
             }
             if (result != 0) return result
         }
@@ -112,3 +115,5 @@ class AlphanumComparator<T>(private val getTitle: (T) -> String?) : Comparator<T
         val TAGDATA = AlphanumComparator(TagData::name)
     }
 }
+
+private val CASE_INSENSITIVE = Comparator<String> { s1, s2 -> s1.compareTo(s2, ignoreCase = true) }
