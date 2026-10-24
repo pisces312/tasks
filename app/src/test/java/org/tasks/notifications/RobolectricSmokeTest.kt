@@ -8,6 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.tasks.BuildConfig
 import org.tasks.R
 import org.tasks.resources.getString
 import tasks.kmp.generated.resources.Res
@@ -19,7 +20,8 @@ class RobolectricSmokeTest {
     fun androidResourcesAndManifestAreAvailable() {
         val context = ApplicationProvider.getApplicationContext<Context>()
 
-        assertEquals("org.tasks", context.packageName)
+        // the fork suffixes debug builds so they install alongside release
+        assertEquals(if (BuildConfig.DEBUG) "org.tasks.debug" else "org.tasks", context.packageName)
         assertTrue(context.getString(R.string.TAd_actionEditTask).isNotBlank())
         assertTrue(context.resources.getQuantityString(R.plurals.task_count, 2, 2).isNotBlank())
     }

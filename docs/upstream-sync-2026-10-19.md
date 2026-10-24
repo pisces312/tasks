@@ -205,13 +205,13 @@ caldavDao.insert(caldavTask.copy(
 确认是**四个互相独立**的原因，其中一个是假警报。上游 `tasks/tasks@478c8e9a` 同一 workflow 全绿，
 可用作对照。
 
-| # | job | 现象 | 定性 |
-|---|---|---|---|
-| 1 | `iosTest` | `:kmp:linkDebugTestIosSimulatorArm64` Kotlin/Native 后端内部错误 | 上游已修的坑，fork 未合进回退 |
-| 2 | `jvmTest` | `RobolectricSmokeTest` 1/605 失败 | fork `.debug` 后缀 vs 上游测试硬编码 |
-| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** |
-| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 |
-| 4 | `instrumentedTest` | `TitleParserTest.testDays` 报告显示 failed | 假警报（`@Ignore`） |
+| # | job | 现象 | 定性 | 状态 |
+|---|---|---|---|---|
+| 1 | `iosTest` | `:kmp:linkDebugTestIosSimulatorArm64` Kotlin/Native 后端内部错误 | 上游已修的坑，fork 未合进回退 | 已修（待 CI 验证） |
+| 2 | `jvmTest` | `RobolectricSmokeTest` 1/605 失败 | fork `.debug` 后缀 vs 上游测试硬编码 | 已修，本地两 flavor 全绿 |
+| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 待修 |
+| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 待定（倾向 revert fork 改动） |
+| 4 | `instrumentedTest` | `TitleParserTest.testDays` 报告显示 failed | 假警报（`@Ignore`） | 无需处理 |
 
 ### 9.1 Kotlin 2.4.21 触发 K/N 编译器 bug
 
@@ -251,6 +251,11 @@ klib 时后端崩。取证对照：上游 renovate 提交 `b9095f6656 "Update ko
 1. `RobolectricSmokeTest.androidResourcesAndManifestAreAvailable`（`app/src/test/.../RobolectricSmokeTest.kt:22`）
    断言 `assertEquals("org.tasks", context.packageName)`，实际
    `ComparisonFailure: expected:<org.tasks[]> but was:<org.tasks[.debug]>`。这是 jvmTest 唯一失败项。
+   **已修复（2026-10-24）**：断言改为 `if (BuildConfig.DEBUG) "org.tasks.debug" else "org.tasks"`，
+   既保留上游"合并后的 manifest 与 Android 资源可用"的原意，又把 fork 的 debug 后缀契约钉住。
+   本地验证：`./gradlew --continue :app:testGenericDebugUnitTest :app:testGoogleplayDebugUnitTest`
+   → BUILD SUCCESSFUL，generic 604 用例 / 0 失败 / 1 skipped，googleplay 605 / 0 / 1
+   （与 CI 的用例数一致，CI 报的是 googleplay 605）。
 2. **新 Content Provider API 在 debug 包里调不通**（比测试更实质）。上游 10.19 之前的
    `a15ecea680 "Add new content provider API"` 引入两套必须一致的 authority：
    - manifest：`android:authorities="${applicationId}.api"`（debug 解析成 `org.tasks.debug.api`）
@@ -290,3 +295,26 @@ failure、成功率同样 95%。所以这是 AGP connected HTML 报告渲染 `@I
 - `desktop-jar / appimage / android / desktop` 被 check 门控 skip/cancel，自身没有失败。
 - `instrumentedTest (Googleplay, 29)` 的 `test-reports-Googleplay` artifact 为空
   （`No files were found with the provided path: app/build/reports/**`），其明细只能从 Generic 报告推断。
+
+### 9.6 本地验证的坑：工作副本里的 CRLF（本机独有，CI 不受影响）
+
+`git ls-files --eol` 显示本机工作副本有 **1062 个文件是 `i/lf w/crlf`**：仓库 blob 是 LF、
+CI 检出的也是 LF，只有这份工作副本是 CRLF（早先 `core.autocrlf=true` 时代的遗留；
+现在 global `~/.gitconfig` 是 `input`，system `D:/dev/git/etc/gitconfig` 是 `false`）。
+
+后果是**换行敏感的测试在本地假失败**。本次实测一例：`:app:testGenericDebugUnitTest` 的
+`iCalendarTest.parseProdId` 报
+`ComparisonFailure: expected:<...la Calendar V1.1//EN[]> but was:<...la Calendar V1.1//EN[\r]>`，
+因为 `app/src/test/resources/thunderbird/basic_due_date.txt` 在本地是 CRLF，而
+`iCalendar.Companion.prodId()`（`kmp/src/commonMain/kotlin/org/tasks/caldav/iCalendar.kt:374`）
+用 `PRODID_MATCHER` 的 `(.*)` 捕获，把行尾 `\r` 一起吃进结果。CI 上该用例是绿的。
+
+处理要点：
+
+- `git checkout -- <file>` **不会**重写 git 认为"干净"的文件（clean 过滤器把 CRLF 归一后与 blob
+  相同，git 直接跳过写入）。必须 `rm <file> && git checkout -- <file>`，
+  之后 `git ls-files --eol` 应变成 `w/lf`。本次就是这么修的（只动了这一个夹具）。
+- 不必批量转换：`core.autocrlf=input` 在 add/commit 时会把 CRLF 归一成 LF，本地 CRLF 不会污染仓库，
+  只在本地跑换行敏感测试时按需处理单个夹具。
+- 顺带提醒：`app/scripts/resize-launcher.sh`、`app/scripts/resize-notification.sh` 在本地也是 CRLF
+  （`build.sh` 是 LF），在 Git Bash 里直接执行可能报 `\r` 相关错误。
