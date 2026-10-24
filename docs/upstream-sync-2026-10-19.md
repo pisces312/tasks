@@ -195,3 +195,98 @@ caldavDao.insert(caldavTask.copy(
    - `apksigner verify --print-certs`：`CN=pisces312`，V2，SHA-256 `abadebd2fc9523628b5dacfa0fb40f652df0e161b71820c7a4b5a40653ee0b90`
    - 清单内 `oss.licenses` 相关条目数 **0**（符合 generic 预期）
    - 首轮构建曾因 `AAPT2 ... Daemon startup failed` 失败，`./gradlew --stop` 后重试即通过（环境偶发）
+
+## 9. CI 红灯复查（2026-10-24）
+
+合并后 `.github/workflows/check.yml`（"Assemble bundle"）从 `34d26b372f` 之后**每次 push 都红**：
+`6d48e077`→`8f9a53c5` 连续 5 个 run 失败在同一批 job 上（最新一次
+[run 39855270848](https://github.com/pisces312/tasks/actions/runs/39855270848)）。
+逐条取证（`gh run view --log-failed` + 下载 `test-reports-*` artifact 读 HTML 报告）后，
+确认是**四个互相独立**的原因，其中一个是假警报。上游 `tasks/tasks@478c8e9a` 同一 workflow 全绿，
+可用作对照。
+
+| # | job | 现象 | 定性 |
+|---|---|---|---|
+| 1 | `iosTest` | `:kmp:linkDebugTestIosSimulatorArm64` Kotlin/Native 后端内部错误 | 上游已修的坑，fork 未合进回退 |
+| 2 | `jvmTest` | `RobolectricSmokeTest` 1/605 失败 | fork `.debug` 后缀 vs 上游测试硬编码 |
+| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** |
+| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 |
+| 4 | `instrumentedTest` | `TitleParserTest.testDays` 报告显示 failed | 假警报（`@Ignore`） |
+
+### 9.1 Kotlin 2.4.21 触发 K/N 编译器 bug
+
+```
+e: Compilation failed: Back-end: Please report this problem https://kotl.in/issue
+Details: Internal error in file lowering: java.lang.IllegalStateException:
+  IrConstructorCallImpl@... is not expected: CONSTRUCTOR_CALL 'public constructor <init>
+  (vararg value: kotlin.String, orders: kotlin.Array<androidx.room3.Index.Order>,
+   name: kotlin.String, unique: kotlin.Boolean) [primary] declared in androidx.room3.Index'
+```
+
+不是我们的代码问题：Kotlin 2.4.21 在把 `@Entity(indices = [Index(...)])` 的注解构造调用序列化进
+klib 时后端崩。取证对照：上游 renovate 提交 `b9095f6656 "Update kotlin (#4757)"`（10-17，
+`kotlin 2.4.10→2.4.21`、`ksp 2.3.11→2.3.12`）之后，上游 run `39009524931` 的 `iosTest` 在**同一任务、
+同一行错误消息**上失败；作者当天用 `30b4e18463 "Downgrade Kotlin"` 退回
+`kotlin = 2.4.10` / `ksp = 2.3.11`。fork 的合并点 `84ed8f5c20`（10-18）含升版、**不含**这条回退，
+所以 HEAD 仍是 2.4.21。
+
+修复：按上游把 `gradle/libs.versions.toml` 的 `kotlin`、`ksp` 降回 2.4.10 / 2.3.11。
+本机是 Windows，iOS 目标不参与链接，**本地只能验证 Android/JVM 侧没被降级改坏**，
+真正的通过与否由 CI 的 `iosTest` 判定。
+
+> 状态（2026-10-24）：已按下表降级。对照证据 —— 上游在 Kotlin 2.4.10 下
+> run `39339508387`（`5162b6f8f2`）的 `iosTest` 为 success，在 2.4.21 下
+> run `39009524931` 的 `iosTest` 为 failure 且错误逐字相同。
+
+| 项 | 改前 | 改后 |
+|---|---|---|
+| `kotlin` | 2.4.21 | 2.4.10 |
+| KSP 插件 | 2.3.12 | 2.3.11 |
+
+### 9.2 fork 的 `applicationIdSuffix = ".debug"` 撞上游新代码
+
+`app/build.gradle.kts:89` 的 debug 后缀让 fork 的 debug 包名是 `org.tasks.debug`，
+上游同位置的测试/常量都按"无后缀"写死。两处后果：
+
+1. `RobolectricSmokeTest.androidResourcesAndManifestAreAvailable`（`app/src/test/.../RobolectricSmokeTest.kt:22`）
+   断言 `assertEquals("org.tasks", context.packageName)`，实际
+   `ComparisonFailure: expected:<org.tasks[]> but was:<org.tasks[.debug]>`。这是 jvmTest 唯一失败项。
+2. **新 Content Provider API 在 debug 包里调不通**（比测试更实质）。上游 10.19 之前的
+   `a15ecea680 "Add new content provider API"` 引入两套必须一致的 authority：
+   - manifest：`android:authorities="${applicationId}.api"`（debug 解析成 `org.tasks.debug.api`）
+   - 代码：`kmp/src/commonMain/kotlin/org/tasks/api/TasksContract.kt` 的
+     `AUTHORITY = "${TasksBuildConfig.APPLICATION_ID}.api"`，而 android 侧
+     `TasksBuildConfig.APPLICATION_ID` 取自 kmp library 的 `BuildConfig`
+     （`kmp/build.gradle.kts:247`，恒为基础 id `org.tasks`；library 没有 applicationId 概念）。
+   `TasksApiProvider` 的 `UriMatcher` 也用它（`addURI(TasksContract.AUTHORITY, ...)`）。
+   debug 包里注册 authority 与匹配 authority 不一致 → 外部按 `org.tasks.debug.api` 访问得到
+   `Unknown URL`，因此 `TasksApiIntegrationTest` 7 个用例全挂
+   （`Unknown authority org.tasks.api` / `Failed to find provider org.tasks.api for user 0`）。
+   修法沿用第 5.1 节 `opentasks_authority` 的思路：给 kmp 的 `android.buildTypes.debug`
+   加 `buildConfigField("String", "APPLICATION_ID", "\"<base>.debug\"")`，
+   使 debug 变体的 kmp/data 与 manifest 对齐；release 不变。
+
+### 9.3 微软账户导入：fork 行为 vs 上游测试
+
+`TasksJsonImporterTest.deduplicateMicrosoftByUsername` 报 `expected:<0> but was:<1>`
+（断言在 `app/src/androidTest/java/org/tasks/backup/TasksJsonImporterTest.kt:232`，即
+`assertEquals(0, result.importCount)`）。原因是 fork 的设置导出/导入定制：
+`app/src/main/java/org/tasks/backup/TasksJsonImporter.kt:232` 起会跳过 `TYPE_MICROSOFT` 账户
+（要求用户手动重新登录），并把其日历重定向到本地账户，于是备份里的 Outlook 任务被当新任务导入，
+而不是像上游那样按 username 去重成 0。属于**语义冲突**，需要决定：调整测试期望以匹配 fork 行为，
+还是让微软去重路径继续成立。
+
+### 9.4 假警报：`TitleParserTest.testDays`
+
+connected 报告把它列进 "Failed tests"（`failed (0s)`、异常体为空）。但该用例在上游与本仓库
+源码里都带 `@Ignore("Flaky test")`（`app/src/androidTest/java/com/todoroo/astrid/service/TitleParserTest.kt:166`），
+文件与上游逐字相同；把上游全绿 run `39923500941` 的同名报告拉下来比对，`testDays` 同样被列为
+failure、成功率同样 95%。所以这是 AGP connected HTML 报告渲染 `@Ignore` 的方式，
+**不是** job 失败的原因。
+
+### 9.5 其余
+
+- `check / lint` 通过。
+- `desktop-jar / appimage / android / desktop` 被 check 门控 skip/cancel，自身没有失败。
+- `instrumentedTest (Googleplay, 29)` 的 `test-reports-Googleplay` artifact 为空
+  （`No files were found with the provided path: app/build/reports/**`），其明细只能从 Generic 报告推断。
