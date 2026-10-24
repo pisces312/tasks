@@ -38,7 +38,7 @@
 | 6 | `app/src/debug/java/org/tasks/BuildSetup.kt` | content | 保留 `GitSyncLogCollector.timberTree`，叠加上游 kermit `minSeverity=Verbose` |
 | 7 | `app/src/release/java/org/tasks/BuildSetup.kt` | content | 同上（`Severity.Debug`） |
 | 8 | `app/src/debug/res/values/keys.xml` | 自动合并 | 保留 `app_package=org.tasks.debug`；`opentasks_authority` 见第 5.1（本次回归） |
-| 9 | `app/src/main/java/org/tasks/backup/TasksJsonImporter.kt` | content ×4 | Microsoft→本地导入叠加到上游 `canonicalized` / `accountUuidMap` / `calendarUuidMap` / `perTaskDirty` 结构；详见 3.1 |
+| 9 | `app/src/main/java/org/tasks/backup/TasksJsonImporter.kt` | content ×4 | Microsoft→本地导入叠加到上游 `canonicalized` / `accountUuidMap` / `calendarUuidMap` / `perTaskDirty` 结构；详见 3.1。**该定制已于 2026-10-24 revert，见 9.3** |
 | 10 | `app/src/main/java/org/tasks/preferences/fragments/BackupsViewModel.kt` | content ×4 | 保留设置导出/导入；采用上游 `suspend formatLastBackup`；移除已删除的 `p_leakcanary` 忽略键 |
 | 11 | `app/src/main/res/values/strings.xml` | content | 保留 git sync + 设置导入导出文案；跟随上游删除 blog 通知条目 |
 | 12 | `app/src/main/res/values-zh-rCN/strings.xml` | content | 保留设置导入导出中文；`export_toast` 采用上游措辞 |
@@ -47,7 +47,10 @@
 
 > 注：表中编号以"处理项"计；git 报告的原始冲突项为 15 条。
 
-### 3.1 Microsoft → 本地任务导入（语义冲突，行为有变更）
+### 3.1 Microsoft → 本地任务导入（历史记录：该定制已于 2026-10-24 revert）
+
+> 以下内容记录 2026-10-19 合并当时对这条 fork 定制做的移植与行为修正，**现已不适用**：
+> 整段定制已从 `TasksJsonImporter.kt` 移除，文件与上游一致。原因与取证见 9.3。
 
 fork 原实现分两处：导入 `caldavAccounts` 时跳过 Microsoft 账号并记 UUID；导入 `caldavCalendars` 时把 Microsoft 日历改挂本地账号；导入任务时用**已被改写的日历**去比对 Microsoft UUID。
 
@@ -87,7 +90,7 @@ caldavDao.insert(caldavTask.copy(
 | 10 | 环境变量签名（`a36a14f4a7` / `93362eb416`） | `app/build.gradle.kts` | ✅ 保留 | release APK `apksigner verify`：`CN=pisces312` |
 | 11 | 禁用 oss-licenses 插件 | `app/build.gradle.kts` | ✅ 保留 | 插件行仍注释 |
 | 12 | JGit + mwiede jsch（Git 同步依赖） | `app/build.gradle.kts`、`app/proguard.pro` | ✅ 保留且经 R8 验证 | 依赖 3 条在；`mapping.txt` 中 31,655 条 `org.eclipse.jgit.*` 未裁剪 |
-| 13 | Microsoft → 本地导入（`8ddde1750e` / `bd189c39dd`） | `TasksJsonImporter.kt` | ✅ 保留，行为修正 | 见 3.1 |
+| 13 | Microsoft → 本地导入（`8ddde1750e` / `bd189c39dd`） | `TasksJsonImporter.kt` | ↩️ 合并时保留，2026-10-24 已 revert | 见 3.1 与 9.3 |
 | 14 | 设置按钮状态栏遮挡修复（`e492b1e383`） | `HomeScreen.kt` | ✅ 保留 | `LaunchedEffect(currentWindowInsets) { windowInsets.value = currentWindowInsets }` |
 | 15 | 任务列表内边距立即生效 | `TaskListFragment.kt` | ✅ 保留（自动合并） | `updatePadding(top=...)` 后仍有 `requestLayout()` |
 | 16 | Windows 符号链接兼容（`57f6130d77`） | `app/src/androidTest/**` 占位文件 | ➖ 已被上游方案取代 | 上游改用 `app/src/sharedTest/java`；仓库内符号链接数 = 0 |
@@ -156,8 +159,9 @@ caldavDao.insert(caldavTask.copy(
    - 结论：git 仓库里的 `tasks.json` 只适合做版本化/人类可读快照，**不能**通过"导入备份"还原。
      若要支持还原，需给 `GitJsonExporter` 增加 `"data":{...}` 包裹。
 3. **Git 同步界面无中文翻译**：`values-zh-rCN` 中 `git_sync*` 键数量为 0（合并前后一致），中文环境显示英文。
-4. **真机验证尚未执行**：Git 同步往返（需 SSH key + 远端仓库）、设置导出/导入、Microsoft 旧备份导入
+4. **真机验证尚未执行**：Git 同步往返（需 SSH key + 远端仓库）、设置导出/导入
    建议在设备上各跑一遍；编译与打包只能证明接口/资源层正确。
+   （原列的"Microsoft 旧备份导入"随 9.3 的 revert 一并取消：导入行为已与上游一致。）
 5. **推送未执行**：本地 `main` 领先 `origin/main` 994 个提交，`git push` 需你显式确认。
 6. **未跟踪文件**：`docs/agp-deprecation-migration-plan.md`、`.workbuddy/` 未纳入提交。
 
@@ -210,7 +214,7 @@ caldavDao.insert(caldavTask.copy(
 | 1 | `iosTest` | `:kmp:linkDebugTestIosSimulatorArm64` Kotlin/Native 后端内部错误 | 上游已修的坑，fork 未合进回退 | 已修（待 CI 验证） |
 | 2 | `jvmTest` | `RobolectricSmokeTest` 1/605 失败 | fork `.debug` 后缀 vs 上游测试硬编码 | 已修，本地两 flavor 全绿 |
 | 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 已修（kmp BuildConfig + 文档测试，待 CI connected 验证） |
-| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 待定（见 9.3） |
+| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 已修（revert fork 改动，见 9.3） |
 | 4 | `instrumentedTest` | `TitleParserTest.testDays` 报告显示 failed | 假警报（`@Ignore`） | 无需处理 |
 
 ### 9.1 Kotlin 2.4.21 触发 K/N 编译器 bug
@@ -299,11 +303,25 @@ klib 时后端崩。取证对照：上游 renovate 提交 `b9095f6656 "Update ko
 
 `TasksJsonImporterTest.deduplicateMicrosoftByUsername` 报 `expected:<0> but was:<1>`
 （断言在 `app/src/androidTest/java/org/tasks/backup/TasksJsonImporterTest.kt:232`，即
-`assertEquals(0, result.importCount)`）。原因是 fork 的设置导出/导入定制：
+`assertEquals(0, result.importCount)`）。原因是 fork 当时的导入定制：
 `app/src/main/java/org/tasks/backup/TasksJsonImporter.kt:232` 起会跳过 `TYPE_MICROSOFT` 账户
 （要求用户手动重新登录），并把其日历重定向到本地账户，于是备份里的 Outlook 任务被当新任务导入，
 而不是像上游那样按 username 去重成 0。属于**语义冲突**，需要决定：调整测试期望以匹配 fork 行为，
 还是让微软去重路径继续成立。
+
+> 决定与处理（2026-10-24）：**revert fork 的这段定制**，`TasksJsonImporter.kt` 恢复成合并时上游一侧
+> （`34d26b372f^2`）的版本。理由：
+> 1. `CaldavAccount.password` 带 `@Transient`（`data/src/commonMain/.../entity/CaldavAccount.kt`），
+>    `TasksJsonExporter` 写出的备份不含凭据。即使不跳过，还原出来的 Microsoft 账户也是空壳，
+>    用户仍必须手动登录 —— fork 那段"跳过 + 重定向到本地账户"保护到的收益很小。
+> 2. 用户现有的 Microsoft 数据已转成本地清单，该定制的实际用途已归零。
+> 3. 它是**每次合上游都会复发的冲突源**：上游测试断言 `importCount == 0`，fork 逻辑必然让它变成 1。
+> 4. 行为回归面：导入含 Microsoft 账户的旧备份后，该账户无凭据、需手动登录 —— 与上游一致，非回归。
+>
+> 取证：`git diff 34d26b372f^2 HEAD -- TasksJsonImporter.kt` 只有 45+/2-，全部是微软相关；
+> `TasksJsonImporterTest.kt` 与上游同一版本（diff 为 0）。所以 revert 不会顺带引入其它上游改动。
+> 同步更新了 `docs/upstream-merge-conventions.md`（第 1 节原则 2 的举例、第 4 节冲突表），
+> 否则下次合并会按旧约定把这段逻辑再"移植"回来。
 
 ### 9.4 假警报：`TitleParserTest.testDays`
 

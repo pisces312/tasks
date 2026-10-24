@@ -47,11 +47,9 @@ import org.tasks.data.dao.TagDataDao
 import org.tasks.data.dao.TaskAttachmentDao
 import org.tasks.data.dao.TaskListMetadataDao
 import org.tasks.data.dao.UserActivityDao
-import org.tasks.data.getLocalAccount
 import org.tasks.data.entity.Attachment
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavAccount.Companion.TYPE_GOOGLE_TASKS
-import org.tasks.data.entity.CaldavAccount.Companion.TYPE_MICROSOFT
 import org.tasks.data.entity.CaldavCalendar
 import org.tasks.data.entity.CaldavTask
 import org.tasks.data.entity.Filter
@@ -96,9 +94,6 @@ class TasksJsonImporter @Inject constructor(
     private val firebase: Firebase,
     private val upgrade_15_10: Upgrade_15_10,
 ) {
-    private val microsoftAccountUuids = mutableSetOf<String>()
-    private val microsoftCalendarUuids = mutableSetOf<String>()
-
     suspend fun importTasks(
         context: Context,
         backupFile: Uri?,
@@ -166,10 +161,6 @@ class TasksJsonImporter @Inject constructor(
         accountUuidMap: MutableMap<String, String>,
         calendarUuidMap: MutableMap<String, String>,
     ): Int {
-        // Collect Microsoft account UUIDs to skip during import
-        // Get local account for redirecting Microsoft calendars
-        var localAccountUuid: String? = null
-
         val `is` = inputStreamProvider()
         val bufferedReader = `is`.bufferedReader(Charsets.UTF_8)
         val reader = JsonReader(bufferedReader)
@@ -229,13 +220,6 @@ class TasksJsonImporter @Inject constructor(
                                 } else {
                                     imported
                                 }
-                                if (account.accountType == TYPE_MICROSOFT) {
-                                    // Skip Microsoft accounts during import
-                                    // User must manually sign in if they want to use it
-                                    account.uuid?.let { microsoftAccountUuids.add(it) }
-                                    Timber.i("Skipping Microsoft account during import: ${account.name}")
-                                    return@forEach
-                                }
                                 importedAccounts[account.uuid!!] = account
                                 if (caldavDao.getAccountByUuid(account.uuid!!) != null) {
                                     return@forEach
@@ -256,22 +240,7 @@ class TasksJsonImporter @Inject constructor(
                                 } else {
                                     imported
                                 }
-                                // Calendars belonging to a skipped Microsoft account are
-                                // redirected to the local account so their tasks become local
-                                val originalAccount = calendar.account
-                                val isFromMicrosoft = originalAccount != null &&
-                                    microsoftAccountUuids.contains(originalAccount)
-                                if (isFromMicrosoft) {
-                                    calendar.uuid?.let { microsoftCalendarUuids.add(it) }
-                                }
-                                val remappedAccount = if (isFromMicrosoft) {
-                                    // Lazily get local account uuid when first needed
-                                    localAccountUuid ?: caldavDao.getLocalAccount().uuid.also {
-                                        localAccountUuid = it
-                                    }
-                                } else {
-                                    accountUuidMap[calendar.account] ?: calendar.account
-                                }
+                                val remappedAccount = accountUuidMap[calendar.account] ?: calendar.account
                                 val existingByUrl = calendar.url
                                     ?.takeIf { it.isNotBlank() }
                                     ?.let { url ->
@@ -573,19 +542,7 @@ class TasksJsonImporter @Inject constructor(
             ?.let { taskAttachmentDao.insert(it) }
         backup.caldavTasks?.forEachIndexed { index, caldavTask ->
             val remappedCalendar = calendarUuidMap[caldavTask.calendar] ?: caldavTask.calendar
-            // Tasks imported from a skipped Microsoft account become local tasks:
-            // clear remote sync state so they are not treated as server records
-            val originalCalendarUuid = caldavTask.calendar
-            val isFromMicrosoft = originalCalendarUuid != null &&
-                microsoftCalendarUuids.contains(originalCalendarUuid)
-            val id = caldavDao.insert(
-                caldavTask.copy(
-                    task = taskId,
-                    calendar = remappedCalendar,
-                    remoteId = if (isFromMicrosoft) null else caldavTask.remoteId,
-                    remoteParent = if (isFromMicrosoft) null else caldavTask.remoteParent,
-                )
-            )
+            val id = caldavDao.insert(caldavTask.copy(task = taskId, calendar = remappedCalendar))
             if (!caldavTask.isDeleted()) {
                 val (dirty, synced) = perTaskDirty
                     ?: reconstructDirtyVersion(caldavLastSync.getOrNull(index), task.modificationDate)

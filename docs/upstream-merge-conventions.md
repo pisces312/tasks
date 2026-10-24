@@ -7,7 +7,7 @@
 ## 1. 总原则
 
 1. **默认保留 fork 定制**。冲突时先问"这条定制解决什么问题"，再决定怎么叠加，不要因为上游"看起来更完整"就整块丢弃。
-2. **上游的结构性重构要接受，fork 的语义要叠加**。典型例子：上游把导入器重构成 `canonicalized` / `accountUuidMap` / `calendarUuidMap`，fork 的"Microsoft → 本地任务"逻辑必须移植到新结构上，而不是回退到旧实现。
+2. **上游的结构性重构要接受，fork 的语义要叠加**。上游把导入器重构成 `canonicalized` / `accountUuidMap` / `calendarUuidMap` 这类结构性改动时，fork 叠加在上面的语义要移植到新结构，而不是回退到旧实现。（曾经的典型例子"Microsoft → 本地任务"已于 2026-10-24 revert，见第 4 节。）
 3. **能用上游方案替代 fork 补丁时优先替代**，但要在记录里写明原因（例：androidTest 符号链接占位 → 上游 `app/src/sharedTest/java`）。
 4. **不静默改变行为**。若合并导致 fork 功能语义变化（哪怕变得"更正确"），必须单独列出并请 user review。
 
@@ -68,7 +68,7 @@ comm -12 /tmp/fork.txt /tmp/up.txt
 | `app/build.gradle.kts` | 上游工具链参数照收；fork 的 `splits.abi`、`signingConfigs.release`（env var）、JGit/jsch 依赖、`buildTypes.debug` 覆盖必须保留 |
 | `app/src/debug/AndroidManifest.xml` | 红图标 + `tools:replace`、dmfs 权限 `tools:node="remove"` 保留；`allowBackup` 跟随上游 |
 | `BuildSetup.kt`（debug/release） | 保留 `GitSyncLogCollector.timberTree`，并叠加上游 kermit `minSeverity` |
-| `TasksJsonImporter.kt` | 上游重构优先，fork 的 Microsoft 逻辑按新结构重写；注意 `remoteId` / `remoteParent` 的判定必须用**原始**日历 UUID |
+| `TasksJsonImporter.kt` | **直接采用上游版本**。fork 曾在此叠加"导入时跳过 Microsoft 账户并把其日历改挂本地账户"（`8ddde1750e` / `bd189c39dd`），已于 2026-10-24 revert：备份不含凭据（`CaldavAccount.password` 是 `@Transient`），还原出的 Microsoft 账户本来就要手动登录，而这段定制会让上游 `TasksJsonImporterTest.deduplicateMicrosoftByUsername` 每次合并都红。理由详见 [`upstream-sync-2026-10-19.md`](./upstream-sync-2026-10-19.md) 9.3 |
 | `BackupsViewModel.kt` | 保留设置导出/导入；上游改 `suspend` 就跟着改；上游删除的 `p_*` 键要从忽略表移除 |
 | `strings.xml` / `values-zh-rCN` | 保留 `git_sync*` 与设置导入导出文案；上游删除的条目照删 |
 | `app/google-services.json` | 上游从 `app/src/debug/` 移到 `app/` 后，必须同时登记 `org.tasks` 与 `org.tasks.debug` 两个 client |
