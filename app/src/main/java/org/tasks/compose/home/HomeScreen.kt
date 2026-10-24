@@ -199,6 +199,10 @@ fun HomeScreen(
         )
     }
 
+    // ModalNavigationDrawer drags from anywhere on the screen and Compose compares only the
+    // main axis against touchSlop, so a diagonal scroll can start the drawer drag at the
+    // default 8dp. 3x guards against that; it does not change the drawer's 50%-width
+    // positional threshold or native RecyclerView scrolling.
     TouchSlopMultiplier {
         ModalNavigationDrawer(
             drawerState = drawerState,

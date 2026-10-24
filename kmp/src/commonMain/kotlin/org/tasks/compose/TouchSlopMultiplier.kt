@@ -5,6 +5,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
 
+/**
+ * Inflates [ViewConfiguration.touchSlop] for every Compose gesture in [content].
+ *
+ * Compose's drag detectors compare only the main axis against the slop, so a full-screen
+ * horizontal drag (e.g. ModalNavigationDrawer) is easily started by the sideways drift of a
+ * vertical scroll. Native Android views inside [content] keep their own slop.
+ */
 @Composable
 fun TouchSlopMultiplier(
     multiplier: Float = 3f,
