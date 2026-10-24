@@ -249,6 +249,14 @@ android {
         buildConfigField("String", "DEV_URL", "\"${tasks_dev_url ?: ""}\"")
     }
 
+    buildTypes {
+        debug {
+            // library modules never get the app's applicationIdSuffix, so mirror it here or the
+            // debug provider authority/permissions won't match the merged manifest
+            buildConfigField("String", "APPLICATION_ID", "\"${libs.versions.applicationId.get()}.debug\"")
+        }
+    }
+
     packaging {
         resources {
             excludes += setOf(

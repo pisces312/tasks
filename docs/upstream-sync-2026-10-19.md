@@ -209,8 +209,8 @@ caldavDao.insert(caldavTask.copy(
 |---|---|---|---|---|
 | 1 | `iosTest` | `:kmp:linkDebugTestIosSimulatorArm64` Kotlin/Native 后端内部错误 | 上游已修的坑，fork 未合进回退 | 已修（待 CI 验证） |
 | 2 | `jvmTest` | `RobolectricSmokeTest` 1/605 失败 | fork `.debug` 后缀 vs 上游测试硬编码 | 已修，本地两 flavor 全绿 |
-| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 待修 |
-| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 待定（倾向 revert fork 改动） |
+| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 已修（kmp BuildConfig + 文档测试，待 CI connected 验证） |
+| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 待定（见 9.3） |
 | 4 | `instrumentedTest` | `TitleParserTest.testDays` 报告显示 failed | 假警报（`@Ignore`） | 无需处理 |
 
 ### 9.1 Kotlin 2.4.21 触发 K/N 编译器 bug
@@ -262,7 +262,8 @@ klib 时后端崩。取证对照：上游 renovate 提交 `b9095f6656 "Update ko
    - 代码：`kmp/src/commonMain/kotlin/org/tasks/api/TasksContract.kt` 的
      `AUTHORITY = "${TasksBuildConfig.APPLICATION_ID}.api"`，而 android 侧
      `TasksBuildConfig.APPLICATION_ID` 取自 kmp library 的 `BuildConfig`
-     （`kmp/build.gradle.kts:247`，恒为基础 id `org.tasks`；library 没有 applicationId 概念）。
+     （`kmp/build.gradle.kts` 的 `defaultConfig`，修复前恒为基础 id `org.tasks`；
+     library 模块不吃 app 的 `applicationIdSuffix`）。
    `TasksApiProvider` 的 `UriMatcher` 也用它（`addURI(TasksContract.AUTHORITY, ...)`）。
    debug 包里注册 authority 与匹配 authority 不一致 → 外部按 `org.tasks.debug.api` 访问得到
    `Unknown URL`，因此 `TasksApiIntegrationTest` 7 个用例全挂
@@ -270,6 +271,29 @@ klib 时后端崩。取证对照：上游 renovate 提交 `b9095f6656 "Update ko
    修法沿用第 5.1 节 `opentasks_authority` 的思路：给 kmp 的 `android.buildTypes.debug`
    加 `buildConfigField("String", "APPLICATION_ID", "\"<base>.debug\"")`，
    使 debug 变体的 kmp/data 与 manifest 对齐；release 不变。
+
+   **已修复（2026-10-24）**：`kmp/build.gradle.kts` 新增 `android.buildTypes.debug` 的
+   `buildConfigField`。配套改一处：`kmp/src/androidUnitTest/.../TasksContractDocTest.kt` 的
+   `everyEndpointIsInTheReference()` 原先断言 `CONTENT_PROVIDER.md` 含
+   `TasksContract.AUTHORITY / PERMISSION_READ / PERMISSION_WRITE`，而该文档写的是发布契约
+   （`org.tasks.api`、`org.tasks.permission.*`）；CI 跑的是 `kmp:testDebugUnitTest`，
+   改了 debug APPLICATION_ID 后这三条必然失败。改为对
+   `TasksBuildConfig.APPLICATION_ID.removeSuffix(".debug")` 拼出的 release 标识做断言，
+   文档仍是唯一权威契约。
+
+   验证记录：
+
+   | 检查 | 结果 |
+   |---|---|
+   | `kmp/build/generated/source/buildConfig/debug/.../BuildConfig.java` | `APPLICATION_ID = "org.tasks.debug"` |
+   | 同上 release 变体 | `APPLICATION_ID = "org.tasks"`（未受影响） |
+   | `./gradlew :kmp:testDebugUnitTest` | BUILD SUCCESSFUL，490 用例 / 0 失败 / 0 skipped；`TasksContractDocTest` 6/6，`TasksApi{Read,Write,Batch,Error}Test` 127/127 |
+   | `./gradlew :app:assembleGenericDebug -PbuildAbi=arm64-v8a` | BUILD SUCCESSFUL |
+   | 合并后 manifest（`processGenericDebugMainManifest`） | `package="org.tasks.debug"`；`android:authorities="org.tasks.debug.api"`；读写权限均为 `org.tasks.debug.permission.*` —— 与 kmp 侧 `TasksContract` 现在一致 |
+
+   `app/src/debug/AndroidManifest.xml` 早先用 `tools:node="remove"` 摘掉 dmfs 库硬编码的
+   `org.tasks.permission.{READ,WRITE}_TASKS`，与本修复方向一致，无需再动。
+   `TasksApiIntegrationTest` 的 7 个用例只能由 CI 的 connected 测试判定，本机未跑仪器测试。
 
 ### 9.3 微软账户导入：fork 行为 vs 上游测试
 

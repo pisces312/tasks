@@ -3,9 +3,13 @@ package org.tasks.api
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.tasks.TasksBuildConfig
 import java.io.File
 
 class TasksContractDocTest {
+    // CONTENT_PROVIDER.md documents the published contract; debug builds carry a ".debug" suffix
+    private val releaseApplicationId = TasksBuildConfig.APPLICATION_ID.removeSuffix(".debug")
+
     private val doc: List<String> by lazy {
         val candidates = listOf(
             File("../CONTENT_PROVIDER.md"),
@@ -64,9 +68,9 @@ class TasksContractDocTest {
         TasksContract.COLLECTIONS.forEach {
             assertTrue("/$it is not in CONTENT_PROVIDER.md", text.contains("/${TasksContract.VERSION}/$it"))
         }
-        assertTrue(text.contains(TasksContract.AUTHORITY))
-        assertTrue(text.contains(TasksContract.PERMISSION_READ))
-        assertTrue(text.contains(TasksContract.PERMISSION_WRITE))
+        assertTrue(text.contains("$releaseApplicationId.api"))
+        assertTrue(text.contains("$releaseApplicationId.permission.READ_TASKS"))
+        assertTrue(text.contains("$releaseApplicationId.permission.WRITE_TASKS"))
     }
 
     @Test
