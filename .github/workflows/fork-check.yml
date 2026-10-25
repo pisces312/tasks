@@ -1,0 +1,18 @@
+name: Fork checks
+
+# Fork-only entry point: run the upstream checks on every push to main without the
+# upstream release jobs (they need tasks/tasks' signing secrets and runner images).
+# The upstream "Assemble bundle" workflow is disabled in this repository's settings.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    uses: ./.github/workflows/check.yml

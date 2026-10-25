@@ -449,9 +449,17 @@ actual fun localizedStringComparator(): Comparator<String> = Comparator { a, b -
 fork 的正式版走本机 `./build.sh`（见 `docs/build-and-environment.md`）。因此这 4 个 job 的红色是
 **预期状态**，判断 fork 是否健康只看 `check` 的 5 个 job。
 
-若以后想让 push 不再显示红，可选做法（尚未实施，需用户决定）：在 `bundle.yml` 里给
-`android` / `desktop-jar` / `desktop` / `appimage` 加 `if: github.repository == 'tasks/tasks'`，
-或删除 fork 侧的发布 workflow。注意 `bundle.yml` 的 `push` 触发与 `check` 共用一套定义，
-改之前要确认 `check` 仍在 push 时运行。
+处理（2026-10-25，用户确认）：新增 fork 专用的
+`.github/workflows/fork-check.yml` —— push 到 `main` / 手动触发时只调用上游
+`check.yml`（`workflow_call`），不引入任何发布作业；同时在本仓库设置里停用
+"Assemble bundle"（`bundle.yml`，workflow id `263466008`，与已停用的
+"Update Dependency Diff" 同样处理）。停用状态保存在仓库设置里，不在 git 树内，
+同步上游时不会产生冲突，也不会被合并覆盖。注意：
+
+- `check.yml` 自身的 `pull_request` 触发器保持不变，PR 仍会自动检查。
+- `bundle.yml` / `android.yml` 留在仓库里只为跟随上游；将来需要 CI 发布时，
+  在 Actions 页面重新启用 "Assemble bundle" 并补上 secrets 即可。
+- 上游 `Release` workflow 仍对 tag push 生效（tag 形如 `15.13` / `15.13.1`），
+  它同样需要上游 secrets；fork 打 tag 后它若变红属同类预期，本机发布流程不受影响。
 
 

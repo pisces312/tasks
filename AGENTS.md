@@ -7,8 +7,9 @@
 
 `pisces312/tasks` —— Tasks.org 的 fork（上游 `tasks/tasks`）。fork 定制：Git 同步（JGit +
 mwiede jsch）、设置导出/导入、debug 红图标与 `.debug` 包名、ABI splits、环境变量签名。
-CI 健康看 `bundle.yml` 里 `check` 的 5 个 job（lint / jvmTest / iosTest / instrumentedTest×2）；
-`android` / `android-other` / `desktop-jar` / `pebble` 是上游发布链，fork 缺签名 secrets，红是预期状态。
+CI 由 `.github/workflows/fork-check.yml` 在 push 到 main 时触发，只调用上游 `check.yml`
+（lint / jvmTest / iosTest / instrumentedTest×2）；上游 "Assemble bundle" 发布链已在本仓库停用
+（缺签名 secrets），正式版仍走本机 `./build.sh`。
 
 ## 常用命令
 
