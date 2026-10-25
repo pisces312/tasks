@@ -213,8 +213,8 @@ caldavDao.insert(caldavTask.copy(
 |---|---|---|---|---|
 | 1 | `iosTest` | `:kmp:linkDebugTestIosSimulatorArm64` Kotlin/Native 后端内部错误 | 上游已修的坑，fork 未合进回退 | 已修（待 CI 验证） |
 | 2 | `jvmTest` | `RobolectricSmokeTest` 1/605 失败 | fork `.debug` 后缀 vs 上游测试硬编码 | 已修，本地两 flavor 全绿 |
-| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 已修（kmp BuildConfig + 文档测试，待 CI connected 验证） |
-| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 已修（revert fork 改动，见 9.3） |
+| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 已修，本机 connected 7/7 通过（待 CI 验证） |
+| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 已修（revert fork 改动），本机 connected 9/9 通过 |
 | 4 | `instrumentedTest` | `TitleParserTest.testDays` 报告显示 failed | 假警报（`@Ignore`） | 无需处理 |
 
 ### 9.1 Kotlin 2.4.21 触发 K/N 编译器 bug
@@ -294,10 +294,27 @@ klib 时后端崩。取证对照：上游 renovate 提交 `b9095f6656 "Update ko
    | `./gradlew :kmp:testDebugUnitTest` | BUILD SUCCESSFUL，490 用例 / 0 失败 / 0 skipped；`TasksContractDocTest` 6/6，`TasksApi{Read,Write,Batch,Error}Test` 127/127 |
    | `./gradlew :app:assembleGenericDebug -PbuildAbi=arm64-v8a` | BUILD SUCCESSFUL |
    | 合并后 manifest（`processGenericDebugMainManifest`） | `package="org.tasks.debug"`；`android:authorities="org.tasks.debug.api"`；读写权限均为 `org.tasks.debug.permission.*` —— 与 kmp 侧 `TasksContract` 现在一致 |
+   | 模拟器 `:app:connectedGenericDebugAndroidTest`（pixel6 AVD，API 34） | `TasksApiIntegrationTest` **7/7 通过**（修复前 7/7 挂在 `Unknown authority org.tasks.api`）；`TasksJsonImporterTest` **9/9 通过** |
+
+   **本地跑仪器测试的坑**：必须**构建全部 ABI**（不要带 `-PbuildAbi=arm64-v8a`）。
+   本机 AVD 是 `sdk_gphone64_x86_64`，arm64-only APK 靠 native bridge 转译运行时，
+   Mockito 的 inline mock maker 无法 attach JVMTI agent：
+
+   ```
+   java.io.IOException: Native-bridge agents unsupported: libdexmakerjvmtiagent.so
+     at dalvik.system.VMDebug.nativeAttachAgent(Native Method)
+     at com.android.dx.mockito.inline.JvmtiAgent.<init>(JvmtiAgent.java:65)
+   ```
+
+   后果是**所有** `InjectingTestCase` 子类在 `TestModule.getWorkManager` 处
+   `NullPointerException: ... MockMaker$TypeMockability.mockable() on a null object reference`，
+   看起来像"测试全挂"，其实与代码无关。
+   另外 `-Pandroid.testInstrumentationRunnerArguments.class=A,B` 实测**只跑了第一个类**，
+   要两个类就分两次跑（或改用 package 过滤）。
 
    `app/src/debug/AndroidManifest.xml` 早先用 `tools:node="remove"` 摘掉 dmfs 库硬编码的
    `org.tasks.permission.{READ,WRITE}_TASKS`，与本修复方向一致，无需再动。
-   `TasksApiIntegrationTest` 的 7 个用例只能由 CI 的 connected 测试判定，本机未跑仪器测试。
+   `TasksApiIntegrationTest` 已在本机 pixel6 AVD（API 34）上跑通 7/7。
 
 ### 9.3 微软账户导入：fork 行为 vs 上游测试
 
@@ -322,6 +339,10 @@ klib 时后端崩。取证对照：上游 renovate 提交 `b9095f6656 "Update ko
 > `TasksJsonImporterTest.kt` 与上游同一版本（diff 为 0）。所以 revert 不会顺带引入其它上游改动。
 > 同步更新了 `docs/upstream-merge-conventions.md`（第 1 节原则 2 的举例、第 4 节冲突表），
 > 否则下次合并会按旧约定把这段逻辑再"移植"回来。
+>
+> 验证：`TasksJsonImporterTest` 在 pixel6 AVD（API 34）上 **9/9 通过**，含
+> `deduplicateMicrosoftByUsername`、`deduplicateCaldavAccount`、`importNewTaskToRemappedCalendar`。
+> 本地跑法见 9.2 的"本地跑仪器测试的坑"（必须构建全部 ABI）。
 
 ### 9.4 假警报：`TitleParserTest.testDays`
 
