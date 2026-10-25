@@ -462,4 +462,8 @@ fork 的正式版走本机 `./build.sh`（见 `docs/build-and-environment.md`）
 - 上游 `Release` workflow 仍对 tag push 生效（tag 形如 `15.13` / `15.13.1`），
   它同样需要上游 secrets；fork 打 tag 后它若变红属同类预期，本机发布流程不受影响。
 
+验证：[run 40159929732](https://github.com/pisces312/tasks/actions/runs/40159929732)（`f765814e3b`，
+"Fork checks"）conclusion 为 success，5 个 job 全绿——这是合并后第一个整条绿的 run。
+停用前启动的最后一个 "Assemble bundle"（run `40159813210`）仍按预期红在发布作业上。
+
 
