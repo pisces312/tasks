@@ -234,6 +234,11 @@ fun TaskListDrawer(
                 }
                 val reorderable = reorderEnabled && item.reorderGroup() != null
                 val dragging = draggingKey == item.key()
+                // The dragged row is positioned by dragOffset, which assumes its layout slot jumps
+                // by a full row the moment DrawerReorderState swaps it. Placement animation would
+                // start that jump from the old slot and make the row sink and settle on every
+                // crossing; only the rows it displaces animate.
+                val placementModifier = if (dragging) Modifier else Modifier.animateItem()
                 val dragModifier = if (reorderable) {
                     Modifier
                         .zIndex(if (dragging) 1f else 0f)
@@ -286,8 +291,7 @@ fun TaskListDrawer(
                     Modifier
                 }
                 Surface(
-                    modifier = Modifier
-                        .animateItem()
+                    modifier = placementModifier
                         .padding(
                             start = DrawerItemInset,
                             end = DrawerItemInset,

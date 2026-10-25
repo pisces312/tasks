@@ -120,6 +120,11 @@ NAME 模式下手势完全禁用，避免出现「拖了但顺序又被名称排
 **视觉反馈**：拖拽中的行 `zIndex = 1f` + `graphicsLayer { translationY }` + `shadowElevation 6dp`，
 其余行靠 `Modifier.animateItem()` 平移到新位置；起手时给一次 `HapticFeedbackType.LongPress`。
 
+**被拖行不能挂 `animateItem()`**：`translationY` 的补偿（交换时 `offsetY` 立即减/加一整行）
+成立的前提是行的布局槽位同帧跳变。若被拖行也参与 placement 动画，交换那一帧槽位还停在旧位置、
+位移补偿却已经加上，行会先下沉约一行再被动画拉回，表现为每越过一条就顿一下。因此
+`animateItem()` 只给非拖拽行，代码里用 `placementModifier` 做这个区分，不要改回无条件修饰。
+
 **不回弹**：松手后 `reorderItems` 继续显示拖出来的顺序，直到 `drawerState.drawerItems`
 （数据库刷新后重新下发的列表）到达，由 `LaunchedEffect(drawerState.drawerItems)` 清空。
 `onDragCancel` 直接丢弃临时顺序。`finish()` 在没发生交换时返回 `null`，
