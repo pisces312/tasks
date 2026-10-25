@@ -216,6 +216,7 @@ caldavDao.insert(caldavTask.copy(
 | 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 已修，本机 connected 7/7 通过（待 CI 验证） |
 | 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 已修（revert fork 改动），本机 connected 9/9 通过 |
 | 4 | `instrumentedTest` | `TitleParserTest.testDays` 报告显示 failed | 假警报（`@Ignore`） | 无需处理 |
+| 1b | `iosTest` | `:kmp:compileKotlinIosArm64` 三处 `Unresolved reference` | `104129b631` 新增的 iOS actual 从未编译过 | 已修，待 CI 验证（见 9.7） |
 
 ### 9.1 Kotlin 2.4.21 触发 K/N 编译器 bug
 
@@ -381,3 +382,44 @@ CI 检出的也是 LF，只有这份工作副本是 CRLF（早先 `core.autocrlf
   只在本地跑换行敏感测试时按需处理单个夹具。
 - 顺带提醒：`app/scripts/resize-launcher.sh`、`app/scripts/resize-notification.sh` 在本地也是 CRLF
   （`build.sh` 是 LF），在 Git Bash 里直接执行可能报 `\r` 相关错误。
+
+### 9.7 第二轮 `iosTest`：K/N 崩溃之后暴露出的新编译错误
+
+降 Kotlin 之后 `linkDebugTestIosSimulatorArm64` 的 K/N 崩溃消失（`data:...` 任务已能跑完），
+`iosTest` 改为挂在 `:kmp:compileKotlinIosArm64`：
+
+```
+e: .../kmp/src/iosMain/kotlin/org/tasks/filters/LocalizedStringComparator.ios.kt:7:27 Unresolved reference 'localizedStandardCompare'.
+e: .../kmp/src/iosMain/kotlin/org/tasks/filters/LocalizedStringComparator.ios.kt:8:28 Unresolved reference 'NSOrderedAscending'.
+e: .../kmp/src/iosMain/kotlin/org/tasks/filters/LocalizedStringComparator.ios.kt:9:28 Unresolved reference 'NSOrderedDescending'.
+```
+
+来源：`104129b631 "Add drawer sorting and in-place manual reorder"`（另一会话）新增的
+iOS actual，此前从未被编译过（上一次 CI 红在合并点 `8f9a53c51f`，不含该提交）。
+
+原因与修法（Windows 上无法编译 iOS，靠以下两类证据，最终由 CI 判定）：
+
+- `localizedStandardCompare` 在 K/N 里是 `platform.Foundation` 包内的**扩展函数**，
+  跨包调用必须显式 import——与仓库里已能编译的
+  `kmp/src/iosMain/.../time/PlatformDateFormatter.ios.kt`（`import platform.Foundation.localeIdentifier`
+  / `dateWithTimeIntervalSince1970` / `NSDateFormatterFullStyle`）是同一个机制。
+- `NSComparisonResult` 是 `NS_ENUM(NSInteger, ...)`，在 K/N 里映射成数值类型别名，
+  不是 Kotlin enum class。GitHub 代码搜索：`import platform.Foundation.localizedStandardCompare`
+  命中 6 个真实 KMP 项目（如 `cy745/LMusic-KMP`、`OctoconDev/app`），它们都写成
+  `(s as NSString).localizedStandardCompare(o).toInt()`；而 `NSComparisonResult.NSOrderedAscending`
+  这种类限定写法 **0 命中**。
+
+因此改为与上述项目一致的写法：
+
+```kotlin
+import platform.Foundation.NSString
+import platform.Foundation.localizedStandardCompare
+
+@Suppress("CAST_NEVER_SUCCEEDS")
+actual fun localizedStringComparator(): Comparator<String> = Comparator { a, b ->
+    (a as NSString).localizedStandardCompare(b).toInt()
+}
+```
+
+顺带说明：`@Suppress("CAST_NEVER_SUCCEEDS")` 只是消警告，仓库没有开 `allWarningsAsErrors`。
+
