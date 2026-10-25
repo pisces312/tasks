@@ -1,7 +1,7 @@
 # 上游合并约定（fork 维护手册）
 
 适用仓库：`pisces312/tasks`（fork 自 `tasks/tasks`）。
-本文是"合并上游"这件事的唯一权威约定；`AGENTS.md` 只保留入口与摘要。
+本文是"合并上游"这件事的唯一权威约定；`AGENTS.md` 只保留入口与硬规则。
 最近一次执行记录：[`upstream-sync-2026-10-19.md`](./upstream-sync-2026-10-19.md)。
 
 ## 1. 总原则
