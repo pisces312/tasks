@@ -43,6 +43,7 @@ CI 由 `.github/workflows/fork-check.yml` 在 push 到 main 时触发，只调�
 |---|---|
 | 模块、flavor、debug 包名契约、技术栈 | [`docs/architecture.md`](docs/architecture.md) |
 | 构建命令、签名、JDK、ABI、本地跑仪器测试 | [`docs/build-and-environment.md`](docs/build-and-environment.md) |
+| 模拟器上手动验证 UI（装包、驱动、录屏、帧级位移测量） | [`.qoder/skills/tasks-emulator-verify/SKILL.md`](.qoder/skills/tasks-emulator-verify/SKILL.md) |
 | 多语言约定（只维护 en + zh-rCN） | [`docs/i18n.md`](docs/i18n.md) |
 | **合并上游（必读）** | [`docs/upstream-merge-conventions.md`](docs/upstream-merge-conventions.md) |
 | 最近一次合并与 CI 复查记录 | [`docs/upstream-sync-2026-10-19.md`](docs/upstream-sync-2026-10-19.md) |
