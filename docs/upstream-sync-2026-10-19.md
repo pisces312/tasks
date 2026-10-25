@@ -202,7 +202,8 @@ caldavDao.insert(caldavTask.copy(
 
 ## 9. CI 红灯复查（2026-10-24）
 
-合并后 `.github/workflows/check.yml`（"Assemble bundle"）从 `34d26b372f` 之后**每次 push 都红**：
+合并后 `.github/workflows/bundle.yml`（workflow 名 "Assemble bundle"，内含 `check` 与发布作业）
+从 `34d26b372f` 之后**每次 push 都红**：
 `6d48e077`→`8f9a53c5` 连续 5 个 run 失败在同一批 job 上（最新一次
 [run 39855270848](https://github.com/pisces312/tasks/actions/runs/39855270848)）。
 逐条取证（`gh run view --log-failed` + 下载 `test-reports-*` artifact 读 HTML 报告）后，
@@ -211,12 +212,18 @@ caldavDao.insert(caldavTask.copy(
 
 | # | job | 现象 | 定性 | 状态 |
 |---|---|---|---|---|
-| 1 | `iosTest` | `:kmp:linkDebugTestIosSimulatorArm64` Kotlin/Native 后端内部错误 | 上游已修的坑，fork 未合进回退 | 已修（待 CI 验证） |
+| 1 | `iosTest` | `:kmp:linkDebugTestIosSimulatorArm64` Kotlin/Native 后端内部错误 | 上游已修的坑，fork 未合进回退 | 已修，CI 通过（run 40157755933） |
 | 2 | `jvmTest` | `RobolectricSmokeTest` 1/605 失败 | fork `.debug` 后缀 vs 上游测试硬编码 | 已修，本地两 flavor 全绿 |
-| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 已修，本机 connected 7/7 通过（待 CI 验证） |
-| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 已修（revert fork 改动），本机 connected 9/9 通过 |
+| 3 | `instrumentedTest` | `TasksApiIntegrationTest` 7/7 失败 | fork `.debug` 后缀 → **debug 包 API provider 实际不可用** | 已修，本机 connected 7/7 + CI 通过 |
+| 3b | `instrumentedTest` | `TasksJsonImporterTest.deduplicateMicrosoftByUsername` | fork 导入特性 vs 上游测试期望 | 已修（revert fork 改动），本机 connected 9/9 + CI 通过 |
 | 4 | `instrumentedTest` | `TitleParserTest.testDays` 报告显示 failed | 假警报（`@Ignore`） | 无需处理 |
-| 1b | `iosTest` | `:kmp:compileKotlinIosArm64` 三处 `Unresolved reference` | `104129b631` 新增的 iOS actual 从未编译过 | 已修，待 CI 验证（见 9.7） |
+| 1b | `iosTest` | `:kmp:compileKotlinIosArm64` 三处 `Unresolved reference` | `104129b631` 新增的 iOS actual 从未编译过 | 已修，CI 通过（run 40157755933，见 9.7） |
+
+> 收尾（2026-10-25）：[run 40157755933](https://github.com/pisces312/tasks/actions/runs/40157755933)
+> 上 `check` 的 5 个 job（`lint` / `jvmTest` / `iosTest` / `instrumentedTest (Generic, 29)` /
+> `instrumentedTest (Googleplay, 29)`）**全部 success**。该 run 整体仍显示 failure，是因为另一半
+> 发布作业失败——与上面六个原因无关，见 9.8。
+
 
 ### 9.1 Kotlin 2.4.21 触发 K/N 编译器 bug
 
@@ -422,4 +429,29 @@ actual fun localizedStringComparator(): Comparator<String> = Comparator { a, b -
 ```
 
 顺带说明：`@Suppress("CAST_NEVER_SUCCEEDS")` 只是消警告，仓库没有开 `allWarningsAsErrors`。
+
+验证（2026-10-25，`6b005f5559`）：[run 40157755933](https://github.com/pisces312/tasks/actions/runs/40157755933)
+的 `check / iosTest` 为 success，日志里 `:data:iosSimulatorArm64Test`、`:kmp:iosSimulatorArm64Test`
+都实际执行，`BUILD SUCCESSFUL in 22m 41s`（`:composeApp:iosSimulatorArm64Test` 仍按上游配置 SKIPPED）。
+
+### 9.8 剩下的红：发布作业需要上游的签名 secrets
+
+`check` 全绿之后，同一个 run 里仍有 4 个 job 红，全部与代码无关，也**不打算在这里修**：
+
+| job | 直接原因 | 定性 |
+|---|---|---|
+| `android / android` | `:app:validateSigningGoogleplayRelease` → `Keystore file not set for signing config release` | fork 没配 `KEY_STORE` 等 secrets（上游 `android.yml:87-98`） |
+| `android / android-other` | `:app:validateSigningGenericRelease` → 同上 | 同上（用的是 `GENERIC_KEY_*` 系列 secrets） |
+| `desktop-jar` | `composeApp/build-sqlite-natives.sh` 校验失败：`file` 报 `ARM64`，脚本 grep 的是 `Aarch64` | 上游脚本在新 runner 镜像上的判定过窄 |
+| `android / pebble` | `The version '3.13.12' with architecture 'x64' was not found for Ubuntu 26.04` | 上游 `setup-python` 固定版本在新镜像不可用 |
+
+结论：fork 的仓库不可见上游 secrets，也不应该把发布 keystore 放进 Actions secrets 之外的任何地方；
+fork 的正式版走本机 `./build.sh`（见 `docs/build-and-environment.md`）。因此这 4 个 job 的红色是
+**预期状态**，判断 fork 是否健康只看 `check` 的 5 个 job。
+
+若以后想让 push 不再显示红，可选做法（尚未实施，需用户决定）：在 `bundle.yml` 里给
+`android` / `desktop-jar` / `desktop` / `appimage` 加 `if: github.repository == 'tasks/tasks'`，
+或删除 fork 侧的发布 workflow。注意 `bundle.yml` 的 `push` 触发与 `check` 共用一套定义，
+改之前要确认 `check` 仍在 push 时运行。
+
 

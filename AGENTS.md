@@ -7,6 +7,8 @@
 
 `pisces312/tasks` —— Tasks.org 的 fork（上游 `tasks/tasks`）。fork 定制：Git 同步（JGit +
 mwiede jsch）、设置导出/导入、debug 红图标与 `.debug` 包名、ABI splits、环境变量签名。
+CI 健康看 `bundle.yml` 里 `check` 的 5 个 job（lint / jvmTest / iosTest / instrumentedTest×2）；
+`android` / `android-other` / `desktop-jar` / `pebble` 是上游发布链，fork 缺签名 secrets，红是预期状态。
 
 ## 常用命令
 
