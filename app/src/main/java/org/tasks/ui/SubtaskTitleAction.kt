@@ -10,5 +10,5 @@ sealed interface SubtaskTitleAction {
     data object AddSubtask : SubtaskTitleAction
     data class CompleteNewSubtask(val task: Task) : SubtaskTitleAction
     data class DeleteNewSubtask(val task: Task) : SubtaskTitleAction
-    data class BeginEdit(val task: Task) : SubtaskTitleAction
+    data class BeginEdit(val task: Task, val cursorOffset: Int? = null) : SubtaskTitleAction
 }

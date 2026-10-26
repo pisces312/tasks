@@ -31,9 +31,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -69,6 +74,9 @@ import tasks.kmp.generated.resources.TEA_add_subtask
 import tasks.kmp.generated.resources.subtasks_multilevel_google_task
 import tasks.kmp.generated.resources.subtasks_multilevel_microsoft
 
+/** Vertical offset aligning a subtask title with the top of its checkbox. */
+private val SUBTASK_TITLE_TOP_PADDING = 12.dp
+
 @Composable
 fun SubtaskRow(
     originalFilter: CaldavFilter,
@@ -77,10 +85,11 @@ fun SubtaskRow(
     existingSubtasks: TasksResults,
     newSubtasks: List<Task>,
     inlineTitleEdit: InlineTitleEditState?,
-    editSubtask: (Task) -> Unit,
+    editSubtask: (Task, Int?) -> Unit,
     changeSubtaskTitle: (Long, String) -> Unit,
     commitSubtaskTitle: () -> Unit,
     subtaskTitleFocusLost: (Long) -> Unit,
+    onCursorRequestConsumed: (Long, Long) -> Unit,
     openSubtask: (Task) -> Unit,
     completeExistingSubtask: (Task, Boolean) -> Unit,
     completeNewSubtask: (Task) -> Unit,
@@ -132,10 +141,11 @@ fun SubtaskRow(
                                 task = task,
                                 indent = if (filter.isIcalendar) task.indent else 0,
                                 editState = inlineTitleEdit?.takeIf { it.taskId == task.id },
-                                onTitleClick = { editSubtask(task.task) },
+                                onTitleClick = { cursorOffset -> editSubtask(task.task, cursorOffset) },
                                 onTitleChange = changeSubtaskTitle,
                                 onCommit = commitSubtaskTitle,
                                 onFocusLost = { subtaskTitleFocusLost(task.id) },
+                                onCursorRequestConsumed = onCursorRequestConsumed,
                                 onOpenClick = { openSubtask(task.task) },
                                 onCompleteClick = {
                                     completeExistingSubtask(
@@ -196,7 +206,7 @@ fun NewSubtaskRow(
                 .focusRequester(focusRequester)
                 .alpha(if (subtask.isCompleted) ContentAlpha.disabled else ContentAlpha.high)
                 .align(Alignment.Top)
-                .padding(top = 12.dp),
+                .padding(top = SUBTASK_TITLE_TOP_PADDING),
             textStyle = MaterialTheme.typography.bodyLarge.copy(
                 textDecoration = if (subtask.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
                 textDirection = TextDirection.Content,
@@ -228,10 +238,11 @@ fun ExistingSubtaskRow(
     task: TaskContainer,
     indent: Int,
     editState: InlineTitleEditState?,
-    onTitleClick: () -> Unit,
+    onTitleClick: (cursorOffset: Int?) -> Unit,
     onTitleChange: (Long, String) -> Unit,
     onCommit: () -> Unit,
     onFocusLost: () -> Unit,
+    onCursorRequestConsumed: (Long, Long) -> Unit,
     onOpenClick: () -> Unit,
     onCompleteClick: () -> Unit,
     onToggleSubtaskClick: () -> Unit,
@@ -264,18 +275,51 @@ fun ExistingSubtaskRow(
             modifier = Modifier.align(Alignment.Top),
         )
         if (editState == null) {
+            val title = task.title!!
+            val topPaddingPx = with(LocalDensity.current) { SUBTASK_TITLE_TOP_PADDING.toPx() }
+            var textLayout by remember(task.id) { mutableStateOf<TextLayoutResult?>(null) }
+            var tapPosition by remember(task.id) { mutableStateOf<Offset?>(null) }
             Text(
-                text = task.title!!,
+                text = title,
+                onTextLayout = { textLayout = it },
                 modifier = Modifier
                     .weight(1f)
+                    // Observes the gesture on the Initial pass so the tap position is recorded
+                    // before the inner clickable handles it. Coordinates include the title's top
+                    // padding, which is subtracted to match TextLayoutResult's origin.
+                    .pointerInput(task.id) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Initial)
+                                val change = event.changes.lastOrNull() ?: continue
+                                tapPosition = if (change.pressed || change.previousPressed) {
+                                    change.position
+                                } else {
+                                    null
+                                }
+                            }
+                        }
+                    }
                     .clickable(
                         enabled = !task.isReadOnly,
                         onClickLabel = stringResource(R.string.TAd_actionEditTask),
-                    ) { onTitleClick() }
+                    ) {
+                        val tap = tapPosition
+                        tapPosition = null
+                        val layout = textLayout
+                        val cursorOffset = if (tap != null && layout != null) {
+                            layout
+                                .getOffsetForPosition(Offset(tap.x, tap.y - topPaddingPx))
+                                .coerceIn(0, title.length)
+                        } else {
+                            null
+                        }
+                        onTitleClick(cursorOffset)
+                    }
                     .heightIn(min = 48.dp)
                     .alpha(titleAlpha)
                     .align(Alignment.Top)
-                    .padding(top = 12.dp),
+                    .padding(top = SUBTASK_TITLE_TOP_PADDING),
                 style = titleStyle,
             )
         } else {
@@ -283,7 +327,10 @@ fun ExistingSubtaskRow(
                 mutableStateOf(
                     TextFieldValue(
                         text = editState.draftTitle,
-                        selection = TextRange(editState.draftTitle.length),
+                        selection = TextRange(
+                            (editState.cursorOffset ?: editState.draftTitle.length)
+                                .coerceIn(0, editState.draftTitle.length)
+                        ),
                     )
                 )
             }
@@ -313,7 +360,7 @@ fun ExistingSubtaskRow(
                     }
                     .alpha(titleAlpha)
                     .align(Alignment.Top)
-                    .padding(top = 12.dp),
+                    .padding(top = SUBTASK_TITLE_TOP_PADDING),
                 textStyle = titleStyle,
                 keyboardOptions = KeyboardOptions.Default.copy(
                     capitalization = KeyboardCapitalization.Sentences,
@@ -327,6 +374,13 @@ fun ExistingSubtaskRow(
                 if (!editState.saving) {
                     focusRequester.requestFocus()
                     keyboard?.show()
+                }
+            }
+            // The initial selection above has been applied in this composition; consume the
+            // request so a later view recreation does not pull the cursor back to the tap point.
+            LaunchedEffect(editState.cursorRequestId) {
+                editState.cursorRequestId?.let {
+                    onCursorRequestConsumed(editState.taskId, it)
                 }
             }
         }
@@ -364,10 +418,11 @@ fun NoSubtasks() {
             existingSubtasks = TasksResults.Results(SectionedDataSource()),
             newSubtasks = emptyList(),
             inlineTitleEdit = null,
-            editSubtask = {},
+            editSubtask = { _, _ -> },
             changeSubtaskTitle = { _, _ -> },
             commitSubtaskTitle = {},
             subtaskTitleFocusLost = {},
+            onCursorRequestConsumed = { _, _ -> },
             openSubtask = {},
             completeExistingSubtask = { _, _ -> },
             completeNewSubtask = {},
@@ -417,10 +472,11 @@ fun SubtasksPreview() {
                 Task(),
             ),
             inlineTitleEdit = null,
-            editSubtask = {},
+            editSubtask = { _, _ -> },
             changeSubtaskTitle = { _, _ -> },
             commitSubtaskTitle = {},
             subtaskTitleFocusLost = {},
+            onCursorRequestConsumed = { _, _ -> },
             openSubtask = {},
             completeExistingSubtask = { _, _ -> },
             completeNewSubtask = {},

@@ -113,8 +113,8 @@ class SubtaskControlSet : TaskEditControlFragment() {
                 },
                 newSubtasks = viewState.newSubtasks,
                 inlineTitleEdit = inlineTitleEdit,
-                editSubtask = { task ->
-                    beginInlineTitleEdit(task)
+                editSubtask = { task, cursorOffset ->
+                    beginInlineTitleEdit(task, cursorOffset)
                 },
                 changeSubtaskTitle = { taskId, title ->
                     listViewModel.updateInlineTitleDraft(taskId, title)
@@ -127,6 +127,9 @@ class SubtaskControlSet : TaskEditControlFragment() {
                     if (state?.taskId == taskId && !state.saving) {
                         commitInlineTitleEdit()
                     }
+                },
+                onCursorRequestConsumed = { taskId, cursorRequestId ->
+                    listViewModel.clearInlineTitleCursorRequest(taskId, cursorRequestId)
                 },
                 openSubtask = { task ->
                     commitInlineTitleEdit(action = SubtaskTitleAction.OpenDetails(task))
@@ -171,13 +174,13 @@ class SubtaskControlSet : TaskEditControlFragment() {
         super.onPause()
     }
 
-    private fun beginInlineTitleEdit(task: Task) {
+    private fun beginInlineTitleEdit(task: Task, cursorOffset: Int? = null) {
         if (task.readOnly || listViewModel.inlineTitleEditState.value?.taskId == task.id) {
             return
         }
         commitInlineTitleEdit(
             preserveKeyboard = true,
-            action = SubtaskTitleAction.BeginEdit(task),
+            action = SubtaskTitleAction.BeginEdit(task, cursorOffset),
         )
     }
 
@@ -225,6 +228,7 @@ class SubtaskControlSet : TaskEditControlFragment() {
             is SubtaskTitleAction.BeginEdit -> listViewModel.beginInlineTitleEdit(
                 action.task.id,
                 savedTask?.takeIf { it.id == action.task.id }?.title ?: action.task.title,
+                cursorOffset = action.cursorOffset,
             )
         }
     }
