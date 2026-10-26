@@ -345,6 +345,10 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
 
         listViewModel.inlineTitleCommitResults
             .onEach { result ->
+                if (result == null) {
+                    return@onEach
+                }
+                listViewModel.clearInlineTitleCommitResult(result)
                 val action = pendingInlineTitleAction
                 val preserveKeyboard = preserveKeyboardForPendingInlineTitleAction
                 pendingInlineTitleAction = null

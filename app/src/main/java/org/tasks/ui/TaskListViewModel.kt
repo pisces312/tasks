@@ -121,9 +121,14 @@ class TaskListViewModel @Inject constructor(
     private val _inlineTitleSaveFailures = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val inlineTitleSaveFailures = _inlineTitleSaveFailures.asSharedFlow()
 
-    private val _inlineTitleCommitResults =
-        MutableSharedFlow<InlineTitleCommitResult>(extraBufferCapacity = 1)
-    val inlineTitleCommitResults = _inlineTitleCommitResults.asSharedFlow()
+    private val _inlineTitleCommitResults = MutableStateFlow<InlineTitleCommitResult?>(null)
+    val inlineTitleCommitResults = _inlineTitleCommitResults.asStateFlow()
+
+    fun clearInlineTitleCommitResult(result: InlineTitleCommitResult) {
+        if (_inlineTitleCommitResults.value?.taskId == result.taskId) {
+            _inlineTitleCommitResults.value = null
+        }
+    }
 
     fun beginInlineTitleEdit(
         taskId: Long,

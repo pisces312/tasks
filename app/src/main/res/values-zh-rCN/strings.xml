@@ -328,6 +328,9 @@
     <string name="always_display_full_date">显示完整日期</string>
     <string name="cancel">取消</string>
     <string name="ok">确定</string>
+    <string name="open_task_details">打开任务详情</string>
+    <string name="save_task_title">保存任务标题</string>
+    <string name="inline_title_save_failed">无法保存任务标题</string>
     <string name="custom_filter_is_subtask">是子任务</string>
     <string name="custom_filter_has_subtask">有子任务</string>
     <string name="current_subscription">当前订阅：%s</string>

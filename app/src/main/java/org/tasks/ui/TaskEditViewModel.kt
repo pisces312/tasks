@@ -187,6 +187,13 @@ class TaskEditViewModel @Inject constructor(
     private val _viewState = MutableStateFlow(originalState.value)
     val viewState: StateFlow<TaskEditViewState> = _viewState
 
+    /**
+     * Kept in the parent editor so a subtask action survives Fragment view recreation while its
+     * asynchronous title save is in flight. The action contains data only; it never captures a
+     * Fragment or Compose callback.
+     */
+    var pendingSubtaskTitleAction: SubtaskTitleAction? = null
+
     init {
         if (!preferences.shownBeastModeHint) {
             firebase?.logEvent(
