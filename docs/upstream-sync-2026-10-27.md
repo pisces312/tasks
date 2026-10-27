@@ -96,8 +96,8 @@ git switch main && git merge --ff-only sync/upstream-20261027
    属上游行为变更，fork 跟随、不另行加回，观察即可。
 4. **deps 快照缺 JGit 三行**：本次按约定选了"取上游"。若将来需要完整快照，本地跑
    `./update_dependency_diff`（需先从 GitHub release 下 `dependency-tree-diff.jar`）。
-5. **`git push` 未执行**：按约定需 user 明确确认。push 后 `fork-check.yml` 会跑
-   lint / jvmTest / iosTest / instrumentedTest×2。
+5. **已推送**：`ecfae7563a..c3d81b202c main -> main`，`fork-check.yml` 五个作业全绿
+   （见第 8 节）。真机验证（老库升级、EteSync 同步往返、备份导入）由用户手动完成并通过。
 
 ## 7. 验证记录（本地，2026-10-27）
 
@@ -115,3 +115,21 @@ git switch main && git merge --ff-only sync/upstream-20261027
 | `grep -c org.eclipse.jgit mapping.txt` | 31608 |
 | `values-in` / `values-iw` symlink 残留检查 | 无残留 |
 | 冲突标记残留 `grep -rl '^<<<<<<< '` | 无 |
+
+## 8. 推送与 CI
+
+| 项 | 值 |
+|---|---|
+| 推送 | `ecfae7563a..c3d81b202c  main -> main`（SSH，73 个提交） |
+| CI run | [40489772370](https://github.com/pisces312/tasks/actions/runs/40489772370) `Fork checks`，26 分钟，**全绿** |
+
+| 作业 | 结果 |
+|---|---|
+| `check / lint` | success |
+| `check / jvmTest` | success |
+| `check / iosTest` | success（Kotlin 2.4.10 的 iOS 链接无回归） |
+| `check / instrumentedTest (Generic, 29)` | success |
+| `check / instrumentedTest (Googleplay, 29)` | success |
+
+本次没有出现 2026-10-19 那类红灯（K/N 编译器 bug、`applicationIdSuffix` 撞上游新代码、
+导入器测试断言）——第 4 节列出的四处结构性变更在 CI 层都是干净的。
