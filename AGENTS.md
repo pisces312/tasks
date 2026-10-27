@@ -41,7 +41,7 @@ CI 由 `.github/workflows/fork-check.yml` 在 push 到 main 时触发，只调�
 
 | 主题 | 文档 |
 |---|---|
-| 模块、flavor、debug 包名契约、技术栈 | [`docs/architecture.md`](docs/architecture.md) |
+| 模块、flavor、debug 包名契约、技术栈、**任务列表 UI 的接线（排查 UI 问题前必读）** | [`docs/architecture.md`](docs/architecture.md) |
 | 构建命令、签名、JDK、ABI、本地跑仪器测试 | [`docs/build-and-environment.md`](docs/build-and-environment.md) |
 | 模拟器上手动验证 UI（装包、驱动、录屏、帧级位移测量） | [`.qoder/skills/tasks-emulator-verify/SKILL.md`](.qoder/skills/tasks-emulator-verify/SKILL.md) |
 | 多语言约定（只维护 en + zh-rCN） | [`docs/i18n.md`](docs/i18n.md) |
@@ -49,3 +49,5 @@ CI 由 `.github/workflows/fork-check.yml` 在 push 到 main 时触发，只调�
 | 最近一次合并与 CI 复查记录 | [`docs/upstream-sync-2026-10-19.md`](docs/upstream-sync-2026-10-19.md) |
 | Git 同步设计 | [`docs/git-sync-design.md`](docs/git-sync-design.md) |
 | 设置导入导出设计 | [`docs/settings-export-import-design.md`](docs/settings-export-import-design.md) |
+| 标题原地编辑 / 子任务标题原地编辑 | [`docs/inline-task-title-editing-design.md`](docs/inline-task-title-editing-design.md) |
+| 列表页快捷添加子任务入口（已设计未实现） | [`docs/subtask-quick-add-design.md`](docs/subtask-quick-add-design.md) |

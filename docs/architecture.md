@@ -61,12 +61,43 @@ debug 包名是 `org.tasks.debug`（`applicationIdSuffix = ".debug"`），可与
 
 合并上游之后的必查项见 [`upstream-merge-conventions.md`](upstream-merge-conventions.md) 5.1 / 5.2。
 
+## 任务列表 UI 的接线（排查 UI 问题前必读，2026-10-27 确认）
+
+手机 APK 的任务列表**不是** composeApp 的 KMP UI：
+
+- launcher `activity-alias com.todoroo.astrid.activity.TaskListActivity`（app manifest，enabled）
+  → `com.todoroo.astrid.activity.MainActivity` → NavHost `HomeDestination`
+  → `HomeScreen.kt`（`ListDetailPaneScaffold`）→ list pane 内嵌 `TaskListFragment`（RecyclerView）
+  → `TaskViewHolder` + `task_adapter_row.xml`；detail pane 是 `TaskEditFragment`。
+- `app` 模块只依赖 `data` + `kmp`，**不依赖 composeApp**；`composeApp` 的 `App.kt` /
+  `TaskRow.kt` 只服务 desktop / iOS 构建，不在手机 APK 里。**对着 TaskRow.kt 分析手机 UI
+  是错的**（2026-10-27 踩过：把 KMP UI 当成了生效实现）。
+- 上游正在把 Android 迁往 KMP UI；迁移完成前 UI 定制都落在 `TaskViewHolder` /
+  `task_adapter_row.xml`，切换后需要在新 `TaskRow` 复刻（轻交互定制复刻成本低，
+  长按/滑动类重交互在上游迁移期不建议做）。
+
+行内既有交互（评估新入口前先核对，勿冲突）：
+
+| 手势/区域 | 语义 | 出处 |
+|---|---|---|
+| 行尾 48dp 箭头（非编辑态） | 唯一详情入口（fork 定制，上游无此按钮） | [`inline-task-title-editing-design.md`](inline-task-title-editing-design.md) |
+| 点击标题文字 | 标题原地编辑（fork 定制；编辑态箭头变完成图标） | 同上 |
+| 长按任务行 | 多选 ActionMode；手动排序模式下拖动排序（`TaskListFragment.onLongPress`） | `TaskListFragment.kt` |
+| 横向拖动子任务行 | 子任务缩进/层级调整 | `DragAndDropRecyclerAdapter` |
+| chip 行（标题下方第二行，`chip_group`） | 展开按钮 `SubtaskChip`（仅 `hasChildren()` 时）+ 标签/地点/清单 chip | `TaskViewHolder.kt` |
+
+行高事实：单行任务行高由 48dp 元素（复选框、行尾箭头）锚定，标题下方有约 20dp
+视觉空隙；chip 行是 `wrap_content`，渲染时行高增至约 80dp——**没有硬预留的“第二行”**。
+
 ## fork 定制一览
 
 | 定制 | 位置 |
 |---|---|
 | Git 同步（JGit + mwiede jsch，含日志收集） | `app/`；设计见 [`git-sync-design.md`](git-sync-design.md) |
 | 设置导出 / 导入 | `app/`；设计见 [`settings-export-import-design.md`](settings-export-import-design.md) |
+| 标题原地编辑 + 行尾详情箭头 | `app/`；设计见 [`inline-task-title-editing-design.md`](inline-task-title-editing-design.md)、[`subtask-title-cursor-at-tap-design.md`](subtask-title-cursor-at-tap-design.md) |
+| 子任务标题原地编辑 | `app/`；设计见 [`inline-subtask-title-editing-design.md`](inline-subtask-title-editing-design.md) |
+| 列表页快捷添加子任务入口（已设计未实现） | 方案见 [`subtask-quick-add-design.md`](subtask-quick-add-design.md) |
 | debug 红图标 + `.debug` 包名 | 见上一节 |
 | ABI splits、环境变量签名 | `app/build.gradle.kts`；见 [`build-and-environment.md`](build-and-environment.md) |
 | 中文支持（桌面端等） | 见 [`i18n.md`](i18n.md) |

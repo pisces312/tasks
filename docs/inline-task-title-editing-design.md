@@ -190,3 +190,32 @@ ViewModel 不保存 Fragment 或 View 回调，只发布提交结果事件；当
 - 从一行标题切换到另一行时，旧行不出现 disabled 变色、旧标题回闪或全列表闪烁，输入法保持显示且不执行收起/展开动画。
 - 深色主题下保存中与退出编辑后的标题颜色保持稳定。
 - `generic` debug Kotlin 编译通过；正式交付仍遵循 `generic` + `arm64-v8a`。
+
+## KMP UI 迁移可行性评估（2026-10-27）
+
+上游把 Android 迁往 composeApp 的 KMP UI 后，本功能需要在 `TaskRow.kt` 复刻。
+评估结论：**技术可行，且老 UI 实现中的主要难点在 Compose 下会自然消失**；成本集中在
+跟随上游迁移节奏的维护，而非代码本身。
+
+现成可复用资产（均在 `kmp/`，新老 UI 共享）：
+
+1. 保存链路：`TaskSaver.save(preserveHierarchy = true)` 不变。
+2. 点击位置→光标：详情页子任务行内编辑的 `SubtaskTitleField` 已解决 caret 定位
+   （`cursorRectAt` + 偏移映射），即 [`subtask-title-cursor-at-tap-design.md`](subtask-title-cursor-at-tap-design.md) 那套。
+3. 输入组件：`MarkdownEditField` / `SubtaskTitleField` 都在 `commonMain`，跨平台可用。
+
+难点映射：
+
+| 老 UI 的难点 | KMP UI 下的情况 |
+|---|---|
+| RecyclerView 回收导致草稿串行 → payload 局部刷新 + 短期展示覆盖 | 状态提升到 ViewModel + 重组，问题不存在 |
+| 两行焦点切换保 IME 连接、临时 InputFilter 冻结 | `FocusRequester` + 状态切换，天然支持 |
+| `EditText` 与 `TextView` 同尺寸重叠防跳变 | 同一 slot 内 `BasicTextField` 替换 Markdown 展示 |
+| 拖动/多选与编辑态仲裁 | KMP UI 目前无拖动/多选，待上游实现后再补仲裁规则 |
+
+注意点：
+
+- composeApp 的 `MainActivity` 为 `windowSoftInputMode="adjustNothing"`，键盘遮挡需
+  `WindowInsets.ime` + `imePadding()` + 编辑行 `scrollToItem`。
+- `TaskRow` / `App.kt` 是上游迁移期改动最频繁的文件，重交互定制每次同步上游都要 rebase；
+  且上游当前行模型是“点击进详情”，是否自带行内编辑未知。**建议等上游 UI 迁移收尾后再平移**。
