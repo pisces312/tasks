@@ -21,6 +21,12 @@ class StripeCatalogTest {
         trialDays = trialDays,
     )
 
+    private fun ladder() = StripeCatalog(
+        support = (1..10).map { dollars ->
+            price("annual_" + dollars.toString().padStart(2, '0'), dollars * 100 - 1)
+        },
+    )
+
     @Test
     fun showsAnAnnualPriceAsAPerMonthFigure() {
         val annual = StripeCatalog.from(listOf(price("annual_30", 2999, entitles = true)))
@@ -36,6 +42,48 @@ class StripeCatalogTest {
         )
 
         assertEquals("${'$'}2.99", monthly.cloudMonthly?.formattedMonthlyPrice)
+    }
+
+    @Test
+    fun theSliderStopsAtWhatStripeSells() {
+        val catalog = StripeCatalog.from(listOf(price("annual_03", 299), price("annual_04", 399)))
+
+        assertEquals(listOf("annual_03", "annual_04"), catalog.supporterRungs.map { it.sku })
+    }
+
+    @Test
+    fun aMonthlyPriceAddsNoPositionOfItsOwn() {
+        val catalog = StripeCatalog.from(
+            listOf(
+                price("annual_12", 1199),
+                price("monthly_01", 99, StripePrice.INTERVAL_MONTH),
+            )
+        )
+
+        assertEquals(listOf("annual_12"), catalog.supporterRungs.map { it.sku })
+    }
+
+    @Test
+    fun aTierBeyondTheUsualLadderStillGetsARung() {
+        val catalog = StripeCatalog.from(listOf(price("annual_03", 299), price("annual_40", 3999)))
+
+        assertEquals(listOf(299, 3999), catalog.supporterRungs.map { it.amountCents })
+    }
+
+    @Test
+    fun ordersTheRungsCheapestFirst() {
+        val catalog = StripeCatalog(
+            support = listOf(price("annual_12", 1199), price("annual_03", 299)),
+        )
+
+        assertEquals(listOf(299, 1199), catalog.supporterRungs.map { it.amountCents })
+    }
+
+    @Test
+    fun noSupporterTierMeansNoSliderAtAll() {
+        val catalog = StripeCatalog.from(listOf(price("annual_30", 2999, entitles = true)))
+
+        assertTrue(catalog.supporterRungs.isEmpty())
     }
 
     @Test
@@ -157,5 +205,95 @@ class StripeCatalogTest {
     @Test
     fun anEmptyLadderSellsNothing() {
         assertTrue(StripeCatalog.from(emptyList()).isEmpty)
+    }
+
+    @Test
+    fun readsTheRungTheSliderLandsOn() {
+        val catalog = ladder()
+
+        assertEquals("annual_01", catalog.supporterRungAt(0f)?.sku)
+        assertEquals("annual_03", catalog.supporterRungAt(2f)?.sku)
+        assertEquals("annual_10", catalog.supporterRungAt(9f)?.sku)
+    }
+
+    @Test
+    fun aTickThatLandsJustShortStillReadsItsOwnRung() {
+        val catalog = ladder()
+
+        assertEquals("annual_03", catalog.supporterRungAt(1.9999999f)?.sku)
+        assertEquals("annual_02", catalog.supporterRungAt(0.9999999f)?.sku)
+        assertEquals("annual_04", catalog.supporterRungAt(3.0000002f)?.sku)
+    }
+
+    @Test
+    fun theSliderStaysInsideTheLadder() {
+        val catalog = ladder()
+
+        assertEquals("annual_01", catalog.supporterRungAt(-1f)?.sku)
+        assertEquals("annual_10", catalog.supporterRungAt(99f)?.sku)
+    }
+
+    @Test
+    fun aSingleRungIsTheOnlyPlaceTheSliderCanLand() {
+        val catalog = StripeCatalog(support = listOf(price("annual_01", 99)))
+
+        assertEquals("annual_01", catalog.supporterRungAt(1f)?.sku)
+    }
+
+    @Test
+    fun anEmptyLadderHasNoRungToLandOn() {
+        assertNull(StripeCatalog().supporterRungAt(0f))
+    }
+
+    @Test
+    fun opensOnTheRungMatchingTheSuggestedPrice() {
+        val catalog = ladder()
+
+        assertEquals(0, catalog.supporterRungFor(dollars = 1))
+        assertEquals(2, catalog.supporterRungFor(dollars = 3))
+        assertEquals(9, catalog.supporterRungFor(dollars = 10))
+    }
+
+    @Test
+    fun aRungPricedAPennyUnderTheDollarIsStillThatDollar() {
+        val catalog = ladder()
+
+        assertEquals(299, catalog.supporterRungAt(catalog.supporterRungFor(3).toFloat())?.amountCents)
+        assertEquals(999, catalog.supporterRungAt(catalog.supporterRungFor(10).toFloat())?.amountCents)
+    }
+
+    @Test
+    fun aSuggestionAboveTheLadderOpensOnItsTopRung() {
+        assertEquals(9, ladder().supporterRungFor(dollars = 50))
+    }
+
+    @Test
+    fun anEmptyLadderHasNoRungToOpenOn() {
+        assertEquals(-1, StripeCatalog().supporterRungFor(dollars = 10))
+    }
+
+    @Test
+    fun noSuggestionOpensOnTheDefaultRung() {
+        val catalog = ladder()
+
+        assertEquals(
+            catalog.supporterRungFor(dollars = DEFAULT_NAME_YOUR_PRICE),
+            catalog.supporterRungFor(dollars = null),
+        )
+    }
+
+    @Test
+    fun pairsEachRungWithTheMonthlyPriceOfTheSameTier() {
+        val catalog = StripeCatalog.from(
+            listOf(
+                price("annual_03", 299),
+                price("monthly_03", 299, StripePrice.INTERVAL_MONTH),
+                price("annual_05", 499),
+            )
+        )
+        val rungs = catalog.supporterRungs
+
+        assertEquals("monthly_03", catalog.supporterMonthlyFor(rungs[0])?.sku)
+        assertNull(catalog.supporterMonthlyFor(rungs[1]))
     }
 }

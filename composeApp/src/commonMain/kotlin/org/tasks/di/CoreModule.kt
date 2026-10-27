@@ -4,8 +4,15 @@ import org.tasks.viewmodel.EtebaseAccountSettingsViewModel
 import org.tasks.viewmodel.CaldavAccountSettingsViewModel
 import org.tasks.viewmodel.TasksAccountViewModel
 import org.tasks.viewmodel.GoogleTasksAccountViewModel
+import org.tasks.auth.PurchaseClaim
 import org.tasks.auth.TasksServerEnvironment
+import org.tasks.billing.StripeCheckouts
+import org.tasks.billing.StripeClient
+import org.tasks.billing.StripeClientImpl
+import org.tasks.billing.StripePurchases
+import org.tasks.billing.tasksSessionAuthorization
 import org.tasks.viewmodel.ProCardViewModel
+import org.tasks.viewmodel.StripeCheckoutViewModel
 import org.tasks.viewmodel.SubscriptionOnboardingViewModel
 import org.tasks.caldav.CaldavSynchronizer
 import org.tasks.caldav.TasksAccountDataRepository
@@ -35,9 +42,11 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.dsl.binds
 import org.koin.dsl.module
 import org.tasks.TaskEditDestination
 import org.tasks.analytics.Reporting
+import org.tasks.analytics.logCloudOnboarding
 import org.tasks.audio.SoundPlayer
 import org.tasks.broadcast.ComposeRefreshBroadcaster
 import org.tasks.broadcast.RefreshBroadcaster
@@ -531,6 +540,26 @@ val coreModule: Module = module {
     }
     singleOf(::TasksServerEnvironment)
     single { TasksAccountDataRepository(getOrNull(), get(), get()) }
+    single<StripeClient> {
+        StripeClientImpl(
+            httpClientFactory = get(),
+            caldavUrl = { get<TasksServerEnvironment>().caldavUrl },
+            json = get(),
+            authorization = { tasksSessionAuthorization(get(), get()) },
+        )
+    }
+    single {
+        StripePurchases(
+            client = get(),
+            entitlement = get(),
+            caldavDao = get(),
+            clientFactory = getOrNull(),
+            accountData = get(),
+            tasksPreferences = get(),
+            logOnboarding = { step -> get<Reporting>().logCloudOnboarding(step) },
+        ).also { it.claimOnSignIn(get()) }
+    } binds arrayOf(StripeCheckouts::class, PurchaseClaim::class)
+    viewModel { StripeCheckoutViewModel(purchases = get()) }
     single {
         PushTokenManager(
             tokenProvider = getOrNull() ?: object : FcmTokenProvider {

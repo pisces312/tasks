@@ -1,5 +1,9 @@
 package org.tasks.billing
 
+import kotlin.math.roundToInt
+
+const val DEFAULT_NAME_YOUR_PRICE = 10
+
 data class StripeCatalog(
     val cloud: List<StripePrice> = emptyList(),
     val support: List<StripePrice> = emptyList(),
@@ -12,6 +16,29 @@ data class StripeCatalog(
 
     fun price(sku: String?): StripePrice? =
         (cloud + support).firstOrNull { it.sku == sku }
+
+    val supporterRungs: List<StripePrice>
+        get() = support.filterNot { it.isMonthly }.sortedBy { it.amountCents }
+
+    fun supporterRungAt(position: Float): StripePrice? {
+        val rungs = supporterRungs
+        return if (rungs.isEmpty()) {
+            null
+        } else {
+            rungs[position.roundToInt().coerceIn(0, rungs.lastIndex)]
+        }
+    }
+
+    fun supporterRungFor(dollars: Int?): Int {
+        val rungs = supporterRungs
+        val cents = (dollars ?: DEFAULT_NAME_YOUR_PRICE) * 100
+        return rungs.indexOfFirst { it.amountCents + 1 >= cents }
+            .takeIf { it >= 0 }
+            ?: rungs.lastIndex
+    }
+
+    fun supporterMonthlyFor(rung: StripePrice): StripePrice? =
+        support.firstOrNull { it.isMonthly && it.amountCents == rung.amountCents }
 
     companion object {
         fun from(prices: List<StripePrice>): StripeCatalog {
