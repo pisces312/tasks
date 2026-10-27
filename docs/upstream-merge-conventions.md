@@ -2,7 +2,8 @@
 
 适用仓库：`pisces312/tasks`（fork 自 `tasks/tasks`）。
 本文是"合并上游"这件事的唯一权威约定；`AGENTS.md` 只保留入口与硬规则。
-最近一次执行记录：[`upstream-sync-2026-10-19.md`](./upstream-sync-2026-10-19.md)。
+最近一次执行记录：[`upstream-sync-2026-10-27.md`](./upstream-sync-2026-10-27.md)（上一次：
+[`upstream-sync-2026-10-19.md`](./upstream-sync-2026-10-19.md)）。
 
 ## 1. 总原则
 
@@ -64,7 +65,9 @@ comm -12 /tmp/fork.txt /tmp/up.txt
 
 | 文件/区域 | 约定 |
 |---|---|
-| `gradle.properties` / `libs.versions.toml` / wrapper | 采用上游版本；保留 fork 的仓库镜像（腾讯）；**不要**把凭据写回文件（签名一律用环境变量） |
+| `gradle.properties` / `libs.versions.toml` / wrapper | 采用上游版本；保留 fork 的仓库镜像（腾讯）；**不要**把凭据写回文件（签名一律用环境变量）。Kotlin 版本从 2026-10-27 起双方一致（2.4.10），fork 的 pin 补丁不必再单独维护 |
+| `deps_*.txt`（依赖树快照） | **直接取上游版本**（`git checkout --theirs`）。这些文件是 `update_dependency_diff` 生成的报告，不是构建输入；取上游后快照里不再含 fork 的 JGit/jsch 三行，属文档性缺失。要完整快照再本地跑 `./update_dependency_diff` |
+| etabase 依赖（`libs.etebase.android` / `libs.etebase.jvm`） | 2026-10-27 起已换成上游的 `org.tasks:etebase-*`（Maven Central），仓库内 `libs/client-jvm-2.3.2.jar` 已删。别把旧 jar 引用带回来 |
 | `app/build.gradle.kts` | 上游工具链参数照收；fork 的 `splits.abi`、`signingConfigs.release`（env var）、JGit/jsch 依赖、`buildTypes.debug` 覆盖必须保留 |
 | `app/src/debug/AndroidManifest.xml` | 红图标 + `tools:replace`、dmfs 权限 `tools:node="remove"` 保留；`allowBackup` 跟随上游 |
 | `kmp/build.gradle.kts` | 上游工具链/依赖照收；`android.buildTypes.debug` 的 `APPLICATION_ID` buildConfigField 必须保留（见 5.2） |
@@ -154,6 +157,23 @@ grep -rn "GitSyncLogCollector" app/src/{debug,release}/java/org/tasks/BuildSetup
   # 若有输出（且是文件不是目录）：git rm 掉
   ```
 
+### 5.8 数据库驱动与备份恢复路径
+
+上游 2026-10-27 起把 bundled sqlite 用于**所有** Android 版本（`data` 模块的
+`setBundledDriver()`），并删掉了原 `ProductionModule` 里的 `setDriver()`
+（那个版本只在 API<30 用 bundled，且设置了 `setQueryCoroutineContext(Dispatchers.IO)`）。
+合并后要确认：
+
+```bash
+grep -n "setBundledDriver\|setQueryCoroutineContext\|setDriver" \
+  app/src/main/java/org/tasks/injection/ProductionModule.kt \
+  data/src/commonMain/kotlin/org/tasks/data/db/DatabaseBuilder.kt
+```
+
+- 老库升级到该版本后由 bundled 驱动打开，需真机确认迁移脚本与备份导入正常；
+- `TasksFileBackupHelper` 现在先把 `filesDir/backup.json` 复制到 `cacheDir` 再导入，
+  确认 fork 的 Git 快照（写 `filesDir`）没有被这条路径影响。
+
 ## 6. 验证标准（缺一不可）
 
 ```bash
@@ -190,6 +210,8 @@ grep -rl '^<<<<<<< ' . --exclude-dir=build --exclude-dir=.git --exclude-dir=.gra
 | Git 同步 `tasks.json` 无法通过"导入备份"还原 | 导出器无 `"data"` 包裹，导入器只认 `version`/`timestamp`/`data`（合并前即存在） | 属已知限制；要支持需给导出器加包裹 |
 | `androidTest` 编译报符号链接错误 | Windows 不支持仓库内 symlink | 使用上游 `app/src/sharedTest/java` |
 | `values-in` / `values-iw` 变成 9 字节文本文件 | 同上，git 检出 symlink 失败 | 见 5.7，直接删除，靠 `values-id` / `values-he` |
+| `deps_fdroid.txt` / `deps_googleplay.txt` 冲突 | fork 的 JGit/jsch 与上游依赖升级在同一段快照里 | 不是代码冲突，取上游版本即可（见第 4 节） |
+| EteSync 同步在合并后行为异常 | 2026-10-27 上游把 etebase 从 `com.etebase:client` 2.3.2（仓库内 jar）换成 `org.tasks:etebase-*` beta02 | 依赖解析走 Maven Central，真机验一次 EteSync 登录 + 双向同步 |
 
 ## 8. 记录要求
 
