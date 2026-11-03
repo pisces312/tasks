@@ -3,6 +3,7 @@ package org.tasks.ui.editviewmodel
 import androidx.lifecycle.SavedStateHandle
 import com.todoroo.astrid.activity.TaskEditFragment
 import com.todoroo.astrid.alarms.AlarmService
+import com.todoroo.astrid.service.SubtaskCreator
 import org.tasks.data.dao.TaskDao
 import org.tasks.data.TaskSaver
 import com.todoroo.astrid.gcal.GCalHelper
@@ -51,6 +52,7 @@ open class BaseTaskEditViewModelTest : InjectingTestCase() {
     @Inject lateinit var alarmDao: AlarmDao
     @Inject lateinit var userActivityDao: UserActivityDao
     @Inject lateinit var caldavDao: CaldavDao
+    @Inject lateinit var subtaskCreator: SubtaskCreator
 
     protected lateinit var viewModel: TaskEditViewModel
 
@@ -82,8 +84,6 @@ open class BaseTaskEditViewModelTest : InjectingTestCase() {
             db.tagDao(),
             db.tagDataDao(),
             preferences,
-            db.googleTaskDao(),
-            db.caldavDao(),
             taskCompleter,
             alarmService,
             MutableSharedFlow(),
@@ -91,6 +91,7 @@ open class BaseTaskEditViewModelTest : InjectingTestCase() {
             taskAttachmentDao = db.taskAttachmentDao(),
             alarmDao = db.alarmDao(),
             defaultFilterProvider = defaultFilterProvider,
+            subtaskCreator = subtaskCreator,
         )
     }
 

@@ -292,6 +292,23 @@ class SubtasksFilterUpdater @Inject constructor(
         applyToFilter(filter)
     }
 
+    suspend fun onCreateSubtask(
+        list: TaskListMetadata?,
+        filter: AstridOrderingFilter,
+        parentUuid: String?,
+        uuid: String,
+    ) {
+        if (idToNode.containsKey(uuid) || !isValidUuid(uuid)) {
+            return
+        }
+        val parentNode = idToNode[parentUuid] ?: return
+        val newNode = Node(uuid, parentNode, parentNode.indent + 1)
+        parentNode.children.add(0, newNode)
+        idToNode[uuid] = newNode
+        writeSerialization(list, serializeTree())
+        applyToFilter(filter)
+    }
+
     suspend fun onDeleteTask(list: TaskListMetadata?, filter: AstridOrderingFilter, taskId: String?) {
         val task = idToNode[taskId] ?: return
         val parent = task.parent

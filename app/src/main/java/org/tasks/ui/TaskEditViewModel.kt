@@ -15,6 +15,7 @@ import org.tasks.data.TaskSaver
 import com.todoroo.astrid.files.FilesControlSet
 import com.todoroo.astrid.gcal.GCalHelper
 import com.todoroo.astrid.repeats.RepeatControlSet
+import com.todoroo.astrid.service.SubtaskCreator
 import org.tasks.resources.getString
 import org.tasks.service.TaskCompleter
 import org.tasks.data.getDefaultAlarms
@@ -48,8 +49,6 @@ import org.tasks.calendars.CalendarEventProvider
 import org.tasks.data.Location
 import org.tasks.data.createDueDate
 import org.tasks.data.dao.AlarmDao
-import org.tasks.data.dao.CaldavDao
-import org.tasks.data.dao.GoogleTaskDao
 import org.tasks.data.dao.LocationDao
 import org.tasks.data.dao.TagDao
 import org.tasks.data.dao.TagDataDao
@@ -61,7 +60,6 @@ import org.tasks.data.entity.Alarm.Companion.TYPE_REL_START
 import org.tasks.data.entity.Attachment
 import org.tasks.data.entity.CaldavAccount
 import org.tasks.data.entity.CaldavCalendar
-import org.tasks.data.entity.CaldavTask
 import org.tasks.data.entity.SYNC_ALARMS
 import org.tasks.data.entity.SYNC_LOCATION
 import org.tasks.data.entity.SYNC_TAGS
@@ -106,8 +104,6 @@ class TaskEditViewModel @Inject constructor(
     private val tagDao: TagDao,
     private val tagDataDao: TagDataDao,
     private val preferences: Preferences,
-    private val googleTaskDao: GoogleTaskDao,
-    private val caldavDao: CaldavDao,
     private val taskCompleter: TaskCompleter,
     private val alarmService: AlarmService,
     private val taskListEvents: TaskListEventBus,
@@ -116,6 +112,7 @@ class TaskEditViewModel @Inject constructor(
     private val alarmDao: AlarmDao,
     private val taskAttachmentDao: TaskAttachmentDao,
     private val defaultFilterProvider: DefaultFilterProvider,
+    private val subtaskCreator: SubtaskCreator,
 ) : ViewModel() {
     private val resources = context.resources
     private var cleared = false
@@ -398,44 +395,13 @@ class TaskEditViewModel @Inject constructor(
             if (Strings.isNullOrEmpty(subtask.title)) {
                 continue
             }
-            if (!subtask.isCompleted) {
-                subtask.completionDate = task.completionDate
-            }
-            taskDao.createNew(subtask)
-            alarmDao.insert(subtask.getDefaultAlarms(preferences.isDefaultDueTimeEnabled()))
+            subtaskCreator.saveSubtask(
+                parent = task,
+                subtask = subtask,
+                list = selectedList,
+                addToTop = if (isNew) false else preferences.addTasksToTop(),
+            )
             firebase?.addTask("subtasks")
-            when {
-                selectedList.isGoogleTasks -> {
-                    val googleTask = CaldavTask(
-                        task = subtask.id,
-                        calendar = selectedList.uuid,
-                        remoteId = null,
-                    )
-                    subtask.parent = task.id
-                    googleTask.isMoved = true
-                    googleTaskDao.insertAndShift(
-                        task = subtask,
-                        caldavTask = googleTask,
-                        top = if (isNew) false else preferences.addTasksToTop()
-                    )
-                }
-                else -> {
-                    val caldavTask = CaldavTask(
-                        task = subtask.id,
-                        calendar = selectedList.uuid,
-                    )
-                    subtask.parent = task.id
-                    if (selectedList.account.pushesRemoteParent) {
-                        caldavTask.remoteParent = caldavDao.getRemoteIdForTask(task.id)
-                    }
-                    taskSaver.save(subtask, null)
-                    caldavDao.insert(
-                        task = subtask,
-                        caldavTask = caldavTask,
-                        addToTop = if (isNew) false else preferences.addTasksToTop()
-                    )
-                }
-            }
         }
 
         if (originalState.value.attachments != _viewState.value.attachments) {

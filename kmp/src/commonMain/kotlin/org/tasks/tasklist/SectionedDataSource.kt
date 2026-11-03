@@ -23,6 +23,25 @@ class SectionedDataSource(
 
     fun getItem(position: Int): TaskContainer = tasks[sectionedPositionToPosition(position)]
 
+    /**
+     * Locates a row by scanning the flat task list instead of walking sectioned positions.
+     *
+     * [size] is `tasks.size + sections.size`, but [getItem] resolves a non-header position with
+     * `position - headerCount`. When sections and tasks disagree (collapsed groups, tasks without a
+     * sort group) those two counts drift apart and walking `0 until size` runs off the end of
+     * `tasks`. Deriving the sectioned position from the task index keeps both numbers from the same
+     * source, so the result is always a valid row.
+     */
+    fun findTask(predicate: (TaskContainer) -> Boolean): Pair<Int, TaskContainer>? {
+        val index = tasks.indexOfFirst(predicate)
+        if (index < 0) {
+            return null
+        }
+        val sectionedPosition =
+            index + sections.count { (_, section) -> section.firstPosition <= index }
+        return sectionedPosition to tasks[index]
+    }
+
     fun getHeaderValue(position: Int): Long = getSection(position).value
 
     val groupsEnabled: Boolean

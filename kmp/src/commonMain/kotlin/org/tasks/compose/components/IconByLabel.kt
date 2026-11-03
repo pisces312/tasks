@@ -48,17 +48,23 @@ fun SymbolIcon(
     Box(modifier.then(semantics).size(24.dp).symbol(name, tint, filled))
 }
 
+/**
+ * @param contentDescription announced label of the icon, defaulting to [label]. Pass `null` for
+ * decorative icons whose meaning is already carried by an ancestor (e.g. a button label), so the
+ * icon name is not merged into the parent's announcement.
+ */
 @Composable
 fun TasksIcon(
     modifier: Modifier = Modifier,
     label: String?,
     tint: Color = MaterialTheme.colorScheme.onSurface,
     size: Dp = 24.dp,
+    contentDescription: String? = label,
 ) {
     val name = label?.iconName
-    val semantics = if (label != null && iconExists(name)) {
+    val semantics = if (contentDescription != null && iconExists(name)) {
         Modifier.semantics {
-            contentDescription = label
+            this.contentDescription = contentDescription
             role = Role.Image
         }
     } else {

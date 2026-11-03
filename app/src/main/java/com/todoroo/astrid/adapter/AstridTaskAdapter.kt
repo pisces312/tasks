@@ -67,6 +67,9 @@ class AstridTaskAdapter internal constructor(
 
     override suspend fun onTaskCreated(uuid: String) = updater.onCreateTask(list, filter, uuid)
 
+    override suspend fun onSubtaskCreated(parentUuid: String, uuid: String) =
+        updater.onCreateSubtask(list, filter, parentUuid, uuid)
+
     override suspend fun onTaskDeleted(task: Task) = updater.onDeleteTask(list, filter, task.uuid)
 
     override suspend fun onCompletedTask(uuid: String, newState: Boolean) {

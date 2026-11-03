@@ -80,13 +80,15 @@
       app:hideOnScroll="true"
       app:navigationIcon="@drawable/ic_outline_menu_24px"/>
 
-  <com.google.android.material.floatingactionbutton.FloatingActionButton
+  <!-- Extended so it can expand to a labelled "add subtask" action while a single task is
+       selected, and shrink back to the plain add button otherwise -->
+  <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
       android:id="@+id/fab"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:contentDescription="@string/action_create_new_task"
+      app:icon="@drawable/ic_outline_add_24px"
       app:layout_anchor="@id/bottomAppBar"
-      app:layout_anchorGravity="top|end"
-      app:srcCompat="@drawable/ic_outline_add_24px"/>
+      app:layout_anchorGravity="top|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

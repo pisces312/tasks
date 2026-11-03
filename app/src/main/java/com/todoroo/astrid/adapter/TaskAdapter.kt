@@ -174,6 +174,8 @@ open class TaskAdapter(
 
     open suspend fun onTaskCreated(uuid: String) {}
 
+    open suspend fun onSubtaskCreated(parentUuid: String, uuid: String) {}
+
     open suspend fun onTaskDeleted(task: Task) {}
 
     open fun supportsHiddenTasks(): Boolean = true

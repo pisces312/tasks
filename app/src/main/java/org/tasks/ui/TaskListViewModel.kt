@@ -130,6 +130,20 @@ class TaskListViewModel @Inject constructor(
         }
     }
 
+    // Subtasks created from the list screen whose title the user has not committed yet. They are
+    // dropped again if the committed title is still blank. Kept here rather than in the fragment so
+    // a configuration change does not lose the marker while the edit session survives.
+    private val uncommittedSubtasks = mutableSetOf<Long>()
+
+    fun markUncommittedSubtask(taskId: Long) {
+        uncommittedSubtasks.add(taskId)
+    }
+
+    fun isUncommittedSubtask(taskId: Long): Boolean = taskId in uncommittedSubtasks
+
+    /** @return true if [taskId] was still marked, i.e. the caller is the one dropping it. */
+    fun forgetUncommittedSubtask(taskId: Long): Boolean = uncommittedSubtasks.remove(taskId)
+
     fun beginInlineTitleEdit(
         taskId: Long,
         title: String?,

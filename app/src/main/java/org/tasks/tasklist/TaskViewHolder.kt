@@ -30,6 +30,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.doAfterTextChanged
 import com.google.android.material.color.MaterialColors
 import org.tasks.R
+import org.tasks.compose.chips.AddSubtaskChip
 import org.tasks.compose.chips.ChipGroup
 import org.tasks.compose.chips.FilterChip
 import org.tasks.compose.StartDateChip
@@ -562,6 +563,8 @@ class TaskViewHolder internal constructor(
         val appearance = preferences.getIntegerFromString(R.string.p_chip_appearance, 0)
         val showText = appearance != 2
         val showIcon = appearance != 1
+        val canAddSubtask = children > 0 && !task.isReadOnly && filter.isWritable
+        val addSubtaskContentDescription = context.getString(R.string.subtask_add)
         val toggleSubtasks = { task: Long, collapsed: Boolean -> callback.toggleSubtasks(task, collapsed) }
         val onClick = { it: Filter -> callback.onClick(it) }
         chipGroup.setContent {
@@ -580,6 +583,12 @@ class TaskViewHolder internal constructor(
                             collapsed = collapsed,
                             children = chipCount,
                             onClick = { toggleSubtasks(id, !collapsed) }
+                        )
+                    }
+                    if (canAddSubtask) {
+                        AddSubtaskChip(
+                            contentDescription = addSubtaskContentDescription,
+                            onClick = { callback.onAddSubtask(this@TaskViewHolder) }
                         )
                     }
                     if (
@@ -683,6 +692,7 @@ class TaskViewHolder internal constructor(
         fun onOutsideClick(taskViewHolder: TaskViewHolder)
         fun onClick(filter: Filter)
         fun toggleSubtasks(task: Long, collapsed: Boolean)
+        fun onAddSubtask(taskViewHolder: TaskViewHolder)
         fun onLongPress(taskViewHolder: TaskViewHolder): Boolean
         fun onChangeDueDate(task: TaskContainer)
     }

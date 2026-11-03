@@ -23,6 +23,11 @@ CI 由 `.github/workflows/fork-check.yml` 在 push 到 main 时触发，只调�
 `build.sh` 在 Windows 上必须用 Git Bash（`D:\dev\git\bin\bash.exe`），不能用 WSL 的 bash。
 完整命令、签名、JDK、ABI、模拟器跑仪器测试见 [`docs/build-and-environment.md`](docs/build-and-environment.md)。
 
+**模拟器直接装 arm64 包，不要为模拟器另建 x86_64**：本机 AVD（`pixel6`）虽是
+`abi.type=x86_64`（android-34 google_apis），但 API 30+ 镜像自带 ARM 转译，
+`adb install app/build/outputs/apk/generic/debug/app-generic-arm64-v8a-debug.apk` 可直接运行。
+这样上机验证的就是交付用的同一份产物，不必多跑一次构建。
+
 ## 硬规则
 
 1. **只 commit，不 push**；push 需用户显式确认。

@@ -97,7 +97,7 @@ debug 包名是 `org.tasks.debug`（`applicationIdSuffix = ".debug"`），可与
 | 设置导出 / 导入 | `app/`；设计见 [`settings-export-import-design.md`](settings-export-import-design.md) |
 | 标题原地编辑 + 行尾详情箭头 | `app/`；设计见 [`inline-task-title-editing-design.md`](inline-task-title-editing-design.md)、[`subtask-title-cursor-at-tap-design.md`](subtask-title-cursor-at-tap-design.md) |
 | 子任务标题原地编辑 | `app/`；设计见 [`inline-subtask-title-editing-design.md`](inline-subtask-title-editing-design.md) |
-| 列表页快捷添加子任务入口（已设计未实现） | 方案见 [`subtask-quick-add-design.md`](subtask-quick-add-design.md) |
+| 列表页原地添加子任务（长按 → FAB 变身 → chip "+" 接力） | `app/`；设计见 [`subtask-quick-add-design.md`](subtask-quick-add-design.md) |
 | debug 红图标 + `.debug` 包名 | 见上一节 |
 | ABI splits、环境变量签名 | `app/build.gradle.kts`；见 [`build-and-environment.md`](build-and-environment.md) |
 | 中文支持（桌面端等） | 见 [`i18n.md`](i18n.md) |

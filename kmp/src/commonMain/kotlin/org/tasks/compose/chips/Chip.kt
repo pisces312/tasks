@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -49,6 +51,12 @@ fun Chip(
     )
 }
 
+/**
+ * @param contentDescription label announced for the whole chip. Surface applies its clickable to
+ * the same layout node as this modifier, so the description and the click action end up in one
+ * semantics node; wrapping the chip in a parent `Modifier.semantics(mergeDescendants = true)`
+ * instead would produce two nodes (a labelled one without an action, plus an unlabelled button).
+ */
 @Composable
 fun Chip(
     text: String? = null,
@@ -57,6 +65,7 @@ fun Chip(
     onClick: () -> Unit = {},
     enabled: Boolean = true,
     clear: (() -> Unit)? = null,
+    contentDescription: String? = null,
 ) {
     val onColor = Color(contentColor(color.toArgb()))
     CompositionLocalProvider(
@@ -67,7 +76,15 @@ fun Chip(
             enabled = enabled,
             shape = MaterialTheme.shapes.small,
             color = color,
-            modifier = Modifier.defaultMinSize(minHeight = 26.dp),
+            modifier = Modifier
+                .defaultMinSize(minHeight = 26.dp)
+                .then(
+                    if (contentDescription == null) {
+                        Modifier
+                    } else {
+                        Modifier.semantics { this.contentDescription = contentDescription }
+                    }
+                ),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -75,7 +92,13 @@ fun Chip(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
                 icon?.let {
-                    TasksIcon(label = it, tint = onColor, size = 18.dp)
+                    TasksIcon(
+                        label = it,
+                        tint = onColor,
+                        size = 18.dp,
+                        // otherwise the icon name is merged into the chip's announcement as well
+                        contentDescription = it.takeIf { contentDescription == null },
+                    )
                 }
                 text?.let {
                     Text(

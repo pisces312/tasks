@@ -50,6 +50,7 @@ import androidx.core.content.IntentCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -76,6 +77,7 @@ import com.todoroo.astrid.adapter.TaskAdapterProvider
 import com.todoroo.astrid.api.AstridApiConstants.EXTRAS_OLD_DUE_DATE
 import com.todoroo.astrid.api.AstridApiConstants.EXTRAS_TASK_ID
 import com.todoroo.astrid.repeats.RepeatTaskHelper
+import com.todoroo.astrid.service.SubtaskCreator
 import com.todoroo.astrid.service.TaskCreator
 import com.todoroo.astrid.service.TaskDuplicator
 import org.tasks.data.TaskMover
@@ -85,10 +87,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.tasks.LocalBroadcastManager
 import org.tasks.R
 import org.tasks.ShortcutManager
@@ -207,6 +211,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
     @Inject lateinit var taskDao: TaskDao
     @Inject lateinit var taskSaver: TaskSaver
     @Inject lateinit var taskDuplicator: TaskDuplicator
+    @Inject lateinit var subtaskCreator: SubtaskCreator
     @Inject lateinit var tagDataDao: TagDataDao
     @Inject lateinit var caldavDao: CaldavDao
     @Inject lateinit var defaultThemeColor: ThemeColor
@@ -242,6 +247,9 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
     private var hasWritableList = true
     private var pendingInlineTitleAction: ((Task?) -> Unit)? = null
     private var preserveKeyboardForPendingInlineTitleAction = false
+    // task the FAB creates a subtask under while the FAB is repurposed, null for "create task"
+    private var fabSubtaskParent: TaskContainer? = null
+    private var fabRepurposed = false
     private val listPickerLauncher = registerForListPickerResult {
         val selected = taskAdapter.getSelected()
         lifecycleScope.launch {
@@ -367,6 +375,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
                     inlineTitleEditState?.taskId,
                     committedTask = result.task,
                 )
+                result.task?.let { forgetOrDiscardNewSubtask(it) }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -507,7 +516,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             swipeRefreshLayout = bodyStandard.swipeLayout
             emptyRefreshLayout = bodyEmpty.swipeLayoutEmpty
             recyclerView = bodyStandard.recyclerView
-            fab.setOnClickListener { createNewTask() }
+            fab.setOnClickListener { onFabClicked() }
             fab.isVisible = filter.isWritable
         }
         themeColor = if (filter.tint != 0) colorProvider.getThemeColor(filter.tint, true) else defaultThemeColor
@@ -587,7 +596,8 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         binding.systemBarScrim.setBackgroundColor((scrimColor and 0x00FFFFFF) or 0xCC000000.toInt()) // 80% opacity
         with (binding.fab) {
             backgroundTintList = ColorStateList.valueOf(themeColor.primaryColor)
-            imageTintList = ColorStateList.valueOf(themeColor.colorOnPrimary)
+            // ExtendedFloatingActionButton is a MaterialButton, so the icon tint is iconTint
+            iconTint = ColorStateList.valueOf(themeColor.colorOnPrimary)
         }
         with (binding.bottomAppBar) {
             setOnMenuItemClickListener(this@TaskListFragment)
@@ -993,6 +1003,57 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         }
     }
 
+    /**
+     * The FAB doubles as "add subtask" while exactly one writable task is selected, so a subtask
+     * can be added without leaving the list. Selecting anything else (or nothing) restores the
+     * original "create task" behaviour.
+     */
+    private fun onFabClicked() {
+        val parent = fabSubtaskParent
+        if (parent != null && isActionModeActive) {
+            finishActionMode()
+            lifecycleScope.launch { addSubtask(parent) }
+        } else {
+            createNewTask()
+        }
+    }
+
+    private fun updateFabForSelection() {
+        if (!::binding.isInitialized || !::taskAdapter.isInitialized) {
+            return
+        }
+        val selected = if (isActionModeActive) taskAdapter.getSelected() else emptyList()
+        val container = selected.singleOrNull()?.let(::findContainerById)
+        val parent = container
+            ?.takeIf { !it.isReadOnly }
+            ?.takeIf { filter.isWritable }
+        fabSubtaskParent = parent
+        val repurposed = parent != null
+        binding.fab.contentDescription = getString(
+            if (repurposed) R.string.subtask_add else R.string.action_create_new_task
+        )
+        if (repurposed == fabRepurposed) {
+            return
+        }
+        fabRepurposed = repurposed
+        if (!binding.fab.isLaidOut) {
+            // extend()/shrink() measure the final width, so run once the FAB has been laid out
+            binding.fab.doOnNextLayout { applyFabState() }
+            return
+        }
+        applyFabState()
+    }
+
+    private fun applyFabState() {
+        if (fabRepurposed) {
+            // set the label before extending so the animation measures the final width
+            binding.fab.text = getString(R.string.subtask_add)
+            binding.fab.extend()
+        } else {
+            binding.fab.shrink()
+        }
+    }
+
     private fun createNewTask() = lifecycleScope.launch {
         if (hasWritableList) {
             shortcutManager.reportShortcutUsed(ShortcutManager.SHORTCUT_NEW_TASK)
@@ -1311,6 +1372,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             taskAdapter.clearSelections()
             recyclerAdapter?.notifyDataSetChanged()
         }
+        updateFabForSelection()
     }
 
     private fun showDateTimePicker(task: TaskContainer) {
@@ -1343,6 +1405,7 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             val count = max(1, taskAdapter.numSelected)
             mode!!.title = count.toString()
         }
+        updateFabForSelection()
     }
 
     private fun deleteSelectedItems(tasks: List<Long>) = lifecycleScope.launch {
@@ -1413,6 +1476,23 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
         afterCommit: ((task: Task?) -> Unit)? = null,
     ) {
         val editingTaskId = inlineTitleEditState?.taskId
+        if (
+            editingTaskId != null &&
+            listViewModel.isUncommittedSubtask(editingTaskId) &&
+            inlineTitleEditState?.draftTitle.isNullOrBlank()
+        ) {
+            // A subtask added from the list screen exists only because the user wanted to type a
+            // title on it. Committing an empty draft would keep a meaningless row, and the
+            // view model's "no change" fast path would never report back to drop it.
+            pendingInlineTitleAction = null
+            preserveKeyboardForPendingInlineTitleAction = false
+            listViewModel.cancelInlineTitleEdit()
+            activity?.hideKeyboard()
+            afterCommit?.invoke(null)
+            rebindInlineTitleRows(editingTaskId)
+            discardBlankSubtask(editingTaskId)
+            return
+        }
         if (editingTaskId == null) {
             afterCommit?.invoke(null)
             rebindInlineTitleRows(inlineTitleEditState?.taskId)
@@ -1554,6 +1634,112 @@ class TaskListFragment : Fragment(), OnRefreshListener, Toolbar.OnMenuItemClickL
             }
         }
     }
+
+    /**
+     * Creates a subtask under [taskViewHolder]'s task and starts inline title editing on it,
+     * without opening the task detail screen. Triggered by the "+" chip next to the subtask chip.
+     */
+    override fun onAddSubtask(taskViewHolder: TaskViewHolder) {
+        val container = taskViewHolder.task
+        // Inline editing is unavailable while the selection ActionMode is up (title taps toggle the
+        // selection), so leave it first — the same sequence the FAB takes.
+        if (isActionModeActive) {
+            finishActionMode()
+        }
+        commitInlineTitleEdit {
+            lifecycleScope.launch {
+                addSubtask(container)
+            }
+        }
+    }
+
+    private suspend fun addSubtask(container: TaskContainer) {
+        if (container.isReadOnly || !filter.isWritable) {
+            return
+        }
+        val parent = taskDao.fetch(container.id) ?: return
+        if (parent.readOnly) {
+            return
+        }
+        // a collapsed parent would hide the new row
+        taskSaver.setCollapsed(parent.id, false)
+        val subtask = subtaskCreator.createSubtask(parent) ?: return
+        firebase.addTask("subtasks")
+        listViewModel.markUncommittedSubtask(subtask.id)
+        taskAdapter.onSubtaskCreated(parent.uuid, subtask.uuid)
+        loadTaskListContent()
+        revealSubtask(subtask)
+    }
+
+    /**
+     * Drops a subtask that was created from the list screen but committed without a title, so the
+     * list does not accumulate blank rows. Only tasks this screen created are considered.
+     */
+    private fun discardBlankSubtask(taskId: Long) {
+        if (!listViewModel.forgetUncommittedSubtask(taskId)) {
+            return
+        }
+        lifecycleScope.launch {
+            val deleted = withContext(NonCancellable) { listViewModel.markDeleted(listOf(taskId)) }
+            deleted.forEach { taskAdapter.onTaskDeleted(it) }
+            loadTaskListContent()
+            makeSnackbar(R.string.subtask_add_discarded)?.show()
+        }
+    }
+
+    /**
+     * Clears the pending marker of a subtask created from this screen once it has a real title,
+     * and drops it when the commit did not produce one.
+     */
+    private fun forgetOrDiscardNewSubtask(task: Task) {
+        if (!listViewModel.isUncommittedSubtask(task.id)) {
+            return
+        }
+        if (!task.title.isNullOrBlank()) {
+            listViewModel.forgetUncommittedSubtask(task.id)
+            return
+        }
+        discardBlankSubtask(task.id)
+    }
+
+    private suspend fun revealSubtask(subtask: Task) {
+        val uuid = subtask.uuid
+        // the reload runs on the query/diff threads, so poll the adapter instead of racing the
+        // state flow: submitList() is applied after the emission that carries the new row
+        val appeared = withTimeoutOrNull(3000) {
+            while (rowPosition(uuid) == null) {
+                delay(30)
+            }
+            true
+        }
+        val position = if (appeared == null) null else rowPosition(uuid)
+        if (position == null) {
+            // The current sort mode or grouping does not render subtask rows (or the row never
+            // showed up), so there is nothing to scroll to and no row to edit in place. The
+            // subtask exists at this point, so report it instead of returning silently.
+            makeSnackbar(R.string.subtask_added)?.show()
+            return
+        }
+        binding.bodyStandard.recyclerView.scrollToPosition(position)
+        listViewModel.beginInlineTitleEdit(subtask.id, subtask.title.orEmpty())
+        rebindInlineTitleRows(subtask.id)
+    }
+
+    /**
+     * Resolves a row by asking the adapter to scan the flat task list.
+     *
+     * Walking `0 until itemCount` and calling `getItem` looks equivalent but is not:
+     * `SectionedDataSource.size` counts tasks plus section headers while `getItem` maps a
+     * non-header position by subtracting the header count, and the two disagree once groups are
+     * collapsed or a task has no sort group. That mismatch threw
+     * `IndexOutOfBoundsException` on real data with grouping enabled.
+     */
+    private fun findRow(predicate: (TaskContainer) -> Boolean): Pair<Int, TaskContainer>? =
+        recyclerAdapter?.findRow(predicate)
+
+    private fun rowPosition(uuid: String): Int? = findRow { it.uuid == uuid }?.first
+
+    private fun findContainerById(id: Long): TaskContainer? = findRow { it.id == id }?.second
 
     private inner class RepeatConfirmationReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {

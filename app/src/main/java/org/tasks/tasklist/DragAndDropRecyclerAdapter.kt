@@ -92,6 +92,9 @@ class DragAndDropRecyclerAdapter(
 
     override fun getItem(position: Int) = items.getItem(position)
 
+    /** Resolves a row without trusting the sectioned position space; see [SectionedDataSource.findTask]. */
+    fun findRow(predicate: (TaskContainer) -> Boolean) = items.findTask(predicate)
+
     override fun diff(last: SectionedDataSource, next: SectionedDataSource) =
         DiffUtil.calculateDiff(DiffCallback(last, next, adapter), next.size < LONG_LIST_SIZE)
 

@@ -234,6 +234,9 @@
     <string name="SSD_sort_my_order">我的顺序</string>
     <string name="expand_subtasks">展开子任务</string>
     <string name="collapse_subtasks">收起子任务</string>
+    <string name="subtask_add">添加子任务</string>
+    <string name="subtask_added">已添加子任务</string>
+    <string name="subtask_add_discarded">已移除空白子任务</string>
     <string name="subtasks">子任务</string>
     <string name="display_name">显示名称</string>
     <string name="choose_synchronization_service">选择平台</string>
